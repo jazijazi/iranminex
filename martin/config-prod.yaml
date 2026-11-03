@@ -1,0 +1,114 @@
+
+base_path: null
+cache:
+  expiry: null
+  idle_timeout: null
+  maxzoom: null
+  minzoom: null
+  size_mb: 512
+  tile_expiry: null
+  tile_idle_timeout: null
+  tile_size_mb: 256
+convert_to_mlt:
+  allow_fpf: null
+  allow_fsst: null
+  allow_shared_dict: null
+  tessellate: null
+  try_id_sort: null
+  try_spatial_hilbert_sort: null
+  try_spatial_morton_sort: null
+convert_to_mvt: {}
+cors:
+  max_age: 3600
+  origin:
+    - '*'
+fonts:
+  cache:
+    expiry: null
+    idle_timeout: null
+    size_mb: 64
+  paths: []
+  sources: {}
+keep_alive: 75
+listen_addresses: 0.0.0.0:3000
+mbtiles:
+  convert_to_mlt:
+    allow_fpf: null
+    allow_fsst: null
+    allow_shared_dict: null
+    tessellate: null
+    try_id_sort: null
+    try_spatial_hilbert_sort: null
+    try_spatial_morton_sort: null
+  convert_to_mvt: {}
+  paths: []
+  sources: {}
+observability:
+  metrics:
+    add_labels: {}
+on_invalid: warn
+pmtiles:
+  convert_to_mlt:
+    allow_fpf: null
+    allow_fsst: null
+    allow_shared_dict: null
+    tessellate: null
+    try_id_sort: null
+    try_spatial_hilbert_sort: null
+    try_spatial_morton_sort: null
+  convert_to_mvt: {}
+  directory_cache:
+    expiry: null
+    idle_timeout: null
+    size_mb: 64
+  paths: []
+  reload_interval: 10m
+  sources: {}
+postgres:
+  auto_bounds: quick
+  auto_publish:
+    from_schemas:
+      - public
+    functions:
+      from_schemas:
+        - public
+      source_id_format: '{schema}.{function}'
+    tables:
+      from_schemas:
+        - public
+      buffer: 64
+      clip_geom: true
+      extent: 4096
+      source_id_format: "{schema}.{table}"
+  connection_string: $DATABASE_URL
+  convert_to_mlt:
+    allow_fpf: null
+    allow_fsst: null
+    allow_shared_dict: null
+    tessellate: null
+    try_id_sort: null
+    try_spatial_hilbert_sort: null
+    try_spatial_morton_sort: null
+  convert_to_mvt: {}
+  default_srid: 4326
+  functions: {}
+  max_feature_count: null
+  pool_size: 20
+  tables: {}
+preferred_encoding: brotli
+route_prefix: /mapvectorservice
+sprites:
+  cache:
+    expiry: null
+    idle_timeout: null
+    size_mb: 64
+  paths: []
+  sources: {}
+styles:
+  paths: []
+  rendering:
+    enabled: false
+    workers: null
+  sources: {}
+tilejson_url_version_param: version
+worker_processes: 4

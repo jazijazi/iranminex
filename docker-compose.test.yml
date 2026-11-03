@@ -97,6 +97,33 @@ services:
         max-size: "50m"
         max-file: "5"
 
+  martin:
+    image: ghcr.io/maplibre/martin:latest
+    container_name: iranminex_martin
+    expose:
+      - "3000"
+    env_file:
+      - .env
+    volumes:
+      - ./martin/config-prod.yaml:/config.yaml:ro
+    command: ["--config", "/config.yaml", "--webui", "disable"]
+    networks:
+      - iranminexnet
+    healthcheck:
+      test: ["CMD", "sh", "-c", "wget -qO- http://localhost:3000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    depends_on:
+      - pgbouncer
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "10"
+
   web:
     build:
       context: ./backend
@@ -204,6 +231,7 @@ services:
         max-file: "8"
     depends_on:
       - web
+      - martin
     restart: unless-stopped
 
 networks:
