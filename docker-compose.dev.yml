@@ -84,37 +84,6 @@ services:
     volumes:
       - redisinsight:/data
 
-  pgtile:
-    build:
-      context: ./pgtile
-    container_name: iranminex_pgtile
-    ports:
-      - "7801:7800"
-    #By default, pg_tile works with a .toml file, which is copied to the container via the Dockerfile.
-    #You can overwrite this using an environment variable (the variable name must be in the format <TS_(UPPERCASE_NAME)>).
-    environment:
-      - TS_URLBASE=http://localhost:7801/
-    depends_on:
-      - db
-    #DATABASE_URL must be defined within the .env file.
-    env_file:
-      - .env 
-    networks:
-      - iranminexnet
-    healthcheck:
-      test: ["CMD", "sh", "-c", "curl -sf http://localhost:7800/health || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-    restart: unless-stopped
-    # deploy:
-    #   resources:
-    #     limits:
-    #       memory: 512M
-    #     reservations:
-    #       memory: 256M
-
   titiler:
     build:
       context: ./titiler

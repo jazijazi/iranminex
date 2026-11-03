@@ -10,7 +10,6 @@ The **ProjectDocs** directory contains all other project-related documents.
 
 - **Django REST Framework**: Robust API development
 - **PostGIS**: Spatial database functionality with PostgreSQL 16 + PostGIS 3.5
-- **pg_tileserv**: Vector tile serving for geospatial data
 - **Redis**: Caching and session management
 - **Docker**: Containerized development and production environments
 - **Hybrid Development Setup**: Python runs locally in development, fully containerized in production
@@ -22,7 +21,6 @@ The **ProjectDocs** directory contains all other project-related documents.
 - **Backend**: Python, Django, Django REST Framework
 - **Database**: PostgreSQL 16 with PostGIS 3.5 extension (postgis/postgis:16-3.5-alpine)
 - **Cache**: Redis 8.0.1 (Alpine)
-- **Tile Server**: pg_tileserv (custom build)
 - **Web Server**: Nginx (production only)
 - **Containerization**: Docker & Docker Compose
 - **Geospatial**: PostGIS for spatial operations, custom raster processing
@@ -68,7 +66,7 @@ The production environment requires specific host directories with proper permis
 
 ### Development Environment
 
-**Architecture**: Django runs locally, supporting services (PostgreSQL, Redis, pg_tileserv) run in Docker containers.
+**Architecture**: Django runs locally, supporting services (PostgreSQL, Redis) run in Docker containers.
 
 1. **Clone the repository**
    ```bash
@@ -112,7 +110,6 @@ The production environment requires specific host directories with proper permis
 **Development URLs:**
 - **Django API**: http://localhost:8000
 - **Django Admin**: http://localhost:8000/admin/
-- **pg_tileserv**: http://localhost:7801
 - **PostgreSQL**: localhost:5432
 - **Redis**: localhost:6379
 
@@ -187,11 +184,6 @@ DEBUG=0
 ALLOWED_HOSTS=your-domain.com,www.your-domain.com
 ```
 
-### pg_tileserv Configuration
-```env
-TS_URLBASE=http://localhost:7801/
-```
-
 ## 🗺 Geospatial Features
 
 ### PostGIS Capabilities
@@ -199,9 +191,6 @@ TS_URLBASE=http://localhost:7801/
 - **Spatial Operations**: Intersection, union, buffer, distance calculations
 - **Coordinate Systems**: Support for multiple SRID transformations
 - **Spatial Indexing**: Optimized queries with GiST indexes
-
-### Vector Tile Services
-Access vector tiles at: `http://localhost:7801/{schema}.{table}.{z}.{x}.{y}.pbf`
 
 ### Raster Processing
 The `/var/iranminex/raster/` directory handles:
@@ -293,13 +282,6 @@ docker compose -f docker-compose.prod.yml restart web
 - **Eviction Policy**: LRU (Least Recently Used)
 - **Volume**: Named volume `redis_data`
 - **Memory Management**: Optimized for caching and session storage
-
-### pg_tileserv
-- **Build Context**: Custom Docker build from `./pgtile`
-- **Configuration**: TOML-based with custom settings
-- **Features**: Vector tile generation, spatial queries, web interface
-- **Health Checks**: HTTP endpoint monitoring on port 7800
-- **URL Configuration**: Configurable via `TS_URLBASE`
 
 ### Nginx (Production Only)
 - **Purpose**: Reverse proxy, static file serving, SSL termination

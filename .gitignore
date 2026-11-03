@@ -153,9 +153,6 @@ poetry.toml
 # LSP config files
 pyrightconfig.json
 
-#PGTILE
-pg_tileserv
-
 #RASTER
 raster/
 
