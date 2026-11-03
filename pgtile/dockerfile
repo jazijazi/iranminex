@@ -1,0 +1,39 @@
+FROM alpine:latest
+
+# Install security updates and necessary packages
+RUN apk update && \
+    apk upgrade && \
+    apk add --no-cache \
+        libc6-compat \
+        curl \
+        ca-certificates \
+        tzdata && \
+    rm -rf /var/cache/apk/*
+
+# Create non-root user for security
+RUN addgroup -g 1001 -S pgtile && \
+    adduser -u 1001 -S pgtile -G pgtile
+
+WORKDIR /app
+
+# Copy files with proper ownership
+COPY --chown=pgtile:pgtile pg_tileserv.toml .
+COPY --chown=pgtile:pgtile assets ./assets
+COPY --chown=pgtile:pgtile pg_tileserv .
+COPY --chown=pgtile:pgtile run-pg_tileserv.sh .
+
+# Verify files exist and set permissions
+RUN ls -la /app/ && \
+    chmod +x /app/pg_tileserv /app/run-pg_tileserv.sh
+
+# Switch to non-root user
+USER pgtile
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost:7800/health || exit 1
+
+EXPOSE 7800
+
+# Use the shell script as entrypoint
+ENTRYPOINT ["./run-pg_tileserv.sh"]

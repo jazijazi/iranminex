@@ -1,0 +1,245 @@
+services:
+  db:
+    build:
+      context: ./postgredb
+      dockerfile: ./Dockerfile
+    container_name: iranminex_postgis_db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      # Add the SECRET_KEY as PostgreSQL configuration
+      PGOPTIONS: "-c app.jwt_secret=${SECRET_KEY}"
+    volumes:
+    - iranminexpgdata:/var/lib/postgresql/data
+    env_file:
+      - .env
+    networks:
+      - iranminexnet
+    expose:
+      - "5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+    restart: unless-stopped
+
+  pgbouncer:
+    image: edoburu/pgbouncer:v1.24.1-p1
+    container_name: iranminex_pgbouncer
+    ports:
+      - "5432:5432"
+    environment:
+      DB_HOST: db 
+      DB_PORT: 5432
+      DB_NAME: ${POSTGRES_DB}
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      POOL_MODE: transaction
+      MAX_CLIENT_CONN: 1000
+      DEFAULT_POOL_SIZE: 25
+      MIN_POOL_SIZE: 10
+      RESERVE_POOL_SIZE: 5
+      MAX_DB_CONNECTIONS: 50
+      MAX_USER_CONNECTIONS: 50
+      AUTH_TYPE: scram-sha-256
+    networks:
+      - iranminexnet
+        #depends_on:
+      #db:
+      #condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "env pg_isready -h localhost -p 5432 -U $POSTGRES_USER"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+
+  redis:
+    image: redis:8.0.1-alpine
+    container_name: iranminex_redis
+      #ports:
+      # - "${REDIS_PORT}:6379"
+    volumes:
+      - iranminexredis_data:/data
+    env_file:
+      - .env
+    networks:
+      - iranminexnet
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    command: >
+      redis-server 
+      --appendonly yes 
+      --appendfsync everysec
+      --maxmemory-policy allkeys-lru
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+
+  pgtile:
+    build:
+      context: ./pgtile
+    container_name: iranminex_pgtile
+    environment:
+      - TS_URLBASE=http://93.118.114.46:5000/
+        #depends_on:
+      #- db
+    #DATABASE_URL must be defined within the .env file.
+    env_file:
+      - .env 
+    networks:
+      - iranminexnet
+    healthcheck:
+      test: ["CMD", "curl" , "-f" , "http://0.0.0.0:7800/mapservice/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "10"
+
+  web:
+    build:
+      context: ./backend
+      dockerfile: ./Dockerfile.prod
+      args:
+        UID: ${UID}   # host UID
+        GID: ${GID}   # host GID
+    container_name: iranminex_web
+    user: "${UID}:${GID}"
+    command: ["/app/startup.sh"]
+    volumes:
+      - ${RASTER_ROOT}:${RASTER_ROOT} 
+      - ${MEDIA_ROOT}:${MEDIA_ROOT} 
+      - ${STATIC_ROOT}:${STATIC_ROOT} 
+      - ${LOGS_ROOT}:${LOGS_ROOT}
+      - /var/mediabck/:/var/mediabck/
+      - /var/raster:/var/raster
+        #- /var/mediabck:/var/mediabck
+      # - "/var/frontend:/var/www/iranminex"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/common/healthcheck/"]
+      interval: 40s
+      timeout: 20s
+      retries: 8
+      start_period: 60s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "300m"
+        max-file: "8"
+    expose:
+      - "8000"
+    env_file:
+      - .env
+    networks:
+      - iranminexnet
+    depends_on:
+        #- db
+      - redis
+
+
+  titiler:
+    build:
+      context: ./titiler
+      dockerfile: Dockerfile.prod
+      args:
+        UID: ${UID}   # host UID
+        GID: ${GID}   # host GID
+    container_name: iranminex_titiler
+      #ports:
+      #- "8008:8008"
+    expose:
+      - "8001"
+    environment:
+      - TITILER_HOST=0.0.0.0
+      - TITILER_PORT=8001
+      - TITILER_ROOT_PATH=/maprasterservice
+      - FORWARDED_ALLOW_IPS=*
+        #- TITILER_ROOT_PATH=${TITILER_ROOT_PATH}        
+    command: ["/starttitiler.sh"]
+      #depends_on:
+      #- db
+    env_file:
+      - .env 
+    networks:
+      - iranminexnet
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+    restart: unless-stopped
+    volumes:
+      - ${RASTER_ROOT}:/app/raster
+
+  nginx:
+    image: nginx:1.28.0-alpine3.21
+    container_name: iranminex_nginx
+    ports:
+      - 5000:5000
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ${SSL_DIR}:/etc/nginx/ssl  # For SSL certificates
+      - ${RASTER_ROOT}:${RASTER_ROOT} 
+      - ${MEDIA_ROOT}:${MEDIA_ROOT} 
+      - ${STATIC_ROOT}:${STATIC_ROOT}
+      - /appdata/googlesat:/appdata/googlesat
+      - ${FRONT_ROOT}:/var/www/iranminex
+      - ${GLYPHS_ROOT}:/var/iranminex/glyphs
+      - ${TERRAINTILES_ROOT}:${TERRAINTILES_ROOT}
+      - /var/googlesat/:/var/googlesat
+    networks:
+      - iranminexnet
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "8"
+    depends_on:
+      - web
+      - pgtile 
+    restart: unless-stopped
+
+networks:
+  iranminexnet:
+    name: iranminexnet
+    driver: bridge
+
+volumes:
+  iranminexpgdata:
+    driver: local
+  iranminexredis_data:
+     driver: local

@@ -1,0 +1,74 @@
+CREATE OR REPLACE FUNCTION decode_jwt_with_key(
+    token text,
+    alg text DEFAULT 'HS256'
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+STABLE
+AS $$
+DECLARE
+    result record;
+    payload_json jsonb;
+    secret text;
+    exp_epoch bigint;
+    now_epoch bigint := FLOOR(EXTRACT(EPOCH FROM clock_timestamp()))::bigint;
+BEGIN
+    -- 1. Load secret from Postgres settings
+    BEGIN
+        secret := current_setting('myapp.jwt_secret', true);
+    EXCEPTION
+        WHEN OTHERS THEN
+            RAISE EXCEPTION
+            USING ERRCODE = '22023',
+                  MESSAGE = 'JWT error: secret not configured (set myapp.jwt_secret)';
+    END;
+
+    -- 2. Validate token input
+    IF token IS NULL OR length(token) < 10 THEN
+        RAISE EXCEPTION
+        USING ERRCODE = '22023',
+              MESSAGE = 'JWT error: token missing or too short';
+    END IF;
+
+    -- 3. Verify signature
+    result := verify(token, secret, alg);
+
+    IF result.valid IS DISTINCT FROM TRUE THEN
+        RAISE EXCEPTION
+        USING ERRCODE = '22023',
+                MESSAGE = 'JWT error: signature mismatch (wrong secret, token altered, or algorithm mismatch)';
+    END IF;
+
+    -- 4. Parse payload into JSONB
+    BEGIN
+        payload_json := result.payload::jsonb;
+    EXCEPTION
+        WHEN OTHERS THEN
+            RAISE EXCEPTION
+            USING ERRCODE = '22023',
+                  MESSAGE = format('JWT error: payload is not valid JSON (%s)', result.payload);
+    END;
+
+    -- 5. Check expiration (if present)
+    IF payload_json ? 'exp' THEN
+        BEGIN
+            exp_epoch := (payload_json->>'exp')::bigint;
+        EXCEPTION
+            WHEN OTHERS THEN
+                RAISE EXCEPTION
+                USING ERRCODE = '22023',
+                      MESSAGE = 'JWT error: exp claim is not a valid number';
+        END;
+
+        IF exp_epoch < now_epoch THEN
+            RAISE EXCEPTION
+            USING ERRCODE = '22023',
+                  MESSAGE = 'JWT error: token has expired';
+        END IF;
+    END IF;
+
+    -- 6. Return the payload if all checks pass
+    RETURN payload_json;
+
+END;
+$$;

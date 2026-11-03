@@ -1,0 +1,228 @@
+CREATE OR REPLACE FUNCTION public.initialbotdersbydtypcode_filter(
+    z integer,
+    x integer,
+    y integer,
+    dtypcode integer,
+    token text
+)
+RETURNS bytea
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    result bytea;
+    pl_jwt_payload jsonb;
+    pl_user_id integer;
+    dyn_buffer integer := LEAST(512, GREATEST(16, 2^(z - 10)));  -- Dynamic buffer based on zoom level
+BEGIN
+
+    -- Require token
+    IF token IS NULL OR token = '' THEN
+        RAISE WARNING 'No JWT token provided for initiladborder with dtarh code';
+        RETURN '\x'::bytea;
+    END IF;
+
+    BEGIN
+        -- Decode JWT payload
+        pl_jwt_payload := decode_jwt_with_key(token)::jsonb;
+        -- Extract user_id
+        pl_user_id := (pl_jwt_payload->>'user_id')::integer;
+
+    EXCEPTION
+        WHEN OTHERS THEN
+            RAISE WARNING 'JWT validation failed for initiladborder with dtarh code: %: %', dtypcode, SQLERRM;
+            RETURN '\x'::bytea;
+    END;
+
+
+    IF dtypcode = 404 THEN  -- Pahneh
+        WITH bounds AS (
+            SELECT ST_TileEnvelope(z, x, y) AS geom
+        ),
+        mvtgeom AS (
+            SELECT 
+                ST_AsMVTGeom(ST_Transform(t.border, 3857), bounds.geom, 4096, dyn_buffer, true) AS geom,
+                -- t.*,
+                -- pahneh.*,
+                t.id,
+                t.dtyp_id,
+                t.title as "عنوان محدوده",
+                pahneh.name as "نام",
+                pahneh.masahat as "مساحت",
+                pahneh.malekiyat as "مالکیت",
+                pahneh.ostan as "استان",
+                pahneh.shahrestan as "شهرستان"
+            FROM public.initialborders_initialborder t
+            JOIN public.initialborders_initialbordermetadatapahneh pahneh ON pahneh.rinitialborder_id = t.id
+            JOIN public.initialborders_initialborderdomin dtyp ON dtyp.id = t.dtyp_id
+            CROSS JOIN bounds
+            WHERE ST_Intersects(t.border, ST_Transform(bounds.geom, 4326))
+              AND dtyp.code = dtypcode
+        )
+        SELECT ST_AsMVT(mvtgeom, 'default') INTO result FROM mvtgeom;
+
+    ELSIF dtypcode = 22 THEN  -- Darkhast Ekteshaf
+        WITH bounds AS (
+            SELECT ST_TileEnvelope(z, x, y) AS geom
+        ),
+        mvtgeom AS (
+            SELECT 
+                ST_AsMVTGeom(ST_Transform(t.border, 3857), bounds.geom, 4096, dyn_buffer, true) AS geom,
+                -- t.*,
+                -- dark.*
+                t.id,
+                t.dtyp_id,
+                t.title as "عنوان محدوده",
+                dark.name as "نام ",
+                dark.masahat as "مساحت",
+                dark.malekiyat as "مالکیت",
+                dark.ostan as "استان",
+                dark.shahrestan as "شهرستان",
+                dark.cadastre as "شماره کاداستر",
+                dark.noemademadani as "نوع ماده معدنی",
+                dark.organs as "ارگان های استعلام شونده"
+            FROM public.initialborders_initialborder t
+            JOIN public.initialborders_initialbordermetadatadarkhastekteshaf dark ON dark.rinitialborder_id = t.id
+            JOIN public.initialborders_initialborderdomin dtyp ON dtyp.id = t.dtyp_id
+            CROSS JOIN bounds
+            WHERE ST_Intersects(t.border, ST_Transform(bounds.geom, 4326))
+              AND dtyp.code = dtypcode
+        )
+        SELECT ST_AsMVT(mvtgeom, 'default') INTO result FROM mvtgeom;
+
+    ELSIF dtypcode = 33 THEN  -- Parvaneh Ekteshaf
+        WITH bounds AS (
+            SELECT ST_TileEnvelope(z, x, y) AS geom
+        ),
+        mvtgeom AS (
+            SELECT 
+                ST_AsMVTGeom(ST_Transform(t.border, 3857), bounds.geom, 4096, dyn_buffer, true) AS geom,
+                -- t.*,
+                -- parv.*
+                t.id,
+                t.dtyp_id,
+                t.title as "عنوان محدوده",
+                parv.name as "نام",
+                parv.masahat as "مساحت",
+                parv.malekiyat as "مالکیت",
+                parv.ostan as "استان",
+                parv.shahrestan as "شهرستان",
+                parv.cadastre as "شماره کاداستر",
+                parv.noemademadani as "نوع ماده معدنی",
+                parv.shomareparvaneh as "شماره پروانه",
+                parv.tarikhparvane as "تاریخ پروانه",
+                parv.tarikhetebar as "تاریخ اعتبار"
+            FROM public.initialborders_initialborder t
+            JOIN public.initialborders_initialbordermetadataparvaneekteshaf parv ON parv.rinitialborder_id = t.id
+            JOIN public.initialborders_initialborderdomin dtyp ON dtyp.id = t.dtyp_id
+            CROSS JOIN bounds
+            WHERE ST_Intersects(t.border, ST_Transform(bounds.geom, 4326))
+              AND dtyp.code = dtypcode
+        )
+        SELECT ST_AsMVT(mvtgeom, 'default') INTO result FROM mvtgeom;
+
+    ELSIF dtypcode = 44 THEN  -- Govahi Kashf
+        WITH bounds AS (
+            SELECT ST_TileEnvelope(z, x, y) AS geom
+        ),
+        mvtgeom AS (
+            SELECT 
+                ST_AsMVTGeom(ST_Transform(t.border, 3857), bounds.geom, 4096, dyn_buffer, true) AS geom,
+                -- t.*,
+                -- govah.*
+                t.id,
+                t.dtyp_id,
+                t.title as "عنوان محدوده",
+                govah.name as "نام",
+                govah.masahat as "مساحت",
+                govah.malekiyat as "مالکیت",
+                govah.ostan as "استان",
+                govah.shahrestan as "شهرستان",
+                govah.cadastre as "شماره کاداستر",
+                govah.noemademadani as "نوع ماده معدنی",
+                govah.shomareparvaneh as "شماره پروانه",
+                govah.tarikhparvane as "تاریخ پروانه",
+                govah.tarietebargovahi as "تاریخ اعتبار گواهی",
+                govah.zakhireehtemali as "ذخیره احتمالی به تن",
+                govah.zakhireghatei as "ذخیره قطعی به تن",
+                govah.ayarehad as "عیار حد به درصد",
+                govah.ayaremeyangin as "عیار میانگین به درصد",
+                govah.shomaregovahikashf as "شماره گواهی کشف",
+                govah.tarikhsodurgivahikashf as "تاریخ صدور گواهی کشف"
+            FROM public.initialborders_initialborder t
+            JOIN public.initialborders_initialbordermetadatagovahikashf govah ON govah.rinitialborder_id = t.id
+            JOIN public.initialborders_initialborderdomin dtyp ON dtyp.id = t.dtyp_id
+            CROSS JOIN bounds
+            WHERE ST_Intersects(t.border, ST_Transform(bounds.geom, 4326))
+              AND dtyp.code = dtypcode
+        )
+        SELECT ST_AsMVT(mvtgeom, 'default') INTO result FROM mvtgeom;
+
+    ELSIF dtypcode = 55 THEN  -- Parvaneh Bahrebardari
+        WITH bounds AS (
+            SELECT ST_TileEnvelope(z, x, y) AS geom
+        ),
+        mvtgeom AS (
+            SELECT 
+                ST_AsMVTGeom(ST_Transform(t.border, 3857), bounds.geom, 4096, dyn_buffer, true) AS geom,
+                -- t.*,
+                -- bahre.*
+                t.id,
+                t.dtyp_id,
+                t.title as "عنوان محدوده",
+                bahre.name as "نام",
+                bahre.masahat as "مساحت",
+                bahre.malekiyat as "مالکیت",
+                bahre.ostan as "استان",
+                bahre.shahrestan as "شهرستان",
+                bahre.cadastre as "شماره کاداستر",
+                bahre.noemademadani as "نوع ماده معدنی",
+                bahre.shomareparvaneh as "شماره پروانه",
+                bahre.tarikhparvane as "تاریخ پروانه",
+                bahre.tarietebarparvane as "تاریخ اعتبار پروانه",
+                bahre.zakhireehtemali as "ذخیره احتمالی به تن",
+                bahre.zakhireghatei as "ذخیره قطعی به تن",
+                bahre.ayarehad as "عیار حد به درصد",
+                bahre.ayaremeyangin as "عیار میانگین به درصد",
+                bahre.estekhrajsaleyane as "استخراج سالیانه به تن"
+            FROM public.initialborders_initialborder t
+            JOIN public.initialborders_initialbordermetadataparvanebahrebardai bahre ON bahre.rinitialborder_id = t.id
+            JOIN public.initialborders_initialborderdomin dtyp ON dtyp.id = t.dtyp_id
+            CROSS JOIN bounds
+            WHERE ST_Intersects(t.border, ST_Transform(bounds.geom, 4326))
+              AND dtyp.code = dtypcode
+        )
+        SELECT ST_AsMVT(mvtgeom, 'default') INTO result FROM mvtgeom;
+
+    ELSIF dtypcode = 303 THEN  -- Potansielyabi
+        WITH bounds AS (
+            SELECT ST_TileEnvelope(z, x, y) AS geom
+        ),
+        mvtgeom AS (
+            SELECT 
+                ST_AsMVTGeom(ST_Transform(t.border, 3857), bounds.geom, 4096, dyn_buffer, true) AS geom,
+                -- t.*,
+                -- pot.*
+                t.id,
+                t.dtyp_id,
+                t.title as "عنوان محدوده",
+                pot.name as "نام",
+                pot.masahat as "مساحت",
+                pot.malekiyat as "مالکیت",
+                pot.ostan as "استان",
+                pot.shahrestan as "شهرستان"
+            FROM public.initialborders_initialborder t
+            JOIN public.initialborders_initialbordermetadatapotansielyabi pot ON pot.rinitialborder_id = t.id
+            JOIN public.initialborders_initialborderdomin dtyp ON dtyp.id = t.dtyp_id
+            CROSS JOIN bounds
+            WHERE ST_Intersects(t.border, ST_Transform(bounds.geom, 4326))
+              AND dtyp.code = dtypcode
+        )
+        SELECT ST_AsMVT(mvtgeom, 'default') INTO result FROM mvtgeom;
+
+    ELSE
+        result := NULL;
+    END IF;
+
+    RETURN result;
+END;
+$$;

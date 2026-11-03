@@ -1,0 +1,36 @@
+
+
+# This service starts the iranminex Docker Compose stack on boot
+
+# create it via command
+# sudo nano /etc/systemd/system/iranminex.service
+# sudo systemctl daemon-reload
+# sudo systemctl enable iranminex.service
+# sudo systemctl start iranminex.service
+
+[Unit]
+Description=iranminex Docker Compose App
+# Make sure Docker and full network are ready before we start
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+# oneshot = our command exits immediately (because of -d flag), that's normal
+Type=oneshot
+# Keep the service marked as "active" even after the command exits
+RemainAfterExit=yes
+
+WorkingDirectory=/var/iranminex/app
+
+# Command to bring the stack up
+ExecStart=/usr/bin/docker compose -f /var/iranminex/app/docker-compose.prod.yml up -d --remove-orphans
+# Command to bring the stack down cleanly
+ExecStop=/usr/bin/docker compose -f /var/iranminex/app/docker-compose.prod.yml down
+
+# Give Docker up to 5 minutes to start all containers before giving up
+TimeoutStartSec=300
+
+[Install]
+# Start this service when the system is fully booted (standard for servers)
+WantedBy=multi-user.target

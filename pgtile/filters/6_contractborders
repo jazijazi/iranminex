@@ -1,0 +1,78 @@
+-- Drop existing function if it exists
+DROP FUNCTION IF EXISTS public.contracts_contractborder_filter(integer, integer, integer, text);
+
+-- Create the new version with dynamic buffer
+CREATE OR REPLACE FUNCTION public.contracts_contractborder_filter(
+    z integer,
+    x integer,
+    y integer,
+    token text,
+    contractborder_id text DEFAULT '5fccebe1-b3f7-445a-888c-4fd548381323'
+)
+RETURNS bytea
+LANGUAGE plpgsql
+COST 100
+STABLE PARALLEL SAFE
+AS $$
+DECLARE
+    result bytea;
+    pl_jwt_payload jsonb;
+    pl_user_id integer;
+
+BEGIN
+    -- Require token
+    IF token IS NULL OR token = '' THEN
+        RAISE WARNING 'No JWT token provided for initiladborder with dtarh code';
+        RETURN '\x'::bytea;
+    END IF;
+
+    BEGIN
+        -- Decode JWT payload
+        pl_jwt_payload := decode_jwt_with_key(token)::jsonb;
+        -- Extract user_id
+        pl_user_id := (pl_jwt_payload->>'user_id')::integer;
+
+    EXCEPTION
+        WHEN OTHERS THEN
+            RAISE WARNING 'JWT validation failed for contractborder with uuid: %: %', contractborder_id, SQLERRM;
+            RETURN '\x'::bytea;
+    END;
+
+
+
+    WITH 
+    bounds AS (
+        SELECT ST_TileEnvelope(z, x, y) AS geom
+    ),
+    buffer_config AS (
+        SELECT 
+            CASE
+                WHEN z <= 8 THEN 1024
+                WHEN z <= 12 THEN 512
+                WHEN z <= 14 THEN 256
+                ELSE 128
+            END AS buffer_size
+    ),
+    mvtgeom AS (
+        SELECT 
+            ST_AsMVTGeom(
+                ST_Transform(t.border, 3857),
+                bounds.geom,
+                4096,
+                buffer_config.buffer_size,
+                true  -- clip geometry
+            ) AS geom,
+            t.id::text AS border_id
+        FROM public.contracts_contractborder t
+        CROSS JOIN bounds
+        CROSS JOIN buffer_config
+        WHERE ST_Intersects(t.border, ST_Transform(bounds.geom, 4326))
+          AND t.id::text = contractborder_id::text
+    )
+    SELECT ST_AsMVT(mvtgeom, 'default')
+    INTO result
+    FROM mvtgeom;
+
+    RETURN result;
+END;
+$$;

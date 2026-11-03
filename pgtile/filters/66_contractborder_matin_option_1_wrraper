@@ -1,0 +1,22 @@
+CREATE OR REPLACE FUNCTION public.contracts_contractborder_filter_martin(
+    z integer,
+    x integer,
+    y integer,
+    query_params json
+)
+RETURNS bytea
+LANGUAGE plpgsql
+COST 100
+STABLE PARALLEL SAFE
+AS $$
+BEGIN
+    -- Simply call your original function
+    RETURN public.contracts_contractborder_filter(
+        z,
+        x,
+        y,
+        query_params->>'token',
+        COALESCE(query_params->>'contractborder_id', '5fccebe1-b3f7-445a-888c-4fd548381323')
+    );
+END;
+$$;

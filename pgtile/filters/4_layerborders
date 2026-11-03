@@ -1,0 +1,147 @@
+CREATE OR REPLACE FUNCTION public.layer_border_filter(
+    z integer,
+    x integer,
+    y integer,
+    sharhlyr_id integer,
+    token text
+)
+RETURNS bytea
+LANGUAGE plpgsql
+COST 100
+STABLE PARALLEL SAFE
+AS $$
+DECLARE
+    pl_result bytea;
+    pl_table_name text;
+    pl_query_sql text;
+    pl_jwt_payload jsonb;
+    pl_user_id integer;
+    pl_has_access boolean := false;
+    pl_is_superuser boolean := false;
+BEGIN
+
+    --   
+
+    -- Require token
+    IF token IS NULL OR token = '' THEN
+        RAISE WARNING 'No JWT token provided for sharhlyr_id %', sharhlyr_id;
+        RETURN '\x'::bytea;
+    END IF;
+
+    BEGIN
+        -- Decode JWT payload
+        pl_jwt_payload := decode_jwt_with_key(token)::jsonb;
+        -- Extract user_id
+        pl_user_id := (pl_jwt_payload->>'user_id')::integer;
+
+    EXCEPTION
+        WHEN OTHERS THEN
+            RAISE WARNING 'JWT validation failed for layer filter %', SQLERRM;
+            -- RETURN '\x'::bytea;
+    END;
+
+
+    -- Check superuser / permission
+    BEGIN
+        -- First, check if user is superuser
+        SELECT COALESCE(u.is_superuser, false)
+        INTO pl_is_superuser
+        FROM public.accounts_user AS u
+        WHERE u.id = pl_user_id;
+
+        IF NOT pl_is_superuser THEN
+            -- Permission check
+            SELECT EXISTS(
+                SELECT 1
+                FROM public.accounts_usershrhlayerpermission uslp
+                WHERE uslp.user_id = pl_user_id
+                AND uslp.shrh_layer_id = sharhlyr_id
+            )
+            INTO pl_has_access;
+
+            IF NOT pl_has_access THEN
+                RAISE WARNING 'User % does not have access to sharhlyr_id %', 
+                    pl_user_id, sharhlyr_id;
+                RETURN '\x'::bytea;  -- Return empty tile instead of exception
+            END IF;
+        ELSE
+            RAISE NOTICE 'User % is superuser, full access granted', pl_user_id;
+        END IF;
+
+    EXCEPTION
+        WHEN OTHERS THEN
+            RAISE WARNING 'Permission check failed: %', SQLERRM;
+            RETURN '\x'::bytea;  -- Return empty tile on any error
+    END;
+
+    -- Get table name for layer
+    SELECT 'layers_' || lower(ln.layername_en)
+      INTO pl_table_name
+      FROM public.contracts_shrhlayer sl
+      JOIN public.layers_layersnames ln
+        ON sl.layer_name_id = ln.id
+     WHERE sl.id = sharhlyr_id;
+
+    IF pl_table_name IS NULL OR pl_table_name = '' THEN
+        RAISE WARNING 'Table name not found for sharhlyr_id %', sharhlyr_id;
+        RETURN '\x'::bytea;
+    END IF;
+
+    -- Build dynamic MVT query
+    pl_query_sql := format(
+        $q$
+        WITH bounds AS (
+            SELECT ST_TileEnvelope(%s, %s, %s) AS geom
+        ),
+        buffer_config AS (
+            SELECT CASE
+                WHEN %s <= 8 THEN 1024
+                WHEN %s <= 12 THEN 512
+                WHEN %s <= 14 THEN 256
+                ELSE 128
+            END AS buffer_size
+        ),
+        mvtgeom AS (
+            SELECT
+                ST_AsMVTGeom(
+                    ST_Transform(t.border, 3857),
+                    ST_Transform(bounds.geom, 3857),
+                    4096,
+                    buffer_config.buffer_size,
+                    true
+                ) AS geom,
+                t.id::text AS id,
+                t.*
+            FROM public.%I t
+            CROSS JOIN bounds
+            CROSS JOIN buffer_config
+            WHERE t.shr_layer_id = %s
+              AND t.border IS NOT NULL
+              AND ST_Intersects(
+                    ST_Transform(t.border, 3857),
+                    ST_Transform(bounds.geom, 3857)
+              )
+        )
+        SELECT ST_AsMVT(mvtgeom, %s) AS mvt
+        FROM mvtgeom
+        WHERE geom IS NOT NULL
+        $q$,
+        z, x, y, z, z, z, pl_table_name, sharhlyr_id, quote_literal('default')
+    );
+
+    EXECUTE pl_query_sql INTO pl_result;
+
+    IF pl_result IS NULL THEN
+        RETURN '\x'::bytea;
+    END IF;
+
+    RETURN pl_result;
+
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE WARNING
+            'Error in layer_border_filter: %, Table: %, ShrhLayer ID: %, User ID: %',
+            SQLERRM, pl_table_name, sharhlyr_id, pl_user_id;
+        RETURN '\x'::bytea;
+END;
+$$;

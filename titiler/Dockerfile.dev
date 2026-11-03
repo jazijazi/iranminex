@@ -1,0 +1,47 @@
+FROM python:3.12-slim-bookworm
+
+ARG UID=1000
+ARG GID=1000
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    DEBIAN_FRONTEND=noninteractive
+
+# -----------------------------
+# Create non-root user & group
+# -----------------------------
+RUN groupadd -g ${GID} appgroup || groupadd appgroup \
+ && useradd -m -u ${UID} -g appgroup appuser || useradd -m -g appgroup appuser
+
+# Set working directory
+WORKDIR /app
+RUN chown appuser:appgroup /app
+
+# Install system dependencies (bash is already included in python:slim)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        gdal-bin \
+        libgdal-dev \
+        python3-gdal \
+        libproj-dev \
+        libgeos-dev \
+        libpng-dev \
+        libjpeg-dev \
+        libwebp-dev \
+        libtiff-dev \
+        zlib1g-dev \
+    && rm -rf /var/lib/apt/lists/* \
+    && pip install --upgrade pip setuptools wheel \
+    && pip install --no-cache-dir \
+        titiler.application \
+        uvicorn \
+        Pillow
+
+COPY starttitiler.sh /starttitiler.sh
+RUN chmod +x /starttitiler.sh
+
+# Switch to non-root user
+USER appuser
+
+EXPOSE 8008
+CMD ["/starttitiler.sh"]
