@@ -44,16 +44,12 @@ INSTALLED_APPS = [
     'logs',
     'captcha',
     'ticket',
-    'report',
+    'commandline',
 
     'accounts',
 
     'initialborders',
     'contracts',
-    'layers',
-    'fielddata',
-
-    'legacy_app',
 
     'drf_spectacular',
     'leaflet',
