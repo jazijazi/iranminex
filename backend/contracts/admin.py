@@ -27,12 +27,19 @@ from contracts.models.attachment import (
 class ContractDominAdmin(admin.ModelAdmin):
     list_display = ['title' , 'code']
 class ContractAdmin(admin.ModelAdmin):
-    list_display = ['title','dtyp','number','start_date','end_date','progress','is_completed',]
-    search_fields = ['title' , 'number']
+    list_display = ['title', 'dtyp', 'initborder', 'number', 'start_date', 'end_date', 'progress', 'is_completed']
+    search_fields = ['title', 'number']
+    list_select_related = ['dtyp', 'initborder']
+    autocomplete_fields = ['initborder']
 class ContractBorderAdmin(LeafletGeoAdmin):
-    list_display = ['title' , 'contract', 'initborder' ,'scale']
+    list_display = ['title', 'contract', 'get_initborder', 'scale']
     search_fields = ['title']
+    list_select_related = ['contract__initborder']
+    autocomplete_fields = ['contract']
 
+    @admin.display(description='محدوده اولیه', ordering='contract__initborder__title')
+    def get_initborder(self, obj):
+        return obj.contract.initborder
 class ContractElhaghyeAdmin(admin.ModelAdmin):
     list_display = ['title', 'contract__title', 'mablagh', 'tarikh']
     search_fields = ['title', 'contract__title']

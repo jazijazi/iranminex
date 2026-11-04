@@ -38,8 +38,6 @@ from common.pagination import CustomPagination
 from common.services.notification_services import NotificationFactory 
 
 from django.conf import settings
-from drf_spectacular.utils import extend_schema
-from drf_spectacular.types import OpenApiTypes
 
 from captcha.services import CaptchaService
 
@@ -111,17 +109,6 @@ class LoginUser(APIView):
             allow_empty=False
         )
     
-    @extend_schema(
-        request=LoginInputSerializer,
-        responses={
-            200: LoginOutputSerializer,
-            400: OpenApiTypes.OBJECT,
-            401: OpenApiTypes.OBJECT,
-            500: OpenApiTypes.OBJECT,
-        },
-        description="Authenticate user and return JWT tokens in response and refresh token in cookie.",
-        tags=["ACCOUNTS"]
-    )
     def post(self, request: Request) -> Response:
         """
         Authenticate user and generate access and refresh tokens.
@@ -273,15 +260,6 @@ class RefreshToken(APIView):
     class RefreshTokenResponseSerializer(serializers.Serializer):
         token = serializers.CharField(help_text="New access token")
   
-    @extend_schema(
-        request=None,
-        responses={
-            200: RefreshTokenResponseSerializer,
-            400: OpenApiTypes.OBJECT,
-        },
-        description="Get the RefreshToken from cookie of user and if available return a new AccessToken",
-        tags=["ACCOUNTS"]
-    )
     def post(self, request:Request)->Response:
         try:
             refresh_token = request.COOKIES.get('refresh_token')
@@ -304,15 +282,6 @@ class LogoutUser(APIView):
   class LogoutResponseSerializer(serializers.Serializer):
         detail = serializers.CharField(help_text="پیام تایید خروج")
   
-  @extend_schema(
-        responses={
-            200: LogoutResponseSerializer,
-            401: OpenApiTypes.OBJECT,
-            500: OpenApiTypes.OBJECT,
-        },
-        description="Logout for clean Refresh Token From user request cookie",
-        tags=["ACCOUNTS"]
-    )
   def post(self, request:Request) -> Response:
 
     #TODO: add access token to blocklist token lists in redis or in database and check it in auth
@@ -377,16 +346,6 @@ class UserProfile(APIView):
                 "is_staff","is_superuser","roles","company",
             ]
 
-    @extend_schema(
-        responses={
-            200:UserProfileOutputSerializer,
-            401:OpenApiTypes.OBJECT,
-            404:OpenApiTypes.OBJECT,
-            500:OpenApiTypes.OBJECT
-        },
-        description="Get authenticated user's profile.",
-        tags=["ACCOUNTS"]
-    )
     def get(self , request:Request) -> Response:
         try:
             user : User = request.user
@@ -406,17 +365,7 @@ class UserProfile(APIView):
             user_activity_logger.error(f"خطا در دریافت مشخصات کاربر {str(e)}" , extra=get_details_from_request(request))
             return Response({"detail":"خطا در دریافت مشخصات کاربر"},status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
-    @extend_schema(
-        request=UserProfileInputSerializer,
-        responses={
-            200:UserProfileOutputSerializer,
-            401:OpenApiTypes.OBJECT,
-            404:OpenApiTypes.OBJECT,
-            500:OpenApiTypes.OBJECT,
-        },
-        description="Update authenticated user own profile.",
-        tags=["ACCOUNTS"]
-    )
+
     def put(self, request:Request) -> Response:
         try:
             with transaction.atomic():
@@ -491,17 +440,6 @@ class Register(APIView):
             return data
 
 
-    @extend_schema(
-        request=RegisterInputSerializer,
-        responses={
-            200: RegisterOutputSerializer,
-            400: OpenApiTypes.OBJECT,
-            401: OpenApiTypes.OBJECT,
-            500: OpenApiTypes.OBJECT,
-        },
-        description="Register New User",
-        tags=["ACCOUNTS"]
-    )
     def post(self, request:Request) -> Response:
         try:
             with transaction.atomic():

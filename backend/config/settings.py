@@ -51,7 +51,6 @@ INSTALLED_APPS = [
     'initialborders',
     'contracts',
 
-    'drf_spectacular',
     'leaflet',
 ]
 
@@ -162,8 +161,6 @@ REST_FRAMEWORK = {
 
         'captcha': '10/minute',  
     },
-    #spectacular
-    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
 #CORS
@@ -217,22 +214,6 @@ if DEBUG:
 else:
     LOGS_ROOT = config('LOGS_ROOT', cast=str)
 
-SPECTACULAR_SETTINGS = {
-    'TITLE': 'Iranminex API Doc',
-    'DESCRIPTION': 'Iranminex API Service Document',
-    'VERSION': '1.0.0',
-    'SERVE_INCLUDE_SCHEMA': False,
-
-    'COMPONENTS': {
-        'securitySchemes': {
-            'JWTAuth': {
-                'type': 'http',
-                'scheme': 'bearer',
-                'bearerFormat': 'JWT',
-            }
-        }
-    },
-}
 
 LANGUAGE_CODE = 'en-us'
 

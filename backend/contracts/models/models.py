@@ -37,6 +37,13 @@ class Contract(CustomModel):
         default=uuid.uuid4,
         editable=False,
     )
+    initborder = models.ForeignKey(
+        InitialBorder,
+        on_delete=models.CASCADE,
+        related_name="rinitcontractborders",
+        blank=False,
+        null=False
+    )
     title = models.CharField(
         verbose_name="عنوان قرارداد",
         max_length=250,
@@ -132,6 +139,13 @@ class Contract(CustomModel):
         blank=True,
         null=True,
     )
+    initborder = models.ForeignKey(
+        InitialBorder,
+        on_delete=models.CASCADE,
+        related_name="rinitcontractborders",
+        blank=False,
+        null=False
+    )
 
     def clean(self):
         """Model validation"""
@@ -183,13 +197,6 @@ class ContractElhaghye(CustomModel):
         verbose_name="توضیحات",
         blank=True,
         null=True,
-    )
-    initborder = models.ForeignKey(
-        InitialBorder,
-        on_delete=models.CASCADE,
-        related_name="rinitcontractborders",
-        blank=False,
-        null=False
     )
 
     def __str__(self):

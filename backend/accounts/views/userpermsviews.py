@@ -17,8 +17,6 @@ from accounts.models import (
     Roles,
 )
 from django.conf import settings
-from drf_spectacular.utils import extend_schema
-from drf_spectacular.types import OpenApiTypes
 from common.mixins import SearchMixin
 
 delete_logger = logging.getLogger('delete_activity_logger')
