@@ -37,12 +37,6 @@ class Contract(CustomModel):
         default=uuid.uuid4,
         editable=False,
     )
-    oldid = models.IntegerField( # the is for migrate from old to new db
-        primary_key=False,
-        unique=True,
-        blank=True,
-        null=True
-    )
     title = models.CharField(
         verbose_name="عنوان قرارداد",
         max_length=250,
@@ -190,6 +184,13 @@ class ContractElhaghye(CustomModel):
         blank=True,
         null=True,
     )
+    initborder = models.ForeignKey(
+        InitialBorder,
+        on_delete=models.CASCADE,
+        related_name="rinitcontractborders",
+        blank=False,
+        null=False
+    )
 
     def __str__(self):
         return f"الحاقیه {self.title or '-'} - {self.contract.title}"
@@ -232,13 +233,6 @@ class ContractBorder(CustomModel):
         Contract,
         on_delete=models.CASCADE,
         related_name="rcontractborders",
-        blank=False,
-        null=False
-    )
-    initborder = models.ForeignKey(
-        InitialBorder,
-        on_delete=models.CASCADE,
-        related_name="rinitcontractborders",
         blank=False,
         null=False
     )

@@ -27,12 +27,6 @@ class InitialBorder(CustomModel):
         blank=True,
         null=True
     )
-    oldid = models.IntegerField( # the is for migrate from old to new db
-        primary_key=False,
-        unique=False,
-        blank=True,
-        null=True
-    )
     parentid = models.ForeignKey(
         'self',
         on_delete=models.CASCADE,

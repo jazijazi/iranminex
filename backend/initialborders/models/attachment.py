@@ -4,7 +4,7 @@ from django.db import models
 from django.conf import settings
 
 def dynamic_upload_path(instance, filename):
-    return f'initialborder/achments/initialborder_{instance.rinitialborder.id}/{filename}'
+    return f'initialborder/atachments/initialborder_{instance.rinitialborder.id}/{filename}'
 
 
 class InitialBorderAttachment(models.Model):

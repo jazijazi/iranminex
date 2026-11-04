@@ -14,14 +14,6 @@ class ShrhBase(CustomModel):
     Service description items for contracts
     هر رکورد در این جدول یک بند از شرح خدمات قرارداد را شامل میشود
     """
-
-    # UNIT_CHOICES = [
-    #     ("تعداد" , "تعداد"),
-    #     ("هکتار" , "هکتار"),
-    #     ("نفرماه" , "نفرماه"),
-    #     ("متراژ" , "متراژ"),
-    #     ("کیلومترمربع" , "کیلومترمربع"),
-    # ]
     FAZ_CHOICES = [
         (1, 'شناسایی'),
         (2, 'پیجویی'),
@@ -42,13 +34,6 @@ class ShrhBase(CustomModel):
         null=False,
         unique=False,
     )
-    # unit = models.CharField( # نداریم
-    #     verbose_name="واحد",
-    #     max_length=100,
-    #     choices=UNIT_CHOICES,
-    #     blank=False,
-    #     null=False,
-    # )
     percentage = models.FloatField(
         verbose_name="درصد بند",
         default=0,
@@ -56,13 +41,6 @@ class ShrhBase(CustomModel):
         null=False,
         blank=False
     )
-    # total_volume = models.PositiveIntegerField( # نداریم
-    #     verbose_name="حجم کل بند",
-    #     default=0,
-    #     null=False,
-    #     validators=[MinValueValidator(0)],
-    #     blank=False,
-    # )
     worked_percentage = models.FloatField(
         verbose_name="درصد کار",
         default=0,
@@ -70,12 +48,6 @@ class ShrhBase(CustomModel):
         null=False,
         blank=False,
     )
-    # unit_price = models.PositiveBigIntegerField( # نداریم
-    #     verbose_name="قیمت واحد",
-    #     default=0,
-    #     null=False,
-    #     blank=False,
-    # )
     contract = models.ForeignKey(
         Contract,
         verbose_name="قرارداد",
@@ -146,12 +118,6 @@ class ShrhLayer(CustomModel):
         related_name="shr_layers",
         null=False,
         blank=False,
-    )
-    oldid = models.IntegerField( # the is for migrate from old to new db
-        primary_key=False,
-        unique=False,
-        blank=True,
-        null=True
     )
     layer_name = models.ForeignKey(
         LayersNames,
