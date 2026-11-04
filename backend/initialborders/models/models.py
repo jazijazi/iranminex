@@ -92,8 +92,5 @@ class InitialBorder(CustomModel):
 
 
 
-#Metadata
-from .metadata import *
-
 #Attachment
 from .attachment import *

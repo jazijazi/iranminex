@@ -13,7 +13,7 @@ from shapely.geometry import MultiPolygon as ShapelyMultiPolygon, Polygon as Sha
 from django.core.files.uploadedfile import InMemoryUploadedFile
 
 from common.constants import SCALE_CHOICES
-from common.services.gis_services import (
+from common.services.gis import (
     validate_geodataframe,
     get_geometry_type,
     drop_zm

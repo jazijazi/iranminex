@@ -17,7 +17,7 @@ from django.urls import reverse
 from django.db import transaction
 from django.contrib.gis.geos import MultiPolygon
 
-from common.services.gis_services import queryset_to_shapefile
+from common.services.gis import queryset_to_shapefile
 from common.models import Company , Province
 from common.mixins import SearchMixin
 from accounts.models import User
