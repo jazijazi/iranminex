@@ -1,9 +1,26 @@
+x-logging: &default-logging
+  # Ship every container's stdout/stderr to the host's journald instead of
+  # Docker's default json-file driver (which has no rotation configured here
+  # and would otherwise grow forever on disk).
+  # tag sets both CONTAINER_TAG and SYSLOG_IDENTIFIER in journald to the
+  # container name (e.g. m45_django_web), so you can filter with:
+  #   journalctl -t m45_django_web -f
+  #   journalctl CONTAINER_NAME=geoserver --since today
+  driver: journald
+  options:
+    tag: "{{.Name}}"
+
+x-common-labels: &common-labels
+  com.m45.project: iranminex
+  com.m45.environment: production
+
 services:
   db:
     build:
       context: ./postgredb
       dockerfile: ./Dockerfile
     container_name: iranminex_postgis_db
+    labels: *common-labels
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -24,16 +41,13 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "50m"
-        max-file: "5"
+    logging: *default-logging
     restart: unless-stopped
 
   pgbouncer:
     image: edoburu/pgbouncer:v1.24.1-p1
     container_name: iranminex_pgbouncer
+    labels: *common-labels
     ports:
       - "5432:5432"
     environment:
@@ -62,15 +76,12 @@ services:
       timeout: 5s
       retries: 5
       start_period: 20s
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "50m"
-        max-file: "5"
+    logging: *default-logging
 
   redis:
     image: redis:8.0.1-alpine
     container_name: iranminex_redis
+    labels: *common-labels
       #ports:
       # - "${REDIS_PORT}:6379"
     volumes:
@@ -91,15 +102,12 @@ services:
       --appendonly yes 
       --appendfsync everysec
       --maxmemory-policy allkeys-lru
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "50m"
-        max-file: "5"
+    logging: *default-logging
 
   martin:
     image: ghcr.io/maplibre/martin:latest
     container_name: iranminex_martin
+    labels: *common-labels
     expose:
       - "3000"
     env_file:
@@ -118,11 +126,7 @@ services:
     depends_on:
       - pgbouncer
     restart: unless-stopped
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "100m"
-        max-file: "10"
+    logging: *default-logging
 
   web:
     build:
@@ -132,6 +136,7 @@ services:
         UID: ${UID}   # host UID
         GID: ${GID}   # host GID
     container_name: iranminex_web
+    labels: *common-labels
     user: "${UID}:${GID}"
     command: ["/app/startup.sh"]
     volumes:
@@ -149,11 +154,7 @@ services:
       timeout: 20s
       retries: 8
       start_period: 60s
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "300m"
-        max-file: "8"
+    logging: *default-logging
     expose:
       - "8000"
     env_file:
@@ -173,6 +174,7 @@ services:
         UID: ${UID}   # host UID
         GID: ${GID}   # host GID
     container_name: iranminex_titiler
+    labels: *common-labels
       #ports:
       #- "8008:8008"
     expose:
@@ -196,11 +198,7 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "50m"
-        max-file: "5"
+    logging: *default-logging
     restart: unless-stopped
     volumes:
       - ${RASTER_ROOT}:/app/raster
@@ -208,6 +206,7 @@ services:
   nginx:
     image: nginx:1.28.0-alpine3.21
     container_name: iranminex_nginx
+    labels: *common-labels
     ports:
       - 80:80 
       - 443:443
@@ -225,11 +224,7 @@ services:
       - ${DOCS_ROOT}:/var/www/docs
     networks:
       - iranminexnet
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "100m"
-        max-file: "8"
+    logging: *default-logging
     depends_on:
       - web
       - martin

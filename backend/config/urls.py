@@ -16,13 +16,13 @@ urlpatterns = [
     path('admin/', admin.site.urls),
 
     path('api/common/', include('common.urls')),
+
     path('api/captcha/' , include('captcha.urls')),
+
     path('api/auth/', include('accounts.urls', namespace='accounts')),
+
     path('api/initialborders/', include('initialborders.urls')),
     path('api/contracts/', include('contracts.urls')),
-    path('api/layers/', include('layers.urls')),
-    path('api/report/', include('report.urls')),
-    path('api/fielddata/', include('fielddata.urls')),
 
     #spectacular
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),

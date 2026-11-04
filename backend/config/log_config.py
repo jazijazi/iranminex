@@ -228,11 +228,6 @@ if ENABLE_LOGGING:
                 'level': 'INFO',
                 'propagate': True,
             },
-            'sms_file_logger': {
-                'handlers': ['sms_file_time',],
-                'level': 'INFO',
-                'propagate': True,
-            },
 
             # DJANGO BUILT-IN LOGGERS
             "django.security.DisallowedHost": {
@@ -261,7 +256,7 @@ if ENABLE_LOGGING:
                 'propagate': False,
             },
             'django': {
-                'handlers': ['django_problem_file_time', 'django_activity_file_time'],
+                'handlers': ['django_problem_file_time', 'django_activity_file_time', 'console'],
                 'level': 'INFO',
                 'propagate': False,
             },
