@@ -1,11 +1,11 @@
 meta {
   name: create contracts
   type: http
-  seq: 7
+  seq: 2
 }
 
 post {
-  url: localhost:8000/api/initialborders/
+  url: localhost:8000/api/contracts/
   body: multipartForm
   auth: bearer
 }
@@ -15,9 +15,8 @@ auth:bearer {
 }
 
 body:multipart-form {
-  file: @file(/home/jazi/Documents/NEGARZAMIN/Jalaabad_Projecy_1K/Glg_Lim.zip) @contentType(application/zip)
-  title: تست
-  dtyp: 1
+  title: con2
+  initborder_ids: 2
 }
 
 settings {

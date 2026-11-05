@@ -36,34 +36,41 @@ from contracts.views.attachmentviews import(
 )
 
 urlpatterns = [
-    path('' , ContractListApiViews.as_view() , name="contract-list"),
-    path('<uuid:contractid>/' , ContractDetailsApiViews.as_view() , name="contract-details"),
+    # Contracts
+    path('', ContractListApiViews.as_view(), name='contract-list'),
+    path('<uuid:contractid>/', ContractDetailsApiViews.as_view(), name='contract-details'),
 
-    path('<uuid:contractid>/elhaghye/' , ContractElhaghyeListApiViews.as_view() , name="contractelhaghye-list"),
-    path('<uuid:contractid>/elhaghye/<int:id>/' , ContractElhaghyeDetailsApiViews.as_view() , name="contractelhaghye-details"),
-    
-    path('domains/' , ContractDomainsListApiView.as_view() , name='contractdomains-list'),
+    # Contract domains (global resources)
+    path('domains/', ContractDomainsListApiView.as_view(), name='contractdomains-list'),
 
-    path('contractattachmentdomain/' , ContractAttachmentDomainListApiView.as_view() , name='contractattachmentdomain-list'),
-    path('contractattachmentdomain/<int:pk>/' , ContractAttachmentDomainDetailsApiView.as_view() , name='contractattachmentdomain-details'),
+    # Contract attachment domains (global resources)
+    path('attachment-domains/', ContractAttachmentDomainListApiView.as_view(), name='contractattachmentdomain-list'),
+    path('attachment-domains/<int:pk>/', ContractAttachmentDomainDetailsApiView.as_view(), name='contractattachmentdomain-details'),
 
-    path('sharhbaseattachmentdomain/' , SharhbaseAttachmentDomainListApiView.as_view() , name='sharhbaseattachmentdomain-list'),
-    path('sharhbaseattachmentdomain/<int:pk>/' , SharhbaseAttachmentDomainDetailsApiView.as_view() , name='sharhbaseattachmentdomain-details'),
+    # Sharhbase attachment domains (global resources)
+    path('sharhbase-attachment-domains/', SharhbaseAttachmentDomainListApiView.as_view(), name='sharhbaseattachmentdomain-list'),
+    path('sharhbase-attachment-domains/<int:pk>/', SharhbaseAttachmentDomainDetailsApiView.as_view(), name='sharhbaseattachmentdomain-details'),
 
-    path('contractattachment/<uuid:contractid>/' , ContractAttachmentListApiView.as_view() , name='contractattachment-list'),
-    path('contractattachment/<int:contractattachmentid>/' , ContractAttachmentDetailsApiView.as_view() , name='contractattachment-details'),
+    # Contract Elhaghye
+    path('<uuid:contractid>/elhaghye/', ContractElhaghyeListApiViews.as_view(), name='contractelhaghye-list'),
+    path('<uuid:contractid>/elhaghye/<int:id>/', ContractElhaghyeDetailsApiViews.as_view(), name='contractelhaghye-details'),
 
-    path('sharhbaseattachment/<int:sharhbaseid>/' , SharhbaseAttachmentListApiView.as_view() , name='sharhbaseattachment-list'),
-    path('sharhbaseattachment/<int:sharhbaseid>/<int:sharhbaseattachmentid>/' , SharhbaseAttachmentDetailsApiView.as_view() , name='sharhbaseattachment-details'),
+    # Contract attachments
+    path('<uuid:contractid>/attachments/', ContractAttachmentListApiView.as_view(), name='contractattachment-list'),
+    path('<uuid:contractid>/attachments/<int:contractattachmentid>/', ContractAttachmentDetailsApiView.as_view(), name='contractattachment-details'),
 
-    #Sharhkhadamat
-    path('sharhkhadamat/<uuid:contractid>/' , SharhkhadamatListApiView.as_view() , name='contract-shrbase-list'),
-    path('sharhkhadamat/<uuid:contractid>/<int:shrhbaseid>/' , SharhkhadamatDetailApiView.as_view() , name='contract-shrbase-detail'),
+    # Sharhkhadamat
+    path('<uuid:contractid>/sharhkhadamat/', SharhkhadamatListApiView.as_view(), name='contract-shrbase-list'),
+    path('<uuid:contractid>/sharhkhadamat/<int:shrhbaseid>/', SharhkhadamatDetailApiView.as_view(), name='contract-shrbase-detail'),
 
-    #Shrhkhadamat Layer
-    path('sharhkhadamatlayer/<uuid:contractid>/' , SharhKhadamatLayerListApiView.as_view() , name='contract-shrlyr-list'),
-    path('sharhkhadamatlayer/<uuid:contractid>/<int:shrhid>/' , SharhKhadamatLayerDetailApiView.as_view() , name='contract-shrlyr-detail'),
+    # Sharhkhadamat layers
+    path('<uuid:contractid>/sharhkhadamat-layers/', SharhKhadamatLayerListApiView.as_view(), name='contract-shrlyr-list'),
+    path('<uuid:contractid>/sharhkhadamat-layers/<int:shrhid>/', SharhKhadamatLayerDetailApiView.as_view(), name='contract-shrlyr-detail'),
 
-    path('comments/<int:shrhlayerid>/' , CommentListApiView.as_view() , name='comments-list'),
-    # path('comments/<int:shrhlayerid>/<int:commentid>/' , CommentDetailsApiView.as_view() , name='comments-details'),
+    # Sharhbase attachments
+    path('<uuid:contractid>/sharhkhadamat/<int:shrhbaseid>/attachments/', SharhbaseAttachmentListApiView.as_view(), name='sharhbaseattachment-list'),
+    path('<uuid:contractid>/sharhkhadamat/<int:shrhbaseid>/attachments/<int:sharhbaseattachmentid>/', SharhbaseAttachmentDetailsApiView.as_view(), name='sharhbaseattachment-details'),
+
+    # Comments
+    path('<uuid:contractid>/sharhkhadamat-layers/<int:shrhlayerid>/comments/', CommentListApiView.as_view(), name='comments-list'),
 ]

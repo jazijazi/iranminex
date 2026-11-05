@@ -1,0 +1,21 @@
+meta {
+  name: del sharhbase
+  type: http
+  seq: 10
+}
+
+delete {
+  url: localhost:8000/api/contracts/6cd1a00c-a959-4a49-9945-3511f0cca108/sharhkhadamat/1/
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJleHAiOjE3OTM4ODc4MDgsImlhdCI6MTc5Mzg3ODgwOCwidHlwZSI6ImFjY2VzcyJ9.r4Y87S4MExmHriq7mwtlRcBGcL_g162oPlxnGvWfkoU
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+  forwardAuthorizationHeader: false
+}

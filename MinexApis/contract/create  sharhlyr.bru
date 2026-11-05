@@ -1,0 +1,27 @@
+meta {
+  name: create  sharhlyr
+  type: http
+  seq: 12
+}
+
+post {
+  url: localhost:8000/api/contracts/6cd1a00c-a959-4a49-9945-3511f0cca108/sharhkhadamat-layers/
+  body: multipartForm
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJleHAiOjE3OTM4OTk3NTcsImlhdCI6MTc5Mzg5MDc1NywidHlwZSI6ImFjY2VzcyJ9.CYp1_0uTHgbZQp8Ykx9zrmd3GyxFkDbDXmOb_T3mktE
+}
+
+body:multipart-form {
+  shrh_base: 1
+  layer_name: 1
+  scale: 1000
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+  forwardAuthorizationHeader: false
+}
