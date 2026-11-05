@@ -5,7 +5,6 @@ from contracts.models.models import (
     ContractDomin,
     Contract,
     ContractElhaghye,
-    ContractBorder,
 )
 from contracts.models.SharhKhadamats import (
     ShrhBase,
@@ -15,8 +14,6 @@ from contracts.models.comments import (
     Comment,
 )
 from contracts.models.attachment import (
-    ContractBorderAttachment,
-    ContractBorderAttachmentDomain,
 
     ContractAttachment,
     ContractAttachmentDomain,
@@ -31,15 +28,6 @@ class ContractAdmin(admin.ModelAdmin):
     search_fields = ['title', 'number']
     list_select_related = ['dtyp', 'initborder']
     autocomplete_fields = ['initborder']
-class ContractBorderAdmin(LeafletGeoAdmin):
-    list_display = ['title', 'contract', 'get_initborder', 'scale']
-    search_fields = ['title']
-    list_select_related = ['contract__initborder']
-    autocomplete_fields = ['contract']
-
-    @admin.display(description='محدوده اولیه', ordering='contract__initborder__title')
-    def get_initborder(self, obj):
-        return obj.contract.initborder
 class ContractElhaghyeAdmin(admin.ModelAdmin):
     list_display = ['title', 'contract__title', 'mablagh', 'tarikh']
     search_fields = ['title', 'contract__title']
@@ -53,17 +41,10 @@ class ShrhBaseAdmin(admin.ModelAdmin):
 class ShrhLayerAdmin(admin.ModelAdmin):
     list_display = ['shrh_base' , 'is_uploaded', 'last_uploaded_date', 'upload_count', 'is_verified', 'verified_by', 'verified_at']
     search_fields = ['shrh_base__title','layer_name__layername_en','layer_name__layername_fa']
-    autocomplete_fields = ['shrh_base','layer_name','contractborder']
+    autocomplete_fields = ['shrh_base','layer_name',]
 class CommentAdmin(admin.ModelAdmin):
     list_display = ['sharhlayer' , 'writer' , 'created_at']
     search_fields = []
-
-class ContractBorderAttachmentAdmin(admin.ModelAdmin):
-    autocomplete_fields = ["contractborder"]
-
-class ContractBorderAttachmentDomainAdmin(admin.ModelAdmin):
-    list_display = ['code' , 'name_en' , 'name_fa']
-    search_fields = ['code' , 'name_en' , 'name_fa']
 
 class ContractAttachmentAdmin(admin.ModelAdmin):
     autocomplete_fields = ["contract"]
@@ -83,15 +64,12 @@ class SharhbaseAttachmentDomainAdmin(admin.ModelAdmin):
 admin.site.register(ContractDomin,ContractDominAdmin)
 admin.site.register(Contract,ContractAdmin)
 admin.site.register(ContractElhaghye, ContractElhaghyeAdmin)
-admin.site.register(ContractBorder,ContractBorderAdmin)
 
 admin.site.register(ShrhBase , ShrhBaseAdmin)
 admin.site.register(ShrhLayer , ShrhLayerAdmin)
 
 admin.site.register(Comment , CommentAdmin)
 
-admin.site.register(ContractBorderAttachment , ContractBorderAttachmentAdmin)
-admin.site.register(ContractBorderAttachmentDomain , ContractBorderAttachmentDomainAdmin)
 
 admin.site.register(ContractAttachment , ContractAttachmentAdmin)
 admin.site.register(ContractAttachmentDomain , ContractAttachmentDomainAdmin)

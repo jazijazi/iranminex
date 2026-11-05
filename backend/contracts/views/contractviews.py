@@ -21,11 +21,9 @@ from common.pagination import CustomPagination
 from common.services.gis_services import queryset_to_shapefile
 from contracts.models.models import (
     Contract,
-    ContractBorder,
     ContractDomin,
     ContractElhaghye,
 )
-from contracts.services.gis import process_contractborder
 from initialborders.models.models import InitialBorder, InitialBorderDomin
 from logs.utils import get_details_from_request
 
@@ -39,11 +37,9 @@ class ContractListApiViews(SearchMixin, APIView):
     """
     GET: list of contracts (superuser: all, others: only the ones they have access to)
 
-    POST: create a contract together with all of its contract borders at once.
-        The request carries a zipped shapefile (rows: <title> <scale> <border>);
-        every row becomes one ContractBorder of the new contract.
+    POST: create a contract.
         Everything is created in one transaction, and the creator gets access
-        to the new contract and to all of its contract borders.
+        to the new contract.
     """
 
     search_fields = ["title", "dtyp__title", "number"]
@@ -61,16 +57,12 @@ class ContractListApiViews(SearchMixin, APIView):
 
         dtyp = ContractListOutputSerializerDtyp()
         initborder = ContractListOutputSerializerInitborder()
-        contractborders = serializers.PrimaryKeyRelatedField(
-            many=True, read_only=True, source="rcontractborders"
-        )
 
         class Meta:
             model = Contract
             fields = [
                 "id", "title", "dtyp", "initborder", "number", "start_date", "end_date",
                 "progress", "is_completed", "department", "mablagh", "company",
-                "contractborders",
             ]
 
     class ContractListInputSerializer(serializers.ModelSerializer):
@@ -99,27 +91,12 @@ class ContractListApiViews(SearchMixin, APIView):
                 "incorrect_type": "نوع آیدی محدوده اولیه معتبر نمیباشد",
             },
         )
-        file = serializers.FileField(
-            required=True,
-            error_messages={"required": "این فیلد اجباری است"},
-            validators=[
-                FileExtensionValidator(
-                    allowed_extensions=["zip"],
-                    message="فایل محدوده حتما باید با فرمت zip باشد",
-                )
-            ],
-        )
-
-        def validate_file(self, value):
-            if value.size > 100 * 1024 * 1024:
-                raise serializers.ValidationError("File size cannot exceed 100 MB.")
-            return value
 
         class Meta:
             model = Contract
             fields = [
                 "title", "dtyp", "initborder", "number", "start_date", "end_date",
-                "progress", "is_completed", "department", "mablagh", "company", "file",
+                "progress", "is_completed", "department", "mablagh", "company",
             ]
 
     def get(self, request: Request) -> Response:
@@ -132,7 +109,7 @@ class ContractListApiViews(SearchMixin, APIView):
         queryset = (
             self.apply_search(queryset, request)
             .select_related("dtyp", "initborder")
-            .prefetch_related("company", "rcontractborders")
+            .prefetch_related("company")
         )
 
         paginator = CustomPagination()
@@ -150,39 +127,10 @@ class ContractListApiViews(SearchMixin, APIView):
         if not user.is_superuser and not user.has_access_to_initialborder(data["initborder"]):
             return Response({"detail": "کاربر به این محدوده اولیه دسترسی ندارد"}, status=status.HTTP_403_FORBIDDEN)
 
-        # the file is not a Contract field, so take it out before serializer.save()
-        zip_file = data.pop("file")
-
-        ok, result_data, message = process_contractborder(zipfile_obj=zip_file)
-        if not ok:
-            return Response({"detail": message}, status=status.HTTP_400_BAD_REQUEST)
-
-        if not result_data:
-            return Response({"detail": "شیپ فایل هیچ محدوده‌ای ندارد"}, status=status.HTTP_400_BAD_REQUEST)
-
-        if len(result_data) > 50:
-            return Response({"detail": "تعداد محدوده‌های قرارداد بیشتر از ۵۰ تا است"}, status=status.HTTP_400_BAD_REQUEST)
-
-        titles = [row["title"] for row in result_data]
-        if len(titles) != len(set(titles)):
-            return Response({"detail": "عنوان محدوده‌های داخل شیپ فایل تکراری است"}, status=status.HTTP_400_BAD_REQUEST)
-
         with transaction.atomic():
             contract = serializer.save()
 
-            contract_borders = []
-            for row in result_data:
-                contract_borders.append(
-                    ContractBorder.objects.create(
-                        contract=contract,
-                        title=row["title"],
-                        scale=row["scale"],  # may be None
-                        border=MultiPolygon(row["border"]),
-                    )
-                )
-
             user.grant_contract_access(contract=contract)
-            user.grant_bulk_contractborder_access(contractborders=contract_borders)
 
         return Response(
             self.ContractListOutputSerializer(contract, context={"request": request}).data,
@@ -193,8 +141,8 @@ class ContractListApiViews(SearchMixin, APIView):
 class ContractDetailsApiViews(APIView):
     """
     GET: retrieve a contract
-    PUT: partial update of a contract (its contract borders are not touched)
-    DELETE: delete a contract (its contract borders and elhaghye's are deleted with it)
+    PUT: partial update of a contract
+    DELETE: delete a contract (its elhaghye's are deleted with it)
 
     Object-level check: superuser, or a user who has access to this contract.
     """
@@ -225,9 +173,6 @@ class ContractDetailsApiViews(APIView):
         dtyp = ContractDetailsOutputSerializerDtyp()
         initborder = ContractDetailsOutputSerializerInitborder()
         company = ContractDetailsOutputSerializerCompany(many=True)
-        contractborders = serializers.PrimaryKeyRelatedField(
-            many=True, read_only=True, source="rcontractborders"
-        )
 
         class Meta:
             model = Contract
@@ -235,7 +180,7 @@ class ContractDetailsApiViews(APIView):
                 "id", "title", "dtyp", "initborder", "number", "progress", "company",
                 "is_completed", "department", "start_date", "end_date",
                 "mablagh", "mablaghe_elhaghye", "tarikh_elhaghye",
-                "elhaghye", "contractborders",
+                "elhaghye",
             ]
 
     class ContractDetailsInputSerializer(serializers.ModelSerializer):
@@ -450,327 +395,6 @@ class ContractElhaghyeDetailsApiViews(APIView):
             f"حذف الحاقیه قرارداد {contract.title}", extra=get_details_from_request(request)
         )
         return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-# --------------------------------------------------------------------------- #
-# ContractBorder (its initial border is the initial border of its contract)
-# --------------------------------------------------------------------------- #
-class ContractBorderListApiView(SearchMixin, APIView):
-    """
-    GET: list of contract borders
-        ?initialborder=<id> only the contract borders of contracts on this initial border
-        ?contract=<uuid>    only the contract borders of this contract
-
-    POST: add more contract borders to an existing contract from a zipped shapefile
-        (rows: <title> <scale> <border>, one ContractBorder per row)
-    """
-
-    search_fields = ["title"]
-
-    class ContractBorderListOutputSerializer(serializers.ModelSerializer):
-        class ContractBorderListOutputSerializerContract(serializers.ModelSerializer):
-            class Meta:
-                model = Contract
-                fields = ["id", "title", "number", "start_date", "end_date", "is_completed"]
-
-        class ContractBorderListOutputSerializerInitborder(serializers.ModelSerializer):
-            class Meta:
-                model = InitialBorder
-                fields = ["id", "title"]
-
-        contract = ContractBorderListOutputSerializerContract()
-        initborder = ContractBorderListOutputSerializerInitborder(source="contract.initborder")
-
-        class Meta:
-            model = ContractBorder
-            fields = ["id", "title", "scale", "center", "bbox", "initborder", "contract"]
-
-    class ContractBorderListInputSerializer(serializers.Serializer):
-        file = serializers.FileField(
-            required=True,
-            error_messages={"required": "این فیلد اجباری است"},
-            validators=[
-                FileExtensionValidator(
-                    allowed_extensions=["zip"],
-                    message="فایل محدوده حتما باید با فرمت zip باشد",
-                )
-            ],
-        )
-        contract = serializers.PrimaryKeyRelatedField(
-            queryset=Contract.objects.all(),
-            error_messages={
-                "required": "این فیلد اجباری است",
-                "does_not_exist": "قراردادی با این آیدی یافت نشد",
-                "incorrect_type": "نوع آیدی قرارداد معتبر نمیباشد",
-            },
-        )
-
-        def validate_file(self, value):
-            if value.size > 100 * 1024 * 1024:
-                raise serializers.ValidationError("File size cannot exceed 100 MB.")
-            return value
-
-    def get(self, request: Request) -> Response:
-        user: User = request.user
-        if user.is_superuser:
-            queryset = ContractBorder.objects.all()
-        else:
-            queryset = user.get_accessible_contractborders()
-
-        initialborder_param = request.query_params.get("initialborder")
-        if initialborder_param:
-            if not initialborder_param.isdigit():
-                return Response({"initialborder": "شناسه محدوده اولیه معتبر نیست"}, status=status.HTTP_400_BAD_REQUEST)
-            queryset = queryset.filter(contract__initborder_id=int(initialborder_param))
-
-        contract_param = request.query_params.get("contract")
-        if contract_param:
-            try:
-                contract_id = uuid.UUID(contract_param)
-            except ValueError:
-                return Response({"contract": "شناسه قرارداد معتبر نیست"}, status=status.HTTP_400_BAD_REQUEST)
-            queryset = queryset.filter(contract_id=contract_id)
-
-        queryset = self.apply_search(queryset, request).select_related("contract__initborder")
-
-        paginator = CustomPagination()
-        page = paginator.paginate_queryset(queryset, request)
-        serializer = self.ContractBorderListOutputSerializer(page, many=True, context={"request": request})
-        return paginator.get_paginated_response(serializer.data)
-
-    def post(self, request: Request) -> Response:
-        user: User = request.user
-
-        serializer = self.ContractBorderListInputSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        data = serializer.validated_data
-        contract = data["contract"]
-
-        if not user.is_superuser and not user.has_contract_access(contract):
-            return Response({"detail": "کاربر به این قرارداد دسترسی ندارد"}, status=status.HTTP_403_FORBIDDEN)
-
-        ok, result_data, message = process_contractborder(zipfile_obj=data["file"])
-        if not ok:
-            return Response({"detail": message}, status=status.HTTP_400_BAD_REQUEST)
-
-        if len(result_data) > 50:
-            return Response({"detail": "تعداد محدوده‌های قرارداد بیشتر از ۵۰ تا است"}, status=status.HTTP_400_BAD_REQUEST)
-
-        titles = [row["title"] for row in result_data]
-        if len(titles) != len(set(titles)):
-            return Response({"detail": "عنوان محدوده‌های داخل شیپ فایل تکراری است"}, status=status.HTTP_400_BAD_REQUEST)
-
-        # title must be unique inside one contract
-        duplicate = ContractBorder.objects.filter(contract=contract, title__in=titles).first()
-        if duplicate:
-            return Response(
-                {"detail": f"محدوده قراردادی با عنوان {duplicate.title} از قبل برای این قرارداد وجود دارد"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        with transaction.atomic():
-            contract_borders = []
-            for row in result_data:
-                contract_borders.append(
-                    ContractBorder.objects.create(
-                        contract=contract,
-                        title=row["title"],
-                        scale=row["scale"],  # may be None
-                        border=MultiPolygon(row["border"]),
-                    )
-                )
-            user.grant_bulk_contractborder_access(contractborders=contract_borders)
-
-        return Response(
-            self.ContractBorderListOutputSerializer(
-                contract_borders, many=True, context={"request": request}
-            ).data,
-            status=status.HTTP_201_CREATED,
-        )
-
-
-class ContractBorderDetailsApiView(APIView):
-    """
-    GET: retrieve one contract border
-    PUT: replace the title, scale and border of one contract border from a
-         zipped shapefile that contains exactly one row
-    DELETE: delete one contract border
-
-    Object-level check: superuser, or a user who has access to this contract border.
-    """
-
-    class ContractBorderDetailsOutputSerializer(serializers.ModelSerializer):
-        class ContractBorderDetailsOutputSerializerContract(serializers.ModelSerializer):
-            class ContractBorderDetailsOutputSerializerContractDomain(serializers.ModelSerializer):
-                class Meta:
-                    model = ContractDomin
-                    fields = ["id", "title", "code"]
-
-            dtyp = ContractBorderDetailsOutputSerializerContractDomain()
-
-            class Meta:
-                model = Contract
-                fields = ["id", "title", "dtyp", "number"]
-
-        class ContractBorderDetailsOutputSerializerInitborder(serializers.ModelSerializer):
-            class ContractBorderDetailsOutputSerializerInitborderProvince(serializers.ModelSerializer):
-                class Meta:
-                    model = Province
-                    fields = ["id", "name_fa", "cnter_name_fa", "code"]
-
-            class ContractBorderDetailsOutputSerializerInitborderDomain(serializers.ModelSerializer):
-                class Meta:
-                    model = InitialBorderDomin
-                    fields = ["id", "title", "code"]
-
-            province = ContractBorderDetailsOutputSerializerInitborderProvince(many=True)
-            dtyp = ContractBorderDetailsOutputSerializerInitborderDomain()
-
-            class Meta:
-                model = InitialBorder
-                fields = ["id", "title", "dtyp", "center", "bbox", "parentid", "province"]
-
-        contract = ContractBorderDetailsOutputSerializerContract()
-        initborder = ContractBorderDetailsOutputSerializerInitborder(source="contract.initborder")
-
-        class Meta:
-            model = ContractBorder
-            fields = ["id", "title", "scale", "center", "bbox", "initborder", "contract"]
-
-    class ContractBorderDetailsInputSerializer(serializers.Serializer):
-        file = serializers.FileField(
-            required=True,
-            error_messages={"required": "این فیلد اجباری است"},
-            validators=[
-                FileExtensionValidator(
-                    allowed_extensions=["zip"],
-                    message="فایل محدوده حتما باید با فرمت zip باشد",
-                )
-            ],
-        )
-
-        def validate_file(self, value):
-            if value.size > 100 * 1024 * 1024:
-                raise serializers.ValidationError("File size cannot exceed 100 MB.")
-            return value
-
-    def get(self, request: Request, pk: str) -> Response:
-        user: User = request.user
-        try:
-            contractborder = ContractBorder.objects.select_related("contract__dtyp", "contract__initborder__dtyp").get(pk=pk)
-        except ContractBorder.DoesNotExist:
-            return Response({"detail": "محدوده قراردادی با این آیدی یافت نشد"}, status=status.HTTP_404_NOT_FOUND)
-
-        if not user.is_superuser and not user.has_contractborder_access(contractborder):
-            return Response({"detail": "کاربر به محدوده قرارداد دسترسی ندارد"}, status=status.HTTP_403_FORBIDDEN)
-
-        return Response(self.ContractBorderDetailsOutputSerializer(contractborder).data)
-
-    def put(self, request: Request, pk: str) -> Response:
-        user: User = request.user
-        try:
-            contractborder = ContractBorder.objects.select_related("contract__dtyp", "contract__initborder__dtyp").get(pk=pk)
-        except ContractBorder.DoesNotExist:
-            return Response({"detail": "محدوده قراردادی با این آیدی یافت نشد"}, status=status.HTTP_404_NOT_FOUND)
-
-        if not user.is_superuser and not user.has_contractborder_access(contractborder):
-            return Response({"detail": "کاربر به محدوده قرارداد دسترسی ندارد"}, status=status.HTTP_403_FORBIDDEN)
-
-        serializer = self.ContractBorderDetailsInputSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        ok, result_data, message = process_contractborder(zipfile_obj=serializer.validated_data["file"])
-        if not ok:
-            return Response({"detail": message}, status=status.HTTP_400_BAD_REQUEST)
-
-        if len(result_data) != 1:
-            return Response(
-                {"detail": "برای تغییر محدوده این محدوده قرارداد باید حتما یک محدوده در شیپ فایل وارد شده باشد"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        new_data = result_data[0]
-
-        # another contract border of this contract must not have the same title
-        if new_data["title"] != contractborder.title and ContractBorder.objects.filter(
-            title=new_data["title"], contract=contractborder.contract
-        ).exists():
-            return Response(
-                {"detail": f"محدوده قراردادی با عنوان {new_data['title']} از قبل برای این قرارداد وجود دارد"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        contractborder.title = new_data["title"]
-        contractborder.scale = new_data["scale"]
-        contractborder.border = MultiPolygon(new_data["border"])
-        contractborder.save()
-
-        return Response(self.ContractBorderDetailsOutputSerializer(contractborder).data)
-
-    def delete(self, request: Request, pk: str) -> Response:
-        user: User = request.user
-        try:
-            contractborder = ContractBorder.objects.get(pk=pk)
-        except ContractBorder.DoesNotExist:
-            return Response({"detail": "محدوده قراردادی با این آیدی یافت نشد"}, status=status.HTTP_404_NOT_FOUND)
-
-        if not user.is_superuser and not user.has_contractborder_access(contractborder):
-            return Response({"detail": "کاربر به محدوده قرارداد دسترسی ندارد"}, status=status.HTTP_403_FORBIDDEN)
-
-        title = contractborder.title
-        contractborder.delete()
-        delete_logger.warning(f"حذف محدوده قرارداد {title}", extra=get_details_from_request(request))
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-class ContractBorderDownloadExportShapeApiViews(APIView):
-    def post(self, request: Request, pk: str) -> Response:
-        user: User = request.user
-        try:
-            contractborder = ContractBorder.objects.get(pk=pk)
-        except ContractBorder.DoesNotExist:
-            return Response({"detail": "محدوده قراردادی با این آیدی یافت نشد"}, status=status.HTTP_404_NOT_FOUND)
-
-        if not user.is_superuser and not user.has_contractborder_access(contractborder):
-            return Response({"detail": "کاربر به محدوده قرارداد دسترسی ندارد"}, status=status.HTTP_403_FORBIDDEN)
-
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        zip_path = queryset_to_shapefile(
-            queryset=ContractBorder.objects.filter(pk=pk),
-            geometry_field="border",
-            zip_output=True,
-            filename=f"contractborder_{pk}_{timestamp}",
-        )
-        relative_path = os.path.relpath(zip_path, settings.MEDIA_ROOT)
-        download_url = request.build_absolute_uri(f"{settings.MEDIA_URL}{relative_path}")
-
-        return Response(
-            {"detail": "شیپ فایل با موفقیت ایجاد شد", "download_url": download_url},
-            status=status.HTTP_200_OK,
-        )
-
-
-class AllContractBorderDownloadExportShapeApiViews(APIView):
-    def post(self, request: Request) -> Response:
-        user: User = request.user
-        if user.is_superuser:
-            queryset = ContractBorder.objects.all()
-        else:
-            queryset = user.get_accessible_contractborders()
-
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        zip_path = queryset_to_shapefile(
-            queryset=queryset,
-            geometry_field="border",
-            zip_output=True,
-            filename=f"allcontractborder_{timestamp}",
-        )
-        relative_path = os.path.relpath(zip_path, settings.MEDIA_ROOT)
-        download_url = request.build_absolute_uri(f"{settings.MEDIA_URL}{relative_path}")
-
-        return Response(
-            {"detail": "شیپ فایل با موفقیت ایجاد شد", "download_url": download_url},
-            status=status.HTTP_200_OK,
-        )
 
 
 # --------------------------------------------------------------------------- #

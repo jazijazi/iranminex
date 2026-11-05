@@ -16,7 +16,6 @@ from django.conf import settings
 from accounts.models import User
 from contracts.models.models import (
     Contract,
-    ContractBorder,
 )
 from contracts.models.SharhKhadamats import (
     ShrhBase,
@@ -221,8 +220,7 @@ class SharhKhadamatLayerListApiView(SearchMixin, APIView):
                 'layer_name__lyrgroup_en',
                 'layer_name__lyrgroup_fa',
                 'layer_name__layername_en',
-                'layer_name__layername_fa',
-                'contractborder__title']
+                'layer_name__layername_fa',]
     class SharhKhadamatLayerListOutputSerializer(serializers.ModelSerializer):
         class SharhKhadamatLayerListLayername(serializers.ModelSerializer):
             class Meta:
@@ -239,15 +237,10 @@ class SharhKhadamatLayerListApiView(SearchMixin, APIView):
                 model = ShrhBase
                 fields = ["id","title"]
 
-        class SharhkhadamatlayerListContractborder(serializers.ModelSerializer):
-            class Meta:
-                model = ContractBorder
-                fields = ['id','title','scale']
                 
         layer_name = SharhKhadamatLayerListLayername()
         verified_by = SharhKhadamatLayerListUser()
         shrh_base = SharhkhadamatLayerListShrBase()
-        contractborder = SharhkhadamatlayerListContractborder()
         last_uploaded_by = SharhKhadamatLayerListUser()
 
         class Meta:
@@ -255,14 +248,14 @@ class SharhKhadamatLayerListApiView(SearchMixin, APIView):
             fields = ['id','shrh_base','layer_name','raster_uuid','scale','is_uploaded','status',
                 'unit','unit_price',
                 'last_uploaded_date','last_uploaded_by','upload_count','is_verified','verified_by','verified_at',
-                'layer_weight','layer_volume','contractborder']
+                'layer_weight','layer_volume',]
             
     class SharhKhadamatLayerListInputSerializer(serializers.ModelSerializer):
 
         class Meta:
             model = ShrhLayer
             fields = ['shrh_base','layer_name','scale','unit','unit_price',
-                    'layer_weight','layer_volume','contractborder']
+                    'layer_weight','layer_volume',]
             
     def _build_filters(self, request: Request, contractid: str) -> dict:
         """Build filter dictionary from URL params and query params"""
@@ -277,16 +270,6 @@ class SharhKhadamatLayerListApiView(SearchMixin, APIView):
                 filters['shrh_base_id'] = int(sharhbase_id)
             except ValueError:
                 raise ValidationError({"sharhbase": "شناسه شرح پایه معتبر نیست"})
-        
-        # Add contractborder filter if provided
-        contractborder_id = request.query_params.get('contractborder')
-        if contractborder_id:
-            try:
-                filters['contractborder_id'] = str(contractborder_id)
-            except ValueError:
-                raise ValidationError({"contractborder": "شناسه محدوده قرارداد معتبر نیست"})
-        
-        # print(">>>>>>>queryparam>>>>>>>>", sharhbase_id, contractborder_id)
         
         return filters
     
@@ -308,7 +291,6 @@ class SharhKhadamatLayerListApiView(SearchMixin, APIView):
                 'layer_name',
                 'verified_by',
                 'last_uploaded_by',
-                'contractborder', # Dose need check user access to this contractborder ???
                 'verified_by'
             ).order_by('shrh_base__title', 'layer_name__layername_en') 
 
@@ -369,21 +351,11 @@ class SharhKhadamatLayerListApiView(SearchMixin, APIView):
                         })
                         continue
 
-                    # Validate contractborder belongs to the contract (if provided)
-                    contractborder = input_serializer.validated_data.get('contractborder')
-                    if contractborder and contractborder.contract != contract_instance:
-                        errors.append({
-                            'index': index,
-                            'error': 'محدوده قرارداد به این قرارداد تعلق ندارد'
-                        })
-                        continue
 
                     # Check for duplicate layer (optional business logic) 
                     existing_layer = ShrhLayer.objects.filter(
                         shrh_base=shrh_base,
-                        layer_name=input_serializer.validated_data['layer_name'],
-                        contractborder=contractborder,
-                        # scale = contractborder.scale, # scale may be None do not check it ! 
+                        layer_name=input_serializer.validated_data['layer_name'], 
                         scale = input_serializer.validated_data['scale']
                     ).first()
                     
@@ -394,14 +366,12 @@ class SharhKhadamatLayerListApiView(SearchMixin, APIView):
                         })
                         continue
 
-                    # Create the new layer with contractborder
                     new_layer = ShrhLayer.objects.create(
                         shrh_base=shrh_base,
                         layer_name=input_serializer.validated_data['layer_name'],
                         scale=input_serializer.validated_data.get('scale'),
                         layer_weight=input_serializer.validated_data.get('layer_weight', 0),
                         layer_volume=input_serializer.validated_data.get('layer_volume', 0),
-                        contractborder=contractborder  # Don't forget this!
                     )
                     created_layers.append(new_layer)
                     
@@ -480,42 +450,29 @@ class SharhKhadamatLayerDetailApiView(APIView):
                 model = User
                 fields = ['id','username','first_name_fa','last_name_fa']
 
-        class SharhKhadamatLayerDetaiContractborder(serializers.ModelSerializer):
-            class Meta:
-                model = ContractBorder
-                fields = ['id','title','scale']
 
                 
         layer_name = SharhKhadamatLayerDetailLayername()
         verified_by = SharhKhadamatLayerDetailUser()
         last_uploaded_by = SharhKhadamatLayerDetailUser()
-        contractborder = SharhKhadamatLayerDetaiContractborder()
 
         class Meta:
             model = ShrhLayer
             fields = ['id','shrh_base','layer_name','raster_uuid','scale','is_uploaded','status',
                 'unit','unit_price',
                 'last_uploaded_date','last_uploaded_by','upload_count','is_verified','verified_by','verified_at',
-                'scale','layer_weight','layer_volume','contractborder']
+                'scale','layer_weight','layer_volume',]
             
     class SharhKhadamatLayerDetailInputputSerializer(serializers.ModelSerializer):
 
         def validate(self, data):
-            contractborder = data.get('contractborder')
-            if contractborder is not None:
-                # For update operations - compare with existing instance
-                if hasattr(self, 'instance') and self.instance:
-                    if contractborder.contract != self.instance.shrh_base.contract:
-                        raise serializers.ValidationError({
-                            "contractborder": "قراردادی که این محدوده قرارداد به آن متصل است با قراردادی که شرح خدمات این لایه به آن متصل است متفاوت میباشد"   
-                        })
             return data
 
         class Meta:
             model = ShrhLayer
             fields = ['scale','layer_weight',
                     'unit','unit_price',
-                    'layer_volume','contractborder'] 
+                    'layer_volume',] 
             
     def get(self , request:Request , contractid:str ,shrhid:int) -> Response:
         try:

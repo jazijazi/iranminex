@@ -58,7 +58,6 @@ class UserManagementListApiView(SearchMixin, APIView):
             fields = ['id','username','first_name_fa','last_name_fa','address',
                       'accessible_shrh_layers',
                       'accessible_contracts',
-                      'accessible_contractborders',
                       'accessible_initialborders',
                       'first_name','last_name','email','is_staff','is_active','is_controller',
                       'phonenumber','codemeli','fax','start_access','end_access',
@@ -74,11 +73,6 @@ class UserManagementListApiView(SearchMixin, APIView):
             allow_empty=True,
         )
         accessible_contracts = serializers.ListField(
-            child=serializers.UUIDField(),
-            required=False,
-            allow_empty=True,
-        )
-        accessible_contractborders = serializers.ListField(
             child=serializers.UUIDField(),
             required=False,
             allow_empty=True,
@@ -118,19 +112,6 @@ class UserManagementListApiView(SearchMixin, APIView):
                     )
             return value
         
-        def validate_accessible_contractborders(self, value):
-            """
-            Validate that all provided ContractBorder IDs exist
-            """
-            if value:
-                existing_ids = ContractBorder.objects.filter(id__in=value).values_list('id', flat=True)
-                invalid_ids = set(value) - set(existing_ids)
-                
-                if invalid_ids:
-                    raise serializers.ValidationError(
-                        f"محدوده‌های قرارداد با شناسه‌های {list(invalid_ids)} یافت نشدند"
-                    )
-            return value
         
         def validate_accessible_initialborders(self, value):
             """
@@ -179,7 +160,6 @@ class UserManagementListApiView(SearchMixin, APIView):
             # Extract permission lists before creating user
             accessible_shrh_layers = validated_data.pop('accessible_shrh_layers', [])
             accessible_contracts = validated_data.pop('accessible_contracts', [])
-            accessible_contractborders = validated_data.pop('accessible_contractborders', [])
             accessible_initialborders = validated_data.pop('accessible_initialborders', [])
             
             # Hash the password before saving
@@ -197,10 +177,6 @@ class UserManagementListApiView(SearchMixin, APIView):
                 contracts = Contract.objects.filter(id__in=accessible_contracts)
                 user.grant_bulk_contract_access(list(contracts))
             
-            if accessible_contractborders:
-                contractborders = ContractBorder.objects.filter(id__in=accessible_contractborders)
-                user.grant_bulk_contractborder_access(list(contractborders))
-            
             if accessible_initialborders:
                 initialborders = InitialBorder.objects.filter(id__in=accessible_initialborders)
                 user.grant_bulk_initialborder_access(list(initialborders))
@@ -212,7 +188,6 @@ class UserManagementListApiView(SearchMixin, APIView):
             fields = ['username','first_name_fa','last_name_fa','address','is_controller',
                       'accessible_shrh_layers',
                       'accessible_contracts',
-                      'accessible_contractborders',
                       'accessible_initialborders',
                       'first_name','last_name','email','roles',
                       'phonenumber','codemeli','fax','start_access','end_access',
@@ -284,7 +259,6 @@ class UserManagementDetailsApiView(APIView):
             fields = ['id','username','first_name_fa','last_name_fa','address',
                       'accessible_shrh_layers',
                       'accessible_contracts',
-                      'accessible_contractborders',
                       'accessible_initialborders',
                       'first_name','last_name','email','is_staff','is_controller',
                       'phonenumber','codemeli','fax','start_access','end_access',
@@ -297,11 +271,6 @@ class UserManagementDetailsApiView(APIView):
             allow_empty=True,
         )
         accessible_contracts = serializers.ListField(
-            child=serializers.UUIDField(),
-            required=False,
-            allow_empty=True,
-        )
-        accessible_contractborders = serializers.ListField(
             child=serializers.UUIDField(),
             required=False,
             allow_empty=True,
@@ -334,16 +303,6 @@ class UserManagementDetailsApiView(APIView):
                     )
             return value
 
-        def validate_accessible_contractborders(self, value):
-            if value:
-                existing = ContractBorder.objects.filter(id__in=value).values_list("id", flat=True)
-                invalid = set(value) - set(existing)
-                if invalid:
-                    raise serializers.ValidationError(
-                        f"مرزهای قرارداد با شناسه‌های {list(invalid)} یافت نشدند"
-                    )
-            return value
-
         def validate_accessible_initialborders(self, value):
             if value:
                 existing = InitialBorder.objects.filter(id__in=value).values_list("id", flat=True)
@@ -360,7 +319,6 @@ class UserManagementDetailsApiView(APIView):
             """
             shrh_layers = validated_data.pop('accessible_shrh_layers', None)
             contracts = validated_data.pop('accessible_contracts', None)
-            borders = validated_data.pop('accessible_contractborders', None)
             init_borders = validated_data.pop('accessible_initialborders', None)
             
             # Update regular fields
@@ -383,12 +341,6 @@ class UserManagementDetailsApiView(APIView):
                 items = Contract.objects.filter(id__in=contracts)
                 instance.grant_bulk_contract_access(list(items))
 
-            # ContractBorders
-            if borders is not None:
-                instance.revoke_all_contractborder_access()
-                items = ContractBorder.objects.filter(id__in=borders)
-                instance.grant_bulk_contractborder_access(list(items))
-
             # InitialBorders
             if init_borders is not None:
                 instance.revoke_all_initialborder_access()
@@ -401,7 +353,6 @@ class UserManagementDetailsApiView(APIView):
             fields = ['username','first_name_fa','last_name_fa','address',
                       'accessible_shrh_layers',
                       'accessible_contracts',
-                      'accessible_contractborders',
                       'accessible_initialborders',
                       'phonenumber','codemeli','fax','start_access','end_access',
                       'is_controller','first_name','last_name','email','roles','company']                  

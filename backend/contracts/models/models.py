@@ -207,57 +207,6 @@ class ContractElhaghye(CustomModel):
         verbose_name_plural = "الحاقیه‌های قرارداد"
         ordering = ['-tarikh']
 
-class ContractBorder(CustomModel):
-    id = models.UUIDField(
-        primary_key=True,
-        default=uuid.uuid4,
-        editable=False
-    )
-    oldid = models.IntegerField( # the is for migrate from old to new db
-        primary_key=False,
-        unique=False,
-        blank=True,
-        null=True
-    )
-    title = models.CharField(
-        verbose_name="عنوان محدوده قرارداد",
-        max_length=250,
-        blank=False,
-        null=False,
-    )
-    scale = models.IntegerField(
-        verbose_name="مقیاس",
-        choices=SCALE_CHOICES,
-        blank=True,
-        null=True,
-    )
-    border = gis_models.MultiPolygonField(
-        srid=4326,
-        blank=False,
-        null=False
-    )
-    contract = models.ForeignKey(
-        Contract,
-        on_delete=models.CASCADE,
-        related_name="rcontractborders",
-        blank=False,
-        null=False
-    )
-    @property
-    def center(self):
-        return [self.border.centroid.x , self.border.centroid.y]
-    
-    @property
-    def bbox(self):
-        return self.border.extent
-
-
-    def __str__(self):
-        return f"border {self.contract.title} --- {self.initborder.title} --- ({self.pk})"
-    class Meta:
-        verbose_name = "محدوده قراداد"
-        verbose_name_plural = "محدوده قرادادها"
-
 from .SharhKhadamats import *
 from .comments import *
 from .attachment import *

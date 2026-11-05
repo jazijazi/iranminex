@@ -8,7 +8,7 @@ from accounts.models import (
     Roles,
     Notification,
 )
-from .models import UserShrhLayerPermission , UserContractPermission , UserContractBorderPermission , UserInitialBorderPermission
+from .models import UserShrhLayerPermission , UserContractPermission , UserInitialBorderPermission
 from accounts.forms import UserAdminForm
 from django.utils.html import format_html
 from django import forms
@@ -95,16 +95,6 @@ class UserContractPermissionInline(TabularInlinePaginated):
     per_page = 15
 
 
-class UserContractBorderPermissionInline(TabularInlinePaginated):
-    model = UserContractBorderPermission
-    extra = 2
-    verbose_name = "دسترسی به محدوده قرارداد"
-    verbose_name_plural = "دسترسی‌های محدوده قرارداد"
-    autocomplete_fields = ['contractborder']
-    fields = ['contractborder']
-    classes = ['collapse']
-    per_page = 15
-
 
 class UserInitialBorderPermissionInline(TabularInlinePaginated):
     model = UserInitialBorderPermission
@@ -126,7 +116,6 @@ class USERSINADMIN(admin.ModelAdmin):
     inlines = [
         UserInitialBorderPermissionInline,
         UserContractPermissionInline,
-        UserContractBorderPermissionInline,
         UserShrhLayerPermissionInline,
     ]
     fieldsets = (

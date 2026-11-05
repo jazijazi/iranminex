@@ -14,22 +14,15 @@ from layers.views.layerviews import (
     VerifyLayerApiView,
     LayerFeatureDetails,
     DownloadVectorLayer,
-    DownloadContractBorderVectorLayers,
     SingleFeatureDetailsApiView,
 )
 from layers.views.featureattachviews import (
     FeatureAttachmentListApiView,
     FeatureAttachmentDetailsApiView,
 )
-from layers.views.searchviews import (
-    SearchLayerByLocation,
-)
 
 urlpatterns = [
     path('layernames/<int:contractcode>/' , LayerNamesListApiView.as_view() , name="layernames-list"),
-
-    path('layercontract/<uuid:contractid>/<uuid:contractborderid>/' , AllLayersOfAContractListApiView.as_view() , name="layercontract-list"),
-    
     path('shpcolsvectorlayer/' , ShpColumnOfVectorLayerApiView.as_view() , name="vectorlayer-shpcolnames"),
     path('shrlyrcol/' , AllColumnOfSharhlayerApiView.as_view() , name="sharhlayer-shpcolnames"),
     path('uploadvectorlayer/' , UploadVectorLayerApiView.as_view() , name="vectorlayer-upload"),
@@ -40,7 +33,6 @@ urlpatterns = [
     path('layerfeaturedetails/<int:shrhlayerid>/' , LayerFeatureDetails.as_view() , name="layer-feature-details"),
 
     path('downloadvectorlayer/<int:shrhlayerid>/' , DownloadVectorLayer.as_view() , name="vectorlayer-download"),
-    path('downloadvectorlayerfromcontractbrder/<uuid:contractborderid>/' , DownloadContractBorderVectorLayers.as_view() , name="vectorlayer-download-contractborder"),
 
     path('verifylayer/' , VerifyLayerApiView.as_view() , name="verify-layer"),
 
@@ -49,5 +41,4 @@ urlpatterns = [
 
     path('singlefeaturedetails/<int:shrhlyr_id>/<int:feature_id>/' , SingleFeatureDetailsApiView.as_view() , name="singlefeature-details"),
 
-    path('searchlayerbylocation/' , SearchLayerByLocation.as_view() , name="search-by-location"),
 ]

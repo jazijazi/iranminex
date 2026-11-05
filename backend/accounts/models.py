@@ -14,7 +14,6 @@ from initialborders.models.models import (
 
 from contracts.models.models import (
     Contract,
-    ContractBorder
 )
 
 from contracts.models.models import (
@@ -168,31 +167,6 @@ class UserContractPermission(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.contract.title}"
 
-class UserContractBorderPermission(models.Model):
-    user = models.ForeignKey(
-        'User',
-        on_delete=models.CASCADE,
-        verbose_name="کاربر"
-    )
-    contractborder = models.ForeignKey(
-        'contracts.ContractBorder',
-        on_delete=models.CASCADE,
-        verbose_name="محدوده قرارداد"
-    )
-    
-    class Meta:
-        unique_together = ['user', 'contractborder']
-        verbose_name = "دسترسی کاربر به محدوده قرارداد"
-        verbose_name_plural = "دسترسی‌های کاربران به محدوده‌های قرارداد"
-        indexes = [
-            models.Index(fields=['user']),
-            models.Index(fields=['contractborder']),
-            models.Index(fields=['user', 'contractborder']),
-        ]
-    
-    def __str__(self):
-        return f"{self.user.username} - {self.contractborder.title}"
-
 class UserInitialBorderPermission(models.Model):
     user = models.ForeignKey(
         'User',
@@ -305,15 +279,6 @@ class User(AbstractUser):
         related_name="users_with_access_contracts",
         help_text="این فیلد به صورت خودکار بروزرسانی می‌شود"
     )
-    # USER -> ContarctBorder
-    accessible_contractborders = models.ManyToManyField(
-        'contracts.ContractBorder',
-        through='UserContractBorderPermission',
-        verbose_name="محدوده‌های قرارداد قابل دسترسی",
-        blank=True,
-        related_name="users_with_access_contractborders",
-        help_text="این فیلد به صورت خودکار بروزرسانی می‌شود"
-    )
     # User -> InitialBorder
     accessible_initialborders = models.ManyToManyField(
         'initialborders.InitialBorder',
@@ -329,12 +294,6 @@ class User(AbstractUser):
         Get all contracts this user has access to
         """
         return self.accessible_contracts.all()
-    
-    def get_accessible_contractborders(self) -> QuerySet['ContractBorder']:
-        """
-        Get all contract borders this user has access to
-        """
-        return self.accessible_contractborders.all()
     
     def get_accessible_initialborder(self) -> QuerySet['InitialBorder']:
         """
@@ -372,15 +331,6 @@ class User(AbstractUser):
             contract=contract
         ).exists()
     
-    def has_contractborder_access(self, contractborder: ContractBorder) -> bool:
-        """
-        Quick check if user has access to a specific ContractBorder
-        """
-        return UserContractBorderPermission.objects.filter(
-            user=self,
-            contractborder=contractborder
-        ).exists()
-    
     def has_access_to_initialborder(self, initial_border: InitialBorder) -> bool:
         """
         Check if the user has access to the given InitialBorder
@@ -408,17 +358,6 @@ class User(AbstractUser):
         _, created = UserContractPermission.objects.get_or_create(
             user=self,
             contract=contract
-        )
-        return created
-
-    def grant_contractborder_access(self, contractborder: ContractBorder) -> bool:
-        """
-        Grant user access to a specific contract border
-        Returns True if access was granted, False if already had access
-        """
-        _, created = UserContractBorderPermission.objects.get_or_create(
-            user=self,
-            contractborder=contractborder
         )
         return created
 
@@ -456,16 +395,6 @@ class User(AbstractUser):
         ).delete()
         return deleted_count > 0
 
-    def revoke_contractborder_access(self, contractborder: ContractBorder) -> bool:
-        """
-        Revoke user access to a specific contract border
-        Returns True if access was revoked, False if didn't have access
-        """
-        deleted_count, _ = UserContractBorderPermission.objects.filter(
-            user=self,
-            contractborder=contractborder
-        ).delete()
-        return deleted_count > 0
 
     def revoke_initialborder_access(self, initial_border: InitialBorder) -> bool:
         """
@@ -505,23 +434,6 @@ class User(AbstractUser):
         ]
         if new_permissions:
             UserContractPermission.objects.bulk_create(new_permissions, ignore_conflicts=True)
-        return len(new_permissions)
-
-    def grant_bulk_contractborder_access(self, contractborders: list[ContractBorder]) -> int:
-        """
-        Grant access to multiple contract borders at once
-        Returns count of newly granted accesses
-        """
-        existing_border_ids = set(
-            UserContractBorderPermission.objects.filter(user=self).values_list('contractborder_id', flat=True)
-        )
-        new_permissions = [
-            UserContractBorderPermission(user=self, contractborder=cb)
-            for cb in contractborders
-            if cb.id not in existing_border_ids
-        ]
-        if new_permissions:
-            UserContractBorderPermission.objects.bulk_create(new_permissions, ignore_conflicts=True)
         return len(new_permissions)
 
     def grant_bulk_initialborder_access(self, initialborders: list[InitialBorder]) -> int:
@@ -565,14 +477,6 @@ class User(AbstractUser):
         Returns count of revoked accesses
         """
         deleted_count, _ = UserContractPermission.objects.filter(user=self).delete()
-        return deleted_count
-
-    def revoke_all_contractborder_access(self) -> int:
-        """
-        Revoke all contract border accesses for this user
-        Returns count of revoked accesses
-        """
-        deleted_count, _ = UserContractBorderPermission.objects.filter(user=self).delete()
         return deleted_count
 
     def revoke_all_initialborder_access(self) -> int:
