@@ -96,7 +96,6 @@ class NotificationFactory:
         body_text = cls._truncate_text(
             f"کاربر {writer_name} در قرارداد «{contract_ctx['contract_title']}» "
             f"(شماره {contract_ctx['contract_number']})، "
-            f"محدوده «{contract_ctx['contractborder_title']}»، "
             f"لایه «{layer_name_fa}» نظر جدیدی ثبت کرد"
         )
 
@@ -146,7 +145,7 @@ class NotificationFactory:
         body = cls._truncate_text(
             f"{cls._get_user_display_name(reply.writer)} در قرارداد «{contract_ctx['contract_title']}» "
             f"(شماره {contract_ctx['contract_number']})، "
-            f"محدوده «{contract_ctx['contractborder_title']}» به نظر شما پاسخ داد"
+            f" به نظر شما پاسخ داد"
         ),
 
         if not reply.parent:
@@ -241,7 +240,6 @@ class NotificationFactory:
         defaults = {
             "contract_title": "نامشخص",
             "contract_number": "نامشخص",
-            "contractborder_title": "نامشخص",
         }
 
         if not sharh_layer:
@@ -250,12 +248,10 @@ class NotificationFactory:
         try:
             shrh_base = getattr(sharh_layer, 'shrh_base', None)
             contract = getattr(shrh_base, 'contract', None)
-            contractborder = getattr(sharh_layer, 'contractborder', None)
 
             return {
                 "contract_title": getattr(contract, 'title', 'نامشخص') or 'نامشخص',
                 "contract_number": getattr(contract, 'number', 'نامشخص') or 'نامشخص',
-                "contractborder_title": getattr(contractborder, 'title', 'نامشخص') or 'نامشخص',
             }
         except Exception:
             return defaults

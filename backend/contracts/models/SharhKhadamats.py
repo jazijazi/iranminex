@@ -212,14 +212,6 @@ class ShrhLayer(CustomModel):
         null=True,
         blank=True,
     )
-    contractborder = models.ForeignKey(
-        'contracts.ContractBorder',
-        on_delete=models.CASCADE,
-        related_name="rcontractborderlayers",
-        blank=False,
-        null=False,
-        db_index=True,
-    )
 
     @property
     def status(self):
@@ -267,12 +259,6 @@ class ShrhLayer(CustomModel):
                 self.verified_by = None
                 self.verified_at = None
 
-        if self.contractborder and self.shrh_base and \
-            self.contractborder.contract != self.shrh_base.contract:
-
-            raise ValidationError({
-                "contractborder": "قراردادی که این محدوده قرارداد به آن متصل است با قراردادی که شرح خدمات این لایه به آن متصل است متفاوت است"
-            })
     
     def mark_as_uploaded(self , user):
         """Mark layer as uploaded and update timestamp"""

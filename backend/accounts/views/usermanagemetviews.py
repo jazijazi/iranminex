@@ -24,7 +24,6 @@ from accounts.models import (
 )
 from contracts.models.models import (
     Contract,
-    ContractBorder
 )
 from contracts.models.SharhKhadamats import ShrhLayer
 from initialborders.models.models import InitialBorder

@@ -1,7 +1,7 @@
 
 
 
-# Sharhkhadamat and Contractborder are using this
+# Sharhkhadamat are using this
 SCALE_CHOICES = [
     (250000, '1:250000'),  # 250K
     (100000, '1:100000'),  # 100K

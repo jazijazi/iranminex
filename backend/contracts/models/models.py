@@ -40,7 +40,7 @@ class Contract(CustomModel):
     initborder = models.ForeignKey(
         InitialBorder,
         on_delete=models.CASCADE,
-        related_name="rinitcontractborders",
+        related_name="rinitcontracts",
         blank=False,
         null=False
     )
@@ -138,13 +138,6 @@ class Contract(CustomModel):
         verbose_name="تاریخ الحاقیه",
         blank=True,
         null=True,
-    )
-    initborder = models.ForeignKey(
-        InitialBorder,
-        on_delete=models.CASCADE,
-        related_name="rinitcontractborders",
-        blank=False,
-        null=False
     )
 
     def clean(self):

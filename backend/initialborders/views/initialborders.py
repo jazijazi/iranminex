@@ -18,7 +18,7 @@ from common.mixins import SearchMixin
 from common.models import Company, Province
 from common.pagination import CustomPagination
 from common.services.gis import queryset_to_shapefile
-from contracts.models.models import Contract, ContractBorder, ContractDomin
+from contracts.models.models import Contract, ContractDomin
 from initialborders.models.attachment import (
     InitialBorderAttachment,
     InitialBorderAttachmentDomain,
@@ -545,62 +545,3 @@ class InitialBorderAttachmentDomainDetailsApiView(APIView):
             extra=get_details_from_request(request),
         )
         return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-class InitialBorderContractsApiView(APIView):
-    class InitialBorderContractsOutputSerializer(serializers.ModelSerializer):
-        class InitialBorderContractsOutputSerializerDtyp(serializers.ModelSerializer):
-            class Meta:
-                model = ContractDomin
-                fields = ["id", "title", "code"]
-
-        class InitialBorderContractsOutputSerializerCompany(serializers.ModelSerializer):
-            class Meta:
-                model = Company
-                fields = ["id", "name", "typ", "service_typ", "code"]
-
-        dtyp = InitialBorderContractsOutputSerializerDtyp()
-        company = InitialBorderContractsOutputSerializerCompany(many=True)
-        contractborders = serializers.PrimaryKeyRelatedField(
-            many=True, read_only=True, source="rcontractborders"
-        )
-
-        class Meta:
-            model = Contract
-            fields = [
-                "id", "title", "dtyp", "number", "progress", "company",
-                "is_completed", "department", "mablagh", "mablaghe_elhaghye",
-                "tarikh_elhaghye", "start_date", "end_date", "elhaghye",
-                "contractborders",
-            ]
-
-    def get(self, request: Request, initialborderpk: int) -> Response:
-        """Contracts linked to the border; non-superusers see only their own."""
-        user: User = request.user
-        try:
-            border = InitialBorder.objects.get(pk=initialborderpk)
-        except InitialBorder.DoesNotExist:
-            return Response({"detail": "محدوده اولیه یافت نشد"}, status=status.HTTP_404_NOT_FOUND)
-
-        if not user.is_superuser and not user.has_access_to_initialborder(border):
-            return Response({"detail": "کاربر به این محدوده اولیه دسترسی ندارد"}, status=status.HTTP_403_FORBIDDEN)
-
-        contracts = (
-            Contract.objects.filter(rcontractborders__initborder=border)
-            .select_related("dtyp")
-            .prefetch_related(
-                "company",
-                Prefetch(
-                    "rcontractborders",
-                    queryset=ContractBorder.objects.filter(initborder=border),
-                ),
-            )
-            .distinct()
-        )
-
-        if not user.is_superuser:
-            contracts = contracts.filter(
-                id__in=user.accessible_contracts.values_list("id", flat=True)
-            )
-
-        return Response(self.InitialBorderContractsOutputSerializer(contracts, many=True).data)

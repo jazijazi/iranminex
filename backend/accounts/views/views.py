@@ -31,7 +31,6 @@ from initialborders.models.models import (
 from contracts.models.models import (
     Contract,
     ContractDomin,
-    ContractBorder,
 )
 from common.models import Province , Company
 from common.pagination import CustomPagination
@@ -495,12 +494,7 @@ class UserContracts(SearchMixin , APIView):
           * (if user is admin return all contracts)
           * (if user not admin return User.accessible_contracts)
     """
-    permission_classes = [IsAuthenticated]
-    # search_fields = [
-    #     'title', # searches on InitialBorder.title
-    #     # 'contractborder__title', # ContractBorder.title (reverse FK)
-    #     # 'contractborder__contract__title', # Contract.title
-    #     ]  
+    permission_classes = [IsAuthenticated] 
 
     class UserInitialBorderListOutputSerializer(serializers.ModelSerializer):
         class UserInitialBorderProvianceSerializer(serializers.ModelSerializer):
