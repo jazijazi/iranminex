@@ -50,6 +50,7 @@ INSTALLED_APPS = [
 
     'initialborders',
     'contracts',
+    'layers',
 
     'leaflet',
 ]

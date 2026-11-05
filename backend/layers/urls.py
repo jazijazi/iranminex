@@ -3,7 +3,6 @@ from django.urls import path, include
 from layers.views.layerviews import (
     LayerNamesListApiView,
 
-    AllLayersOfAContractListApiView,
     ShpColumnOfVectorLayerApiView,
     AllColumnOfSharhlayerApiView,
     UploadVectorLayerApiView,

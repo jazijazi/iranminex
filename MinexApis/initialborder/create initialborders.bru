@@ -1,0 +1,27 @@
+meta {
+  name: create initialborders
+  type: http
+  seq: 2
+}
+
+post {
+  url: localhost:8000/api/initialborders/
+  body: multipartForm
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJleHAiOjE3OTM4ODc4MDgsImlhdCI6MTc5Mzg3ODgwOCwidHlwZSI6ImFjY2VzcyJ9.r4Y87S4MExmHriq7mwtlRcBGcL_g162oPlxnGvWfkoU
+}
+
+body:multipart-form {
+  file: @file(/home/jazi/Documents/NEGARZAMIN/Jalaabad_Projecy_1K/Glg_Lim.zip) @contentType(application/zip)
+  title: تست
+  dtyp: 1
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+  forwardAuthorizationHeader: false
+}

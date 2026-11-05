@@ -1,0 +1,15 @@
+meta {
+  name: get user profile
+  type: http
+  seq: 2
+}
+
+get {
+  url: http://localhost:8000/api/auth/userprofile/
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJleHAiOjE3NTc1MDgzNDYsImlhdCI6MTc1NzQ5OTM0NiwidHlwZSI6ImFjY2VzcyJ9.PTZ8eQUImfBjbaDDkxYWiSH_yGQqVkWbzb9SwjBACrU
+}

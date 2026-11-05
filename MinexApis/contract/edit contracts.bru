@@ -1,0 +1,25 @@
+meta {
+  name: edit contracts
+  type: http
+  seq: 9
+}
+
+put {
+  url: localhost:8000/api/initialborders/1/
+  body: multipartForm
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJleHAiOjE3OTM4ODc4MDgsImlhdCI6MTc5Mzg3ODgwOCwidHlwZSI6ImFjY2VzcyJ9.r4Y87S4MExmHriq7mwtlRcBGcL_g162oPlxnGvWfkoU
+}
+
+body:multipart-form {
+  title: jjj
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+  forwardAuthorizationHeader: false
+}

@@ -487,176 +487,107 @@ class Register(APIView):
             max_age=max_age,
         )
 
-class UserContracts(SearchMixin , APIView):
+class UserContracts(SearchMixin, APIView):
     """
-        GET:
-          - List of all contracts for a user from User.accessible_contracts
-          * (if user is admin return all contracts)
-          * (if user not admin return User.accessible_contracts)
+    GET: initial borders the user can access, each with the contract it belongs to
+         (the contract is only included if the user also has access to it).
+
+         - superuser: all initial borders / all contracts
+         - others: User.get_accessible_initialborder() / User.get_accessible_contracts()
     """
-    permission_classes = [IsAuthenticated] 
+    permission_classes = [IsAuthenticated]
 
     class UserInitialBorderListOutputSerializer(serializers.ModelSerializer):
-        class UserInitialBorderProvianceSerializer(serializers.ModelSerializer):
+        class UserInitialBorderProvinceSerializer(serializers.ModelSerializer):
             class Meta:
                 model = Province
-                fields = ['id','name_fa']
+                fields = ['id', 'name_fa']
 
         class UserInitialBorderDtypSerializer(serializers.ModelSerializer):
             class Meta:
                 model = InitialBorderDomin
-                fields = ['id','title','code']
+                fields = ['id', 'title', 'code']
 
         class UserContractSerializer(serializers.ModelSerializer):
             class UserContractDtypSerializer(serializers.ModelSerializer):
                 class Meta:
                     model = ContractDomin
-                    fields = ['id','title','code']
-
-            class UserContractBorderSerializer(serializers.ModelSerializer):
-                class Meta:
-                    model = ContractBorder
-                    fields = ['id', 'title', 'center' , 'bbox' , 'scale']
+                    fields = ['id', 'title', 'code']
 
             dtyp = UserContractDtypSerializer()
-            accessible_borders = UserContractBorderSerializer(many=True, read_only=True)
-            
+
             class Meta:
                 model = Contract
-                fields = ['id','title','dtyp','number','accessible_borders']
+                fields = ['id', 'title', 'dtyp', 'number']
 
-        province = UserInitialBorderProvianceSerializer(many=True)
-        accessible_contracts = UserContractSerializer(many=True, read_only=True)
+        province = UserInitialBorderProvinceSerializer(many=True)
         dtyp = UserInitialBorderDtypSerializer()
+        # set in the view: the contract, or None if unattached / user has no access
+        contract = UserContractSerializer(source='accessible_contract', read_only=True, allow_null=True)
+
         class Meta:
             model = InitialBorder
-            fields = ['id', 'title','dtyp','parentid','province','center','bbox','accessible_contracts']
+            fields = ['id', 'title', 'dtyp', 'parentid', 'province', 'center', 'bbox', 'contract']
 
     def get(self, request: Request) -> Response:
         try:
             user: User = request.user
 
-            # ── 1. Base querysets based on user role ──────────────────────────
+            # 1. base querysets by role
             if user.is_superuser:
-                initial_borders = InitialBorder.objects.prefetch_related(
-                    'province',
-                ).select_related('dtyp')
-
-                contract_borders_queryset = ContractBorder.objects.select_related(
-                    'contract__dtyp',
-                    'initborder'
-                ).all()
-
+                initial_borders = InitialBorder.objects.all()
+                accessible_contract_ids = set(Contract.objects.values_list('id', flat=True))
             else:
-                initial_borders = user.get_accessible_initialborder().prefetch_related(
-                    'province',
-                ).select_related('dtyp')
-
-                contract_borders_queryset = user.get_accessible_contractborders().select_related(
-                    'contract__dtyp',
-                    'initborder'
-                )
-
-            # ── 2. Search filtering ───────────────────────────────────────────
-            search = request.query_params.get('search', '').strip()
-            matching_initialborder_ids = set()
-
-            if search:
-                # InitialBorders matching by their own title
-                matching_initialborder_ids = set(
-                    initial_borders.filter(
-                        title__icontains=search
-                    ).values_list('id', flat=True)
-                )
-
-                # ContractBorders matching by border title, contract title, or contract number
-                contract_borders_queryset = contract_borders_queryset.filter(
-                    Q(title__icontains=search) |
-                    Q(contract__title__icontains=search) |
-                    Q(contract__number__icontains=search)
-                ).distinct()
-
-            # ── 3. Accessible contract IDs ────────────────────────────────────
-            if user.is_superuser:
-                accessible_contract_ids = set(
-                    Contract.objects.values_list('id', flat=True)
-                )
-            else:
+                initial_borders = user.get_accessible_initialborder()
                 accessible_contract_ids = set(
                     user.get_accessible_contracts().values_list('id', flat=True)
                 )
 
-            # ── 4. Fetch all relevant contract borders in ONE query ───────────
-            initial_borders_list = list(initial_borders)
-            initial_border_ids = [ib.id for ib in initial_borders_list]
+            initial_borders = (
+                initial_borders
+                .select_related('dtyp', 'contract__dtyp')
+                .prefetch_related('province')
+            )
 
-            all_relevant_borders = contract_borders_queryset.filter(
-                initborder_id__in=initial_border_ids,
-                contract_id__in=accessible_contract_ids
-            ).select_related('contract__dtyp')
-
-            # ── 5. Group contract borders by initial border in Python ─────────
-            # structure: { initborder_id: { contract_id: { 'contract': ..., 'borders': [...] } } }
-            grouped: dict = {}
-            for contract_border in all_relevant_borders:
-                ib_id = contract_border.initborder_id
-                c_id  = contract_border.contract_id
-
-                if ib_id not in grouped:
-                    grouped[ib_id] = {}
-
-                if c_id not in grouped[ib_id]:
-                    grouped[ib_id][c_id] = {
-                        'contract': contract_border.contract,
-                        'borders': []
-                    }
-                grouped[ib_id][c_id]['borders'].append(contract_border)
-
-            # ── 6. Attach accessible_contracts to each initial border ─────────
-            for initial_border in initial_borders_list:
-                contracts_data = grouped.get(initial_border.id, {})
-                accessible_contracts = []
-
-                for contract_data in contracts_data.values():
-                    contract = contract_data['contract']
-                    contract.accessible_borders = contract_data['borders']
-                    accessible_contracts.append(contract)
-
-                initial_border.accessible_contracts = accessible_contracts
-
-            # ── 7. Filter initial borders based on search results ─────────────
+            # 2. search (contract title/number only match contracts the user can access)
+            search = request.query_params.get('search', '').strip()
             if search:
-                initial_borders_list = [
-                    ib for ib in initial_borders_list
-                    if ib.accessible_contracts               # has matching nested contracts/borders
-                    or ib.id in matching_initialborder_ids   # OR its own title matched
-                ]
+                initial_borders = initial_borders.filter(
+                    Q(title__icontains=search)
+                    | (
+                        Q(contract_id__in=accessible_contract_ids)
+                        & (Q(contract__title__icontains=search) | Q(contract__number__icontains=search))
+                    )
+                )
 
-            # ── 8. Paginate and serialize ─────────────────────────────────────
+            # 3. paginate at the DB level, then attach the accessible contract
             paginator = CustomPagination()
-            paginated_data = paginator.paginate_queryset(initial_borders_list, request)
+            page = paginator.paginate_queryset(initial_borders.order_by('-id'), request)
+            for border in page:
+                border.accessible_contract = (
+                    border.contract if border.contract_id in accessible_contract_ids else None
+                )
+
             serializer = self.UserInitialBorderListOutputSerializer(
-                paginated_data,
-                many=True,
-                context={'request': request}
+                page, many=True, context={'request': request}
             )
 
             user_activity_logger.info(
                 f"دریافت موفق محدوده‌های اولیه کاربر {user.username}",
-                extra=get_details_from_request(request)
+                extra=get_details_from_request(request),
             )
             return paginator.get_paginated_response(serializer.data)
 
         except Exception as e:
             user_activity_logger.error(
                 f"خطا در خواندن محدوده‌های اولیه مربوط به کاربر {str(e)}",
-                extra=get_details_from_request(request)
+                extra=get_details_from_request(request),
             )
             return Response(
                 {"detail": "خطا در خواندن محدوده‌های اولیه مربوط به کاربر"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
-
+        
 class NotificationListApiViews(APIView):
     """
         Send a List of Notifications for user

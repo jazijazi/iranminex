@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.gis.db import models as gis_models
-
+from django.db import transaction
 from common.models import CustomModel , Province
 from contracts.models.models import Contract
 

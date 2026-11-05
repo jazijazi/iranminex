@@ -5,8 +5,6 @@ from initialborders.views.initialborders import (
     InitialBorderDetailViews,
     InitialBorderDownloadExportShape,
     AllInitialBorderDownloadExportShape,
-    #contracts
-    InitialBorderContractsApiView,
     #domin
     InitialBorderDominListView,
     #attahcment
@@ -28,5 +26,4 @@ urlpatterns = [
     path('attachment/<int:attachmentpk>/' , InitialBorderAttachmentDetailView.as_view() , name="initialborder-atach-detail"),
     path('attachdomains/' , InitialBorderAttachmentDomainListApiView.as_view() , name="initialborder-atach-domain-list"),
     path('attachdomains/<int:attachdomainpk>/' , InitialBorderAttachmentDomainDetailsApiView.as_view() , name="initialborder-atach-domain-detail"),
-    path('<int:initialborderpk>/contracts/' , InitialBorderContractsApiView.as_view() , name="initialborder-all-contracts"),
 ]

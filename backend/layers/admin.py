@@ -6,7 +6,7 @@ from layers.models.models import (
 )
 
 class LayerNameAdmin(admin.ModelAdmin):
-    list_display = ['dtyp','lyrgroup_en','lyrgroup_fa','layername_en','layername_fa','geometrytype',]
+    list_display = ['lyrgroup_en','lyrgroup_fa','layername_en','layername_fa','geometrytype',]
     search_fields = ['lyrgroup_en' , 'lyrgroup_fa' , 'layername_en' , 'layername_fa']
 
 class FeatureAttachmentAdmin(admin.ModelAdmin):

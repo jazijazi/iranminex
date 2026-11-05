@@ -25,6 +25,8 @@ from initialborders.models.models import InitialBorder
 
 class ContractDominAdmin(admin.ModelAdmin):
     list_display = ['title' , 'code']
+    search_fields = ['title' , 'code']
+    
 class InitialBorderInline(admin.TabularInline):
     """Shows the initial borders that belong to a contract."""
     model = InitialBorder
@@ -35,7 +37,6 @@ class InitialBorderInline(admin.TabularInline):
     show_change_link = True
  
  
-@admin.register(Contract)
 class ContractAdmin(admin.ModelAdmin):
     list_display = [
         'title', 'dtyp', 'number', 'start_date', 'end_date',
