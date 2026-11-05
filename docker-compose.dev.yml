@@ -106,34 +106,45 @@ services:
       start_period: 40s
     restart: unless-stopped
 
-  titiler:
-    build:
-      context: ./titiler
-      dockerfile: Dockerfile.dev
-    container_name: iranminex_titiler
-    ports:
-      - "8008:8008"
-    environment:
-      - TITILER_HOST=0.0.0.0
-      - TITILER_PORT=8008
-      # - TITILER_ROOT_PATH=/maprasterservice
-      - TITILER_ROOT_PATH=/
-    command: ["/starttitiler.sh"]
-    depends_on:
-      - db
-    env_file:
-      - .env 
+  map-tester:
+    image: nginx:alpine
+    container_name: iranminex_map_tester
     networks:
       - iranminexnet
-    healthcheck:
-      test: ["CMD", "sh", "-c", "curl", "-f", "-s", "http://${TITILER_HOST}:${TITILER_PORT}${TITILER_ROOT_PATH}" , "||" , "exit" , "1"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 30s
-    restart: unless-stopped
+    ports:
+      - "8080:80"
     volumes:
-      - ${RASTER_ROOT}:/app/raster
+      - ./maptester/index.html:/usr/share/nginx/html/index.html:ro
+    restart: unless-stopped
+
+  # titiler:
+  #   build:
+  #     context: ./titiler
+  #     dockerfile: Dockerfile.dev
+  #   container_name: iranminex_titiler
+  #   ports:
+  #     - "8008:8008"
+  #   environment:
+  #     - TITILER_HOST=0.0.0.0
+  #     - TITILER_PORT=8008
+  #     # - TITILER_ROOT_PATH=/maprasterservice
+  #     - TITILER_ROOT_PATH=/
+  #   command: ["/starttitiler.sh"]
+  #   depends_on:
+  #     - db
+  #   env_file:
+  #     - .env 
+  #   networks:
+  #     - iranminexnet
+  #   healthcheck:
+  #     test: ["CMD", "sh", "-c", "curl", "-f", "-s", "http://${TITILER_HOST}:${TITILER_PORT}${TITILER_ROOT_PATH}" , "||" , "exit" , "1"]
+  #     interval: 30s
+  #     timeout: 5s
+  #     retries: 3
+  #     start_period: 30s
+  #   restart: unless-stopped
+  #   volumes:
+  #     - ${RASTER_ROOT}:/app/raster
 
 
   # web:
