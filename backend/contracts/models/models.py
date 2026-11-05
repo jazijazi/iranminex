@@ -9,7 +9,6 @@ from django.core.exceptions import ValidationError
 from common.constants import SCALE_CHOICES
 from common.models import CustomModel
 from common.models import Province , Company
-from initialborders.models.models import InitialBorder
 
 
 class ContractDomin(CustomModel):
@@ -23,27 +22,23 @@ class ContractDomin(CustomModel):
         verbose_name_plural = "انواع قرادادها"
 
 class Contract(CustomModel):
-
+ 
     DEPARTMENT_CHOICES = [
-        ("1" , "خدمات مشاوره ایی"),
-        ("2" , "حفاری"),
-        ("3" , "ژئوفیزیک"),
-        ("4" , "چاه پیمایی"),
-        ("5" , "آزمایشگاه"),
+        ("1", "خدمات مشاوره ایی"),
+        ("2", "حفاری"),
+        ("3", "ژئوفیزیک"),
+        ("4", "چاه پیمایی"),
+        ("5", "آزمایشگاه"),
     ]
-
+ 
     id = models.UUIDField(
         primary_key=True,
         default=uuid.uuid4,
         editable=False,
     )
-    initborder = models.ForeignKey(
-        InitialBorder,
-        on_delete=models.CASCADE,
-        related_name="rinitcontracts",
-        blank=False,
-        null=False
-    )
+    # NOTE: the ForeignKey to InitialBorder was removed from here.
+    # The relation now lives on InitialBorder.contract
+    # (one contract -> many initial borders, reverse accessor: contract.initborders)
     title = models.CharField(
         verbose_name="عنوان قرارداد",
         max_length=250,
@@ -57,67 +52,64 @@ class Contract(CustomModel):
         verbose_name="نوع قرارداد",
         on_delete=models.SET_NULL,
         related_name="rdtypcontracts",
-        blank=True, 
+        blank=True,
         null=True,
     )
     number = models.CharField(
         verbose_name="شماره قرارداد",
         max_length=100,
-        blank=True, 
+        blank=True,
         null=True,
         unique=True,
         error_messages={
             'unique': "شماره قرارداد تکراری است"
-        }
+        },
     )
     company = models.ManyToManyField(
         Company,
         verbose_name="شرکت",
         related_name="rcompanycontracts",
-        blank=True
-    )    
+        blank=True,
+    )
     start_date = models.DateField(
         verbose_name="تاریخ شروع",
         blank=True,
-        null=True
+        null=True,
     )
     end_date = models.DateField(
         verbose_name="تاریخ پایان",
         blank=True,
-        null=True
+        null=True,
     )
     progress = models.FloatField(
         verbose_name="پیشرفت (درصد)",
         default=0,
         validators=[
             MinValueValidator(0, message="پیشرفت نمی‌تواند کمتر از صفر باشد."),
-            MaxValueValidator(125, message="پیشرفت نمی‌تواند بیشتر از صد باشد.")
+            MaxValueValidator(125, message="پیشرفت نمی‌تواند بیشتر از ۱۲۵ باشد."),
         ],
     )
     is_completed = models.BooleanField(
         verbose_name="خاتمه یافته",
         default=False,
-        db_index=True
+        db_index=True,
     )
     department = models.CharField(
         verbose_name="بخش مربوطه",
-        default="-",
         choices=DEPARTMENT_CHOICES,
         max_length=100,
-        unique=False,
         blank=True,
         null=True,
         error_messages={
-            'invalid_choice': f'انتخاب نامعتبر است. گزینه‌های معتبر: {", ".join([f"{choice[0]} ({choice[1]})" for choice in DEPARTMENT_CHOICES])}'
-        }
+            'invalid_choice': (
+                'انتخاب نامعتبر است. گزینه‌های معتبر: '
+                + ", ".join(f"{k} ({v})" for k, v in DEPARTMENT_CHOICES)
+            )
+        },
     )
-    # sherkatejraei = models.ManyToManyField('SherkatEjraei', related_name="rgharardads", blank=True,)
-    # additional fields
     elhaghye = models.BooleanField(
         verbose_name="الحاقیه دارد",
         default=False,
-        blank=False,
-        null=False
     )
     mablagh = models.BigIntegerField(
         verbose_name="مبلغ قرارداد",
@@ -128,36 +120,36 @@ class Contract(CustomModel):
         blank=True,
     )
     mablaghe_elhaghye = models.BigIntegerField(
-        verbose_name="مبلغ الحاقیه",validators=[
+        verbose_name="مبلغ الحاقیه",
+        validators=[
             MinValueValidator(0, message="مبلغ الحاقیه نمی‌تواند کمتر از صفر باشد.")
         ],
         blank=True,
-        null=True
+        null=True,
     )
     tarikh_elhaghye = models.DateField(
         verbose_name="تاریخ الحاقیه",
         blank=True,
         null=True,
     )
-
+ 
     def clean(self):
         """Model validation"""
         super().clean()
-        
-        # Validate date range
-        if self.start_date and self.end_date:
-            if self.start_date > self.end_date:
-                raise ValidationError({
-                    'end_date': 'تاریخ پایان نمی‌تواند قبل از تاریخ شروع باشد.',
-                })
-
+ 
+        if self.start_date and self.end_date and self.start_date > self.end_date:
+            raise ValidationError({
+                'end_date': 'تاریخ پایان نمی‌تواند قبل از تاریخ شروع باشد.',
+            })
+ 
     def __str__(self):
         return f"{self.title} ({self.number or 'بدون شماره'})"
-
+ 
     class Meta:
-        verbose_name = "قراداد"
-        verbose_name_plural = "قرادادها"
+        verbose_name = "قرارداد"
+        verbose_name_plural = "قراردادها"
         ordering = ['-created_at']
+
 
 class ContractElhaghye(CustomModel):
 

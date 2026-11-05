@@ -22,16 +22,21 @@ class InitialBorderAttachmentDomainInline(admin.TabularInline):
     extra = 1
 
 class InitialBorderAdmin(LeafletGeoAdmin):
-    search_fields = ['title', 'dtyp__title']
+    search_fields = ['title', 'dtyp__title', 'contract__title']
     list_filter = ['dtyp', 'province']
-    list_display = ['id', 'title', 'dtyp', 'parentid', 'display_provinces']
-    autocomplete_fields = ['parentid', 'dtyp']
+    list_display = ['id', 'title', 'contract', 'dtyp', 'parentid', 'display_provinces']
+    list_select_related = ['contract', 'dtyp', 'parentid']
+    autocomplete_fields = ['contract', 'parentid', 'dtyp']
     inlines = [InitialBorderAttachmentInline]
     readonly_fields = ['province']
-
+ 
+    def get_queryset(self, request):
+        return super().get_queryset(request).prefetch_related('province')
+ 
+    @admin.display(description="استان‌ها")
     def display_provinces(self, obj):
-        return ", ".join([p.name_fa for p in obj.province.all()])
-    display_provinces.short_description = "استان‌ها"
+        return ", ".join(p.name_fa for p in obj.province.all())
+
 
 class InitialBorderDominModalAdmin(admin.ModelAdmin):
     list_display = ['id', 'title', 'code']

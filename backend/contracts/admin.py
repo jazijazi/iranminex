@@ -21,13 +21,39 @@ from contracts.models.attachment import (
     SharhbaseAttachment,
     SharhbaseAttachmentDomain,
 )
+from initialborders.models.models import InitialBorder
+
 class ContractDominAdmin(admin.ModelAdmin):
     list_display = ['title' , 'code']
+class InitialBorderInline(admin.TabularInline):
+    """Shows the initial borders that belong to a contract."""
+    model = InitialBorder
+    fk_name = "contract"
+    fields = ['title', 'dtyp']
+    autocomplete_fields = ['dtyp']
+    extra = 0
+    show_change_link = True
+ 
+ 
+@admin.register(Contract)
 class ContractAdmin(admin.ModelAdmin):
-    list_display = ['title', 'dtyp', 'initborder', 'number', 'start_date', 'end_date', 'progress', 'is_completed']
+    list_display = [
+        'title', 'dtyp', 'number', 'start_date', 'end_date',
+        'progress', 'is_completed', 'initborders_count',
+    ]
     search_fields = ['title', 'number']
-    list_select_related = ['dtyp', 'initborder']
-    autocomplete_fields = ['initborder']
+    list_select_related = ['dtyp']
+    autocomplete_fields = ['dtyp', 'company']
+    inlines = [InitialBorderInline]
+ 
+    def get_queryset(self, request):
+        return super().get_queryset(request).prefetch_related('initborders')
+ 
+    @admin.display(description="تعداد محدوده‌ها")
+    def initborders_count(self, obj):
+        # uses the prefetched data, so no extra query per row
+        return len(obj.initborders.all())
+
 class ContractElhaghyeAdmin(admin.ModelAdmin):
     list_display = ['title', 'contract__title', 'mablagh', 'tarikh']
     search_fields = ['title', 'contract__title']
