@@ -10,7 +10,7 @@ from accounts.models import (
 )
 from .models import UserShrhLayerPermission , UserContractPermission , UserInitialBorderPermission
 from accounts.forms import UserAdminForm
-from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 from django import forms
 from django.contrib.admin.helpers import ACTION_CHECKBOX_NAME
 from django.http import HttpResponseRedirect
@@ -38,14 +38,15 @@ class APISADMIN(admin.ModelAdmin):
     fieldsets = (
         ('API تنظیمات', {
             'fields': ('method', 'url', 'desc'),
-            'description': format_html(
+            # mark_safe: static trusted HTML (format_html requires args/kwargs since Django 5.1)
+            'description': mark_safe(
                 '<div style="direction: rtl;padding: 15px; border-left: 6px solid #2196F3; margin-bottom: 20px;">'
                 '<strong style="color:red;font-size:1.6rem;">راهنمای استفاده:</strong><br>'
-                '• برای URLهای با پارامتر دینامیک از <code>{{id}}</code> استفاده کنید<br>'
-                '• مثال: <code>/api/initialborders/{{id}}/attachments/</code><br>'
-                '• مثال: <code>/api/users/{{id}}/</code><br>'
+                '• برای URLهای با پارامتر دینامیک از <code>{id}</code> استفاده کنید<br>'
+                '• مثال: <code>/api/initialborders/{id}/attachments/</code><br>'
+                '• مثال: <code>/api/users/{id}/</code><br>'
                 '• URL باید با <code>/</code> شروع شود<br>'
-                '• کاراکترهای مجاز: حروف، اعداد، <code>/</code>، <code>-</code>، <code>_</code>، <code>{{}}</code>'
+                '• کاراکترهای مجاز: حروف، اعداد، <code>/</code>، <code>-</code>، <code>_</code>، <code>{}</code>'
                 '</div>'
             )
         }),
