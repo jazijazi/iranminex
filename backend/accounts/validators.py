@@ -1,5 +1,25 @@
 import re
+import ipaddress
+from django.utils import timezone
 from django.core.exceptions import ValidationError
+from django.core.validators import validate_ipv46_address
+
+def validate_ip_whitelist(value):
+    """
+    Validates a comma-separated list of IPs and/or CIDR ranges.
+    Accepts: 192.168.1.10, 192.168.1.0/24, 2001:db8::/32, etc.
+    """
+    if not value:
+        return
+    entries = [v.strip() for v in value.split(",") if v.strip()]
+    for entry in entries:
+        try:
+            # strict=False allows "192.168.1.5/24" (host bits set) too
+            ipaddress.ip_network(entry, strict=False)
+        except ValueError:
+            raise ValidationError(
+                f"{entry} یک ip یا رنج ip معتبر نیست"
+            )
 
 class CustomPasswordValidator:
     """

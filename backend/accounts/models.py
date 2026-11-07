@@ -1,12 +1,19 @@
+import ipaddress
+import os, uuid
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
 from django.db import models
 from django.core.validators import RegexValidator
 from django.utils.translation import gettext_lazy as _
 from django.db.models import QuerySet
-
+from django.core.exceptions import ValidationError
+from django.core.validators import FileExtensionValidator
+from django.utils import timezone
 from common.models import CustomModel
 from common.models import Company
+from common.validators import phone_validator , codemeli_validator
+from accounts.validators import validate_ip_whitelist
+from common.utils.image import compress_image
 
 from initialborders.models.models import (
     InitialBorder
@@ -19,6 +26,12 @@ from contracts.models.models import (
 from contracts.models.models import (
     ShrhLayer
 )
+
+def user_profile_picture_upload_path(instance, filename):
+    name, ext = os.path.splitext(filename)
+    short_uuid = str(uuid.uuid4()).split("-")[-1]
+    return f"users/profile_pictures/user_{instance.username}/{name}_{short_uuid}{ext.lower()}"
+
 
 class Apis(models.Model):
     # Define choices for HTTP methods
@@ -227,9 +240,18 @@ class User(AbstractUser):
     codemeli = models.CharField(verbose_name="کد ملی", max_length=255, blank=True, null=True)
     fax = models.CharField(verbose_name="فکس", max_length=255, blank=True, null=True)
 
-    start_access = models.DateField(verbose_name="تاریخ شروع دسترسی",auto_now=False,auto_now_add=False,null=True,blank=True)
-    end_access = models.DateField(verbose_name="تاریخ پایان دسترسی",auto_now=False,auto_now_add=False,null=True,blank=True)
-
+    start_access = models.DateTimeField(
+        verbose_name="شروع دسترسی",
+        null=True,
+        blank=True,
+        help_text="اگر خالی باشد محدودیتی از نظر شروع دسترسی وجود ندارد.",
+    )
+    end_access = models.DateTimeField(
+        verbose_name="پایان دسترسی",
+        null=True,
+        blank=True,
+        help_text="اگر خالی باشد محدودیتی از نظر پایان دسترسی وجود ندارد.",
+    )
     user_attempt_login_limit = models.PositiveIntegerField(
         default=0,
         null=False,
@@ -245,12 +267,48 @@ class User(AbstractUser):
         db_index=True  # Add index for faster lookups
     )
 
-    is_controller = models.BooleanField(
-        verbose_name="کنترل کننده است؟",
-        default=False,
-        blank=False,
-        null=False,
-        help_text="نشان می‌دهد که آیا این کاربر کنترل کننده پروژه است یا خیر",
+    profile_picture = models.ImageField(
+        verbose_name="تصویر پروفایل",
+        upload_to=user_profile_picture_upload_path,
+        validators=[
+            FileExtensionValidator(
+                allowed_extensions=["jpg", "jpeg", "png"],
+                message="فرمت تصویر پروفایل باید فقط JPG، JPEG یا PNG باشد.",
+            )
+        ],
+        blank=True,
+        null=True,
+    )
+
+    last_ip_login = models.GenericIPAddressField(
+        protocol="both",
+        null=True,
+        blank=True,
+        editable=False,
+        verbose_name="اخرین ip وارد شده",
+    )
+
+    ip_white_list = models.CharField(
+        verbose_name="لیست IP های مجاز",
+        max_length=500,
+        blank=True,
+        null=True,
+        help_text="چند IP را با کاما (,) از هم جدا کنید. خالی = بدون محدودیت.",
+        validators=[validate_ip_whitelist],
+    )
+
+    previous_last_login = models.DateTimeField(
+        verbose_name="آخرین ورود قبلی",
+        null=True,
+        blank=True,
+        editable=False,
+    )
+
+    locked_until = models.DateTimeField(
+        verbose_name="قفل تا",
+        null=True,
+        blank=True,
+        editable=False,
     )
 
     company = models.ForeignKey(
@@ -494,6 +552,76 @@ class User(AbstractUser):
         """
         deleted_count, _ = UserShrhLayerPermission.objects.filter(user=self).delete()
         return deleted_count
+    
+    def has_time_based_access(self) -> bool:
+        now = timezone.now()
+        if self.start_access and now < self.start_access:
+            return False
+        if self.end_access and now > self.end_access:
+            return False
+        return True
+
+    def is_ip_allowed(self, ip: str | None) -> bool:
+        if not self.ip_white_list:
+            return True
+        if not ip:
+            return False
+        try:
+            client_ip = ipaddress.ip_address(ip)
+        except ValueError:
+            return False
+        for entry in (i.strip() for i in self.ip_white_list.split(",") if i.strip()):
+            try:
+                if client_ip in ipaddress.ip_network(entry, strict=False):
+                    return True
+            except ValueError:
+                continue
+        return False
+
+    def is_locked_out(self) -> bool:
+        return bool(self.locked_until and timezone.now() < self.locked_until)
+
+    def clean(self):
+        super().clean()
+        if self.start_access and self.end_access and self.start_access > self.end_access:
+            raise ValidationError({"end_access": "تاریخ پایان دسترسی باید بعد از تاریخ شروع باشد."})
+
+    def save(self, *args, **kwargs):
+        old_picture_path = None
+        if self.pk:
+            try:
+                old = User.objects.only("profile_picture").get(pk=self.pk)
+                old_name = old.profile_picture.name if old.profile_picture else None
+                new_name = self.profile_picture.name if self.profile_picture else None
+                if old_name and old_name != new_name:
+                    old_picture_path = old.profile_picture.path
+            except User.DoesNotExist:
+                pass
+
+        if self.profile_picture and not self.profile_picture._committed:
+            self.profile_picture = compress_image(image_field=self.profile_picture)
+
+        super().save(*args, **kwargs)
+
+        if old_picture_path:
+            self._delete_file(old_picture_path)
+
+    def delete(self, *args, **kwargs):
+        file_path = self.profile_picture.path if self.profile_picture else None
+        super().delete(*args, **kwargs)
+        if file_path:
+            self._delete_file(file_path)
+
+    @staticmethod
+    def _delete_file(file_path):
+        try:
+            if os.path.isfile(file_path):
+                os.remove(file_path)
+            directory = os.path.dirname(file_path)
+            if os.path.isdir(directory) and not os.listdir(directory):
+                os.rmdir(directory)
+        except OSError:
+            pass
 
     def get_full_name_fa(self):
         full_name_fa = "%s %s" % (self.first_name_fa, self.last_name_fa)

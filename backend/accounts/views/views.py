@@ -15,6 +15,7 @@ from accounts.tokenization import create_access_token , create_refresh_token ,de
 from rest_framework.permissions import (
     IsAuthenticated
 )
+from django.conf import settings
 from django.db.models import Q , Prefetch
 
 from accounts.models import (
@@ -32,16 +33,19 @@ from contracts.models.models import (
     Contract,
     ContractDomin,
 )
+from common.utils.ipget import get_client_ip
 from common.models import Province , Company
 from common.pagination import CustomPagination
 from common.services.notification_services import NotificationFactory 
-
-from django.conf import settings
-
-from captcha.services import CaptchaService
-
-from logs.utils import get_details_from_request
 from common.mixins import SearchMixin
+from accounts.services.auth import (
+    verify_captcha , 
+    complete_login , 
+    authenticate_with_password,
+    set_refresh_cookie
+)
+from accounts.exceptions import LoginError,InvalidCaptcha
+from logs.utils import get_details_from_request
 
 user_activity_logger = logging.getLogger('user_activity_logger')
 
@@ -107,149 +111,35 @@ class LoginUser(APIView):
             child=serializers.CharField(),
             allow_empty=False
         )
-    
-    def post(self, request: Request) -> Response:
-        """
-        Authenticate user and generate access and refresh tokens.
-        
-        Request body:
-        - username: User's username
-        - password: User's password
-        - rememberMe: Boolean flag for extended session
-        
-        """
+
+    def post(self, request):
+        data = self.LoginInputSerializer(data=request.data)
+        data.is_valid(raise_exception=True)
+        v = data.validated_data
+
+        client_ip = get_client_ip(request=request)
+        extra = get_details_from_request(request)
+        user_activity_logger.info(f"تلاش برای ورود با نام کاربری {v['username']}", extra=extra)
+
         try:
-            serializer = self.LoginInputSerializer(data=request.data)
-            
-            if not serializer.is_valid():
-                return Response(
-                    {'detail': serializer.errors},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-            
-            validated_data = serializer.validated_data
-            username = validated_data['username']
-            password = validated_data['password']
-            remember_me = validated_data.get('rememberMe', False)
-
-            user_activity_logger.info(f"تلاش برای ورود با نام کاربری {username}" , extra=get_details_from_request(request))
-            
-            #Only in Not Debug Mode validate the captcha
             if not settings.DEBUG:
-                captch_result, captch_result_message = self._validate_captcha(
-                    captcha_id =  validated_data['captcha_id'],
-                    captcha_answer = validated_data['captcha_answer'],
-                )
+                verify_captcha(v["captcha_id"], v["captcha_answer"])
 
-                if not captch_result:
-                    return Response({"detail":captch_result_message} , status=status.HTTP_400_BAD_REQUEST)
-            
-            # Get user by username - use get_user_by_username helper for flexibility
-            user = self._get_user_by_username(username)
+            user = authenticate_with_password(v["username"], v["password"], client_ip)
+            result = complete_login(user, client_ip)
+        except (LoginError, InvalidCaptcha) as e:
+            user_activity_logger.warning(
+                f"ورود ناموفق ({e.get_codes()}) برای {v['username']}", extra=extra)
+            raise  # DRF returns {"detail": ...} with the exception's status code
 
-            # User not found with this username
-            if not user:
-                user_activity_logger.warning(f"تلاش برای ورود با نام کاربری اشتباه {username}" , extra=get_details_from_request(request))
-                raise exceptions.AuthenticationFailed(detail='نام کاربری یا رمز عبور اشتباه است')
-            
-            if not user.is_active:
-                user_activity_logger.error(f"تلاش برای ورود با نام کاربری غیر فعال {username}" , extra=get_details_from_request(request))
-                raise exceptions.AuthenticationFailed('اکانت شما موقتاً غیرفعال شده است لطفا با پشتیبانی تماس بگیرید')
-            
-            if not user.is_superuser and user.start_access and user.end_access:
-                current_date = timezone.now().date()
-                if not (user.start_access <= current_date <= user.end_access):
-                    user_activity_logger.error(
-                        f"تلاش برای ورود خارج از محدوده تاریخ دسترسی برای کاربر {username}",
-                        extra=get_details_from_request(request)
-                    )
-                    raise exceptions.AuthenticationFailed(detail='متاسفانه تاریخ دسترسی شما پایان یافته است لطفا با پشتیبانی تماس بگیرید')
+        response = Response(self.LoginOutputSerializer({
+            "token": result.access_token,
+            "user": {"id": str(user.id), "username": user.username},
+        }).data)
+        set_refresh_cookie(response, result.refresh_token, v["rememberMe"])
 
-            # Password is not correct for this username
-            if not user.check_password(password):
-                user_activity_logger.error(f"تلاش برای ورود با پسورد نادرست برای نام کاربری {username}" , extra=get_details_from_request(request))
-
-                if user.user_attempt_login_limit > settings.USER_ATTEMPT_LOGIN_LIMITAION:
-                    user.is_active = False
-                    user.save(update_fields=['update_fields'])
-                else:
-                    user.user_attempt_login_limit += 1
-                    user.save(update_fields=['user_attempt_login_limit'])
-
-                raise exceptions.AuthenticationFailed(detail='نام کاربری یا رمز عبور اشتباه است')
-                        
-            # Update last login time
-            user.last_login = timezone.now()
-            user.user_attempt_login_limit = 0
-            user.save(update_fields=['last_login','user_attempt_login_limit'])
-                        
-            # Create tokens
-            access_token = create_access_token(user_id=user.id, expires_in_seconds=9000)
-            refresh_token = create_refresh_token(user_id=user.id, expires_in_days=7)
-            
-            # Prepare response
-            response_data = {
-                'token': access_token,
-                'user': self._get_user_info(user),
-            }
-
-            response_serializer = self.LoginOutputSerializer(data=response_data)
-            if response_serializer.is_valid():
-                response = Response(response_serializer.validated_data)
-            else:
-                # Fallback to original data if serializer validation fails
-                response = Response(response_data)
-            
-            # Set refresh token cookie
-            cookie_max_age = timedelta(days=7).total_seconds() if remember_me else None
-            self._set_refresh_token_cookie(response=response, refresh_token=refresh_token, max_age=cookie_max_age)
-
-            NotificationFactory.for_everytime_user_login(targetuser=user)
-
-            user_activity_logger.warning(f"ورود موفق برای کاربر {username}" , extra=get_details_from_request(request))
-            
-            return response
-            
-        except exceptions.AuthenticationFailed as e:
-            return Response({"detail":str(e)},status=status.HTTP_401_UNAUTHORIZED)
-        except Exception as e:
-            print(e)
-            user_activity_logger.error(f"خطا در سیستم ورود کاربر {str(e)}" , extra=get_details_from_request(request))
-            return Response(
-                {'detail': 'خطا در ورود به سیستم. لطفا مجددا تلاش کنید'}, 
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-    
-    def _validate_captcha(self , captcha_id: str , captcha_answer: str) -> Tuple[bool, str]:
-        return CaptchaService.validate_captcha(
-            key=captcha_id,
-            user_response=captcha_answer,
-        )
-
-    
-    def _get_user_by_username(self, username: str) -> User | None:
-        
-        return User.objects.filter(username=username).first()
-    
-    def _get_user_info(self, user: User) -> dict:
-        """
-        Return user information to include in response.
-        """
-        return {
-            'id': user.id,
-            'username': user.username,
-        }
-    
-    def _set_refresh_token_cookie(self, response: Response, refresh_token: str, max_age: int = None) -> None:
-        """
-        Set the refresh token cookie.
-        """        
-        response.set_cookie(
-            key='refresh_token',
-            value=refresh_token,
-            httponly=True,  # Not accessible via JavaScript
-            max_age=max_age,
-        )
+        user_activity_logger.info(f"ورود موفق برای کاربر {user.username}", extra=extra)
+        return response
 
 
 class RefreshToken(APIView):
