@@ -129,11 +129,11 @@ class USERSINADMIN(admin.ModelAdmin):
                     ),
         }),
         ('وضعیت و نقش', {
-            'fields': ('is_active', 'is_staff', 'is_superuser', 'is_controller', 'roles', 'company','user_attempt_login_limit'),
+            'fields': ('is_active', 'is_staff', 'is_superuser', 'roles', 'company','user_attempt_login_limit'),
             'classes': ('collapse',)
         }),
         ('تاریخ‌ها', {
-            'fields': ('date_joined', 'last_login'),
+            'fields': ('date_joined', 'last_login',),
             'classes': ('collapse',)
         }),
         ('سایر اطلاعات', {

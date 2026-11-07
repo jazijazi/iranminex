@@ -149,7 +149,7 @@ REST_FRAMEWORK = {
         'accounts.permissions.HasDynamicPermission',  
     ),
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
-    'EXCEPTION_HANDLER': 'common.utils.custom_exception_handler',
+    'EXCEPTION_HANDLER': 'common.utils.utils.custom_exception_handler',
 
     #throttling
     'DEFAULT_THROTTLE_CLASSES': [
@@ -159,7 +159,7 @@ REST_FRAMEWORK = {
     'DEFAULT_THROTTLE_RATES': {
         'anon': '100/hour',
         'user': '10000/hour',
-
+        "login": "10/min",
         'captcha': '10/minute',  
     },
 }
@@ -188,6 +188,11 @@ CSRF_TRUSTED_ORIGINS = config(
     ],
     cast=Csv()
 )
+
+USER_LOGIN_ATTEMPTS_LOCK_LIMIT = 5          # lock for 2h every 5th failure
+USER_LOGIN_ATTEMPTS_DEACTIVATE_LIMIT = 15   # deactivate account at 15 failures
+JWT_ACCESS_TOKEN_EXPIRE_IN_SECOND = 9000
+JWT_REFRESH_TOKEN_EXPIRE_IN_DAYS = 7
 
 
 MEDIA_URL = '/mediabck/'  #specifies the URL prefix used for serving media files (user-uploaded files)
