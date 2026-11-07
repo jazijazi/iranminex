@@ -3,7 +3,7 @@ from django.core.validators import MinValueValidator , MaxValueValidator
 from django.core.exceptions import ValidationError
 from django.conf import settings
 
-from common.models import CustomModel
+from common.models.models import CustomModel
 from common.constants import SCALE_CHOICES
 from contracts.models.models import Contract
 from layers.models.models import LayersNames

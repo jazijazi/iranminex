@@ -1,7 +1,7 @@
 import os
 from django.db import models
 from django.conf import settings
-from common.models import CustomModel
+from common.models.models import CustomModel
 
 
 class ContractAttachmentDomain(CustomModel):

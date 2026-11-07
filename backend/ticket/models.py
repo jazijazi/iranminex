@@ -2,7 +2,7 @@ import os
 import uuid
 from django.db import models
 
-from common.models import CustomModel
+from common.models.models import CustomModel
 
 from django.conf import settings
 from django.utils import timezone

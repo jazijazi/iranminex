@@ -34,7 +34,8 @@ from contracts.models.models import (
     ContractDomin,
 )
 from common.utils.ipget import get_client_ip
-from common.models import Province , Company
+from common.models.other import Company
+from common.models.districts import Ostan
 from common.pagination import CustomPagination
 from common.services.notification_services import NotificationFactory 
 from common.mixins import SearchMixin
@@ -290,10 +291,10 @@ class UserContracts(SearchMixin, APIView):
     permission_classes = [IsAuthenticated]
 
     class UserInitialBorderListOutputSerializer(serializers.ModelSerializer):
-        class UserInitialBorderProvinceSerializer(serializers.ModelSerializer):
+        class UserInitialBorderOstanSerializer(serializers.ModelSerializer):
             class Meta:
-                model = Province
-                fields = ['id', 'name_fa']
+                model = Ostan
+                fields = ['id', 'title']
 
         class UserInitialBorderDtypSerializer(serializers.ModelSerializer):
             class Meta:
@@ -312,14 +313,14 @@ class UserContracts(SearchMixin, APIView):
                 model = Contract
                 fields = ['id', 'title', 'dtyp', 'number']
 
-        province = UserInitialBorderProvinceSerializer(many=True)
+        ostan = UserInitialBorderOstanSerializer(many=True)
         dtyp = UserInitialBorderDtypSerializer()
         # set in the view: the contract, or None if unattached / user has no access
         contract = UserContractSerializer(source='accessible_contract', read_only=True, allow_null=True)
 
         class Meta:
             model = InitialBorder
-            fields = ['id', 'title', 'dtyp', 'parentid', 'province', 'center', 'bbox', 'contract']
+            fields = ['id', 'title', 'dtyp', 'parentid', 'ostan', 'center', 'bbox', 'contract']
 
     def get(self, request: Request) -> Response:
         try:
@@ -338,7 +339,7 @@ class UserContracts(SearchMixin, APIView):
             initial_borders = (
                 initial_borders
                 .select_related('dtyp', 'contract__dtyp')
-                .prefetch_related('province')
+                .prefetch_related('ostan')
             )
 
             # 2. search (contract title/number only match contracts the user can access)

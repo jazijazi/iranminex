@@ -16,7 +16,7 @@ from rest_framework.views import APIView
 
 from accounts.models import User
 from common.mixins import SearchMixin
-from common.models import Company, Province
+from common.models.other import Company
 from common.pagination import CustomPagination
 from common.services.gis import queryset_to_shapefile
 from initialborders.services.gis import proccess_initialborder_zipfile
@@ -211,7 +211,7 @@ class ContractListApiViews(SearchMixin, APIView):
                         )
                     if not user.is_superuser and not user.has_access_to_initialborder(border):
                         raise PermissionDenied("کاربر به این محدوده اولیه دسترسی ندارد")
-                # update() does not touch the geometry, so no province recalculation is needed
+                # update() does not touch the geometry, so no ostan recalculation is needed
                 InitialBorder.objects.filter(pk__in=ids).update(contract=contract)
 
             for title, geometry in parsed_borders:

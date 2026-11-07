@@ -9,8 +9,8 @@ from django.db.models import QuerySet
 from django.core.exceptions import ValidationError
 from django.core.validators import FileExtensionValidator
 from django.utils import timezone
-from common.models import CustomModel
-from common.models import Company
+from common.models.models import CustomModel
+from common.models.other import Company
 from common.validators import phone_validator , codemeli_validator
 from accounts.validators import validate_ip_whitelist
 from common.utils.image import compress_image

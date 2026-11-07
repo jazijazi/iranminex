@@ -15,7 +15,7 @@ from rest_framework.views import APIView
 
 from accounts.models import User
 from common.mixins import SearchMixin
-from common.models import Company, Province
+from common.models.districts import Ostan
 from common.pagination import CustomPagination
 from common.services.gis import queryset_to_shapefile
 from contracts.models.models import Contract, ContractDomin
@@ -39,13 +39,13 @@ class InitialBorderListViews(SearchMixin, APIView):
           attached to a contract later.
     """
 
-    search_fields = ["title", "province__name_fa", "dtyp__title"]
+    search_fields = ["title", "ostan__name_fa", "dtyp__title"]
 
     class InitialBorderListOutputSerializer(serializers.ModelSerializer):
-        class InitialBorderListOutputSerializerProvince(serializers.ModelSerializer):
+        class InitialBorderListOutputSerializerOstan(serializers.ModelSerializer):
             class Meta:
-                model = Province
-                fields = ["id", "name_fa", "cnter_name_fa", "code"]
+                model = Ostan
+                fields = ["id", "title", "center", "code"]
 
         class InitialBorderListOutputSerializerDomain(serializers.ModelSerializer):
             class Meta:
@@ -53,11 +53,11 @@ class InitialBorderListViews(SearchMixin, APIView):
                 fields = ["id", "title", "code"]
 
         dtyp = InitialBorderListOutputSerializerDomain()
-        province = InitialBorderListOutputSerializerProvince(many=True)
+        ostan = InitialBorderListOutputSerializerOstan(many=True)
 
         class Meta:
             model = InitialBorder
-            fields = ["id", "title", "dtyp", "province", "center", "bbox", "parentid", "contract"]
+            fields = ["id", "title", "dtyp", "ostan", "center", "bbox", "parentid", "contract"]
 
     class InitialBorderListInputSerializer(serializers.ModelSerializer):
         file = serializers.FileField(
@@ -89,7 +89,7 @@ class InitialBorderListViews(SearchMixin, APIView):
         queryset = (
             self.apply_search(queryset, request)
             .select_related("dtyp")
-            .prefetch_related("province")
+            .prefetch_related("ostan")
         )
 
         paginator = CustomPagination()
@@ -133,10 +133,10 @@ class InitialBorderDetailViews(APIView):
     """GET / PUT / DELETE a single initial border."""
 
     class InitialBorderDetailOutputSerializer(serializers.ModelSerializer):
-        class InitialBorderDetailOutputSerializerProvince(serializers.ModelSerializer):
+        class InitialBorderDetailOutputSerializerOstan(serializers.ModelSerializer):
             class Meta:
-                model = Province
-                fields = ["id", "name_fa", "cnter_name_fa", "code"]
+                model = Ostan
+                fields = ["id", "title", "center", "code"]
 
         class InitialBorderDetailOutputSerializerDomain(serializers.ModelSerializer):
             class Meta:
@@ -144,11 +144,11 @@ class InitialBorderDetailViews(APIView):
                 fields = ["id", "title", "code"]
 
         dtyp = InitialBorderDetailOutputSerializerDomain()
-        province = InitialBorderDetailOutputSerializerProvince(many=True)
+        ostan = InitialBorderDetailOutputSerializerOstan(many=True)
 
         class Meta:
             model = InitialBorder
-            fields = ["id", "title", "dtyp", "province", "center", "bbox", "parentid", "contract"]
+            fields = ["id", "title", "dtyp", "ostan", "center", "bbox", "parentid", "contract"]
 
     class InitialBorderDetailInputSerializer(serializers.Serializer):
         title = serializers.CharField(max_length=250, required=False)
@@ -177,7 +177,7 @@ class InitialBorderDetailViews(APIView):
     def get(self, request: Request, pk: int) -> Response:
         user: User = request.user
         try:
-            border = InitialBorder.objects.select_related("dtyp").prefetch_related("province").get(pk=pk)
+            border = InitialBorder.objects.select_related("dtyp").prefetch_related("ostan").get(pk=pk)
         except InitialBorder.DoesNotExist:
             return Response({"detail": "محدوده اولیه یافت نشد"}, status=status.HTTP_404_NOT_FOUND)
 

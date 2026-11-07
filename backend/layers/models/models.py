@@ -203,17 +203,17 @@ class FeatureAttachment(models.Model):
 
 
 # IMPORT LAYERS
-from .layermodels.coal_layers import *
-from .layermodels.excavation_layer import *
-from .layermodels.general_layer import *
-from .layermodels.geochemistry_layer import *
-from .layermodels.geology import *
-from .layermodels.geology_section_layer import *
-from .layermodels.geophysic_layer import *
-from .layermodels.geophysic_section_layer import *
-from .layermodels.remotesensing_layer import *
-from .layermodels.topography_layer import *
-from .layermodels.mining_equipment_layer import *
+# from .layermodels.coal_layers import *
+# from .layermodels.excavation_layer import *
+# from .layermodels.general_layer import *
+# from .layermodels.geochemistry_layer import *
+# from .layermodels.geology import *
+# from .layermodels.geology_section_layer import *
+# from .layermodels.geophysic_layer import *
+# from .layermodels.geophysic_section_layer import *
+# from .layermodels.remotesensing_layer import *
+# from .layermodels.topography_layer import *
+# from .layermodels.mining_equipment_layer import *
 
-from .layermodels.extraction import *
-from .layermodels.factory import *
+# from .layermodels.extraction import *
+# from .layermodels.factory import *

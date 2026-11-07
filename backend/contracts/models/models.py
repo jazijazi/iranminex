@@ -7,9 +7,8 @@ from django.contrib.gis.db import models as gis_models
 from django.core.exceptions import ValidationError
 
 from common.constants import SCALE_CHOICES
-from common.models import CustomModel
-from common.models import Province , Company
-
+from common.models.models import CustomModel
+from common.models.other import Company
 
 class ContractDomin(CustomModel):
     title = models.CharField(max_length=100, unique=True)

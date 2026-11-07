@@ -15,7 +15,7 @@ from rest_framework.permissions import (
 from common.pagination import CustomPagination
 from common.mixins import SearchMixin
 
-from common.models import Company
+from common.models.other import Company
 from accounts.models import (
     User,
     Apis,

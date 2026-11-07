@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.gis',
     'django_admin_inline_paginator',
+    'django.contrib.postgres',
 
     'common',
     'logs',
@@ -64,6 +65,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # common
+    'common.middleware.CurrentRequestMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'

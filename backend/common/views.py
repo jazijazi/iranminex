@@ -9,52 +9,52 @@ from rest_framework.response import Response
 from rest_framework import status
 from accounts.permissions import HasDynamicPermission
 from common.pagination import CustomPagination
-from common.models import (
-    Province,
-    Company,
-    County,
+from common.models.districts import (
+    Ostan,
+    Shahrestan
 )
+from common.models.other import Company
 from common.mixins import SearchMixin
 
 from django.db import connection
 from django.core.cache import cache
 import time
 
-class ProvinceListApiView(APIView):
+class OstanListApiView(APIView):
     """
-        List of all Province in Database
+        List of all Ostan in Database
     """
     permission_classes=[AllowAny]
     
-    class ProvinceListOutputSerializer(serializers.ModelSerializer):
+    class OstanListOutputSerializer(serializers.ModelSerializer):
         class Meta:
-            model = Province
-            fields = ['id','name_fa' , 'cnter_name_fa' , 'code']
+            model = Ostan
+            fields = ['id','title' , 'center' , 'code']
 
     def get(self , request:Request) -> Response:
         try:
-            all_province = Province.objects.all()
-            output_serializer = self.ProvinceListOutputSerializer(all_province,many=True)
+            all_ostan = Ostan.objects.all()
+            output_serializer = self.OstanListOutputSerializer(all_ostan,many=True)
             return Response(output_serializer.data, status=status.HTTP_201_CREATED)
         except Exception as e:
             print(e)
             return Response({"detail": "خطا در خواندن لیست استان ها"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-class CountyListApiView(APIView):
+class ShahrestanListApiView(APIView):
     """
-        List of all County in Database
+        List of all Shahrestan in Database
     """
     permission_classes=[AllowAny]
     
-    class CountyListOutputSerializer(serializers.ModelSerializer):
+    class ShahrestanListOutputSerializer(serializers.ModelSerializer):
         class Meta:
-            model = County
-            fields = ['id','name_fa' , 'code' , 'province']
+            model = Shahrestan
+            fields = ['id', 'title', 'code', 'ostan']
 
     def get(self , request:Request) -> Response:
         try:
-            all_province = County.objects.all()
-            output_serializer = self.CountyListOutputSerializer(all_province,many=True)
+            all_ostan = Shahrestan.objects.all()
+            output_serializer = self.ShahrestanListOutputSerializer(all_ostan,many=True)
             return Response(output_serializer.data, status=status.HTTP_201_CREATED)
         except Exception as e:
             print(e)

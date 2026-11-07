@@ -1,7 +1,8 @@
 from django.db import models
 from django.contrib.gis.db import models as gis_models
 from django.db import transaction
-from common.models import CustomModel , Province
+from common.models.models import CustomModel
+from common.models.districts import Ostan
 from contracts.models.models import Contract
 
 class InitialBorderDomin(CustomModel):
@@ -51,10 +52,10 @@ class InitialBorder(CustomModel):
         blank=False,
         null=False,
     )
-    province = models.ManyToManyField(
-        Province,
+    ostan = models.ManyToManyField(
+        Ostan,
         verbose_name="استان",
-        related_name="rprovinceinitialborder",
+        related_name="rostaninitialborder",
         blank=True,
     )
  
@@ -83,11 +84,11 @@ class InitialBorder(CustomModel):
             super().save(*args, **kwargs)
  
             if border_changed:
-                intersecting = Province.objects.filter(
+                intersecting = Ostan.objects.filter(
                     border__intersects=self.border
                 )
                 # set() replaces existing relations, so no need for clear()
-                self.province.set(intersecting)
+                self.ostan.set(intersecting)
  
     def __str__(self):
         return self.title

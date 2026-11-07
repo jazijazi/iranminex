@@ -6,7 +6,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.contrib.gis.db import models as gis_models
 from django.core.exceptions import ValidationError
 
-from common.models import CustomModel
+from common.models.models import CustomModel
 
 class Comment(CustomModel):
     sharhlayer = models.ForeignKey(

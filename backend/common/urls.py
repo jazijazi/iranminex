@@ -1,8 +1,8 @@
 from django.urls import path, include
 
 from common.views import (
-    ProvinceListApiView,
-    CountyListApiView,
+    OstanListApiView,
+    ShahrestanListApiView,
 
     CompanyListApiView,
     CompanyDetailsApiView,
@@ -12,8 +12,8 @@ from common.views import (
 
 
 urlpatterns = [
-    path('province/' , ProvinceListApiView.as_view() , name="province-list"),
-    path('county/' , CountyListApiView.as_view() , name="county-list"),
+    path('ostan/' , OstanListApiView.as_view() , name="ostan-list"),
+    path('shahrestan/' , ShahrestanListApiView.as_view() , name="shahrestan-list"),
 
     path('company/' , CompanyListApiView.as_view() , name="company-list"),
     path('company/<int:companyid>/' , CompanyDetailsApiView.as_view() , name="company-details"),
