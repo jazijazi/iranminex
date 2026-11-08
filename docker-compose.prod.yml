@@ -236,7 +236,7 @@ networks:
     driver: bridge
 
 volumes:
-  #pgdata:
-  #driver: local
+  pgdata:
+    driver: local
   redis_data:
-     driver: local
+    driver: local

@@ -49,6 +49,8 @@ RUN apk update && apk add --no-cache \
 # -----------------------------
 WORKDIR /app
 
+ENV PIP_INDEX_URL=https://package-mirror.liara.ir/repository/pypi/simple
+
 # -----------------------------
 # Install Python dependencies
 # -----------------------------
