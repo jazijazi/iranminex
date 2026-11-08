@@ -52,6 +52,10 @@ class UserManagementListApiView(SearchMixin, APIView):
                 fields = ['id','name','typ','service_typ','code']
         roles = UserManagementListOutputRoles()
         company = UserManagementListOutputCompany()
+        is_locked = serializers.SerializerMethodField()
+
+        def get_is_locked(self, obj) -> bool:
+            return obj.is_locked_out()
         class Meta:
             model = User
             fields = ['id','username','first_name_fa','last_name_fa','address',
@@ -60,7 +64,10 @@ class UserManagementListApiView(SearchMixin, APIView):
                       'accessible_initialborders',
                       'first_name','last_name','email','is_staff','is_active','is_controller',
                       'phonenumber','codemeli','fax','start_access','end_access',
-                      'date_joined','last_login','is_active','roles','company']
+                      'date_joined','last_login','roles','company',
+                      'profile_picture', 'ip_white_list',
+                      'last_ip_login', 'previous_last_login',
+                      'locked_until', 'is_locked', 'user_attempt_login_limit']
             
     class UserManagementListInputSerializer(serializers.ModelSerializer):
         password = serializers.CharField(write_only=True, min_length=8)
@@ -151,7 +158,15 @@ class UserManagementListApiView(SearchMixin, APIView):
             
             # Remove confirm_password from validated data as it's not needed for saving
             attrs.pop('confirm_password', None)
+
+            # serializers don't call model.clean(), so check the date range here
+            start, end = attrs.get('start_access'), attrs.get('end_access')
+            if start and end and start > end:
+                raise serializers.ValidationError({
+                    'end_access': 'تاریخ پایان دسترسی باید بعد از تاریخ شروع باشد.'
+                })
             return attrs
+        
         def create(self, validated_data):
             """
             Create user with hashed password
@@ -190,7 +205,8 @@ class UserManagementListApiView(SearchMixin, APIView):
                       'accessible_initialborders',
                       'first_name','last_name','email','roles',
                       'phonenumber','codemeli','fax','start_access','end_access',
-                      'password','confirm_password','company']
+                      'password','confirm_password','company',
+                      'profile_picture', 'ip_white_list']
     
             
 
@@ -201,7 +217,7 @@ class UserManagementListApiView(SearchMixin, APIView):
             all_users = self.apply_search(all_users, request)
             paginator = CustomPagination()
             paginated_queryset = paginator.paginate_queryset(all_users, request)
-            serializer = self.UserManagementListOutputSerializer(paginated_queryset , many=True)
+            serializer = self.UserManagementListOutputSerializer(paginated_queryset , context={"request": request}, many=True)
 
             user_activity_logger.info(f"دریافت لیست کامل کاربرها" , extra=get_details_from_request(request))
             return paginator.get_paginated_response(serializer.data)
@@ -221,7 +237,7 @@ class UserManagementListApiView(SearchMixin, APIView):
             user = serializer.save()
             
             # Return the created user data using output serializer
-            output_serializer = self.UserManagementListOutputSerializer(user)
+            output_serializer = self.UserManagementListOutputSerializer(user, context={"request": request})
 
             user_activity_logger.warning(f"کاربر جدید {user.username} با موفقیت ساخته شد" , extra=get_details_from_request(request))
             return Response(output_serializer.data,status=status.HTTP_201_CREATED)
@@ -252,6 +268,10 @@ class UserManagementDetailsApiView(APIView):
 
         roles = UserManagementtDetailsOutputRoles()
         company = UserManagementDetailsOutputCompany()
+        is_locked = serializers.SerializerMethodField()
+
+        def get_is_locked(self, obj) -> bool:
+            return obj.is_locked_out()
         
         class Meta:
             model = User
@@ -261,7 +281,10 @@ class UserManagementDetailsApiView(APIView):
                       'accessible_initialborders',
                       'first_name','last_name','email','is_staff','is_controller',
                       'phonenumber','codemeli','fax','start_access','end_access',
-                      'date_joined','last_login','is_active','roles','company']
+                      'date_joined','last_login','is_active','roles','company',
+                      'profile_picture', 'ip_white_list',
+                      'last_ip_login', 'previous_last_login',
+                      'locked_until', 'is_locked', 'user_attempt_login_limit']
                       
     class UserManagementDetailsInputSerializer(serializers.ModelSerializer):
         accessible_shrh_layers = serializers.ListField(
@@ -311,6 +334,16 @@ class UserManagementDetailsApiView(APIView):
                         f"مرزهای اولیه با شناسه‌های {list(invalid)} یافت نشدند"
                     )
             return value
+        
+        def validate(self, attrs):
+            # partial update: fall back to the stored value for whichever side is missing
+            start = attrs.get('start_access', getattr(self.instance, 'start_access', None))
+            end = attrs.get('end_access', getattr(self.instance, 'end_access', None))
+            if start and end and start > end:
+                raise serializers.ValidationError({
+                    'end_access': 'تاریخ پایان دسترسی باید بعد از تاریخ شروع باشد.'
+                })
+            return attrs
 
         def update(self, instance, validated_data):
             """
@@ -354,12 +387,13 @@ class UserManagementDetailsApiView(APIView):
                       'accessible_contracts',
                       'accessible_initialborders',
                       'phonenumber','codemeli','fax','start_access','end_access',
-                      'is_controller','first_name','last_name','email','roles','company']                  
+                      'is_controller','first_name','last_name','email','roles','company',
+                      'profile_picture', 'ip_white_list',]                  
 
     def get(self , request: Request , userid:int) -> Response:
         try:
             user_instance = User.objects.get(pk = userid)
-            serializer = self.UserManagementtDetailsOutputSerializer(user_instance)
+            serializer = self.UserManagementtDetailsOutputSerializer(user_instance, context={"request": request})
 
             user_activity_logger.info(f"دریافت اطلاعات کاربر {user_instance.username}" , extra=get_details_from_request(request))
             return Response(serializer.data , status=status.HTTP_200_OK)
@@ -383,6 +417,7 @@ class UserManagementDetailsApiView(APIView):
             serializer = self.UserManagementDetailsInputSerializer(
                 user_instance, 
                 data=request.data, 
+                context={"request": request},
                 partial=True  # Allow partial updates
             )
             
