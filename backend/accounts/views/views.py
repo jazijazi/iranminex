@@ -232,7 +232,7 @@ class UserProfile(APIView):
                 "username","first_name","last_name",
                 "first_name_fa","last_name_fa",
                 'phonenumber','codemeli','fax','start_access','end_access',
-                "address","email","last_login",'is_controller',
+                "address","email","last_login",
                 "is_staff","is_superuser","roles","company",
             ]
 

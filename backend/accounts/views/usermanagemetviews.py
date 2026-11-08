@@ -62,7 +62,7 @@ class UserManagementListApiView(SearchMixin, APIView):
                       'accessible_shrh_layers',
                       'accessible_contracts',
                       'accessible_initialborders',
-                      'first_name','last_name','email','is_staff','is_active','is_controller',
+                      'first_name','last_name','email','is_staff','is_active',
                       'phonenumber','codemeli','fax','start_access','end_access',
                       'date_joined','last_login','roles','company',
                       'profile_picture', 'ip_white_list',
@@ -199,7 +199,7 @@ class UserManagementListApiView(SearchMixin, APIView):
             
         class Meta:
             model = User
-            fields = ['username','first_name_fa','last_name_fa','address','is_controller',
+            fields = ['username','first_name_fa','last_name_fa','address',
                       'accessible_shrh_layers',
                       'accessible_contracts',
                       'accessible_initialborders',
@@ -279,7 +279,7 @@ class UserManagementDetailsApiView(APIView):
                       'accessible_shrh_layers',
                       'accessible_contracts',
                       'accessible_initialborders',
-                      'first_name','last_name','email','is_staff','is_controller',
+                      'first_name','last_name','email','is_staff',
                       'phonenumber','codemeli','fax','start_access','end_access',
                       'date_joined','last_login','is_active','roles','company',
                       'profile_picture', 'ip_white_list',
@@ -387,7 +387,7 @@ class UserManagementDetailsApiView(APIView):
                       'accessible_contracts',
                       'accessible_initialborders',
                       'phonenumber','codemeli','fax','start_access','end_access',
-                      'is_controller','first_name','last_name','email','roles','company',
+                      'first_name','last_name','email','roles','company',
                       'profile_picture', 'ip_white_list',]                  
 
     def get(self , request: Request , userid:int) -> Response:
