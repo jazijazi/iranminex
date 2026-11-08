@@ -85,7 +85,7 @@ class Shahrestan(CustomModel):
     )
     code = models.CharField(
         verbose_name="کد",
-        max_length=6,
+        max_length=16,
         unique=True,
         blank=True,
         null=True,
