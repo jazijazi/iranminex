@@ -62,7 +62,7 @@ class LayerNamesListApiView(APIView):
 
         class Meta:
             model = LayersNames
-            fields = ['id','lyrgroup_en','lyrgroup_fa','layername_en','layername_fa','geometrytype']
+            fields = ['id','dtyp','lyrgroup_en','lyrgroup_fa','layername_en','layername_fa','geometrytype']
 
 
     def get(self , request:Request , contractcode:int):

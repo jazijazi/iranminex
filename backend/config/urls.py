@@ -17,6 +17,7 @@ urlpatterns = [
 
     path('api/initialborders/', include('initialborders.urls')),
     path('api/contracts/', include('contracts.urls')),
+    path('api/layers/', include('layers.urls')),
 
 ]
 

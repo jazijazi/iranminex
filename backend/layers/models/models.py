@@ -13,6 +13,13 @@ from contracts.models.models import (
 # from contracts.models.SharhKhadamats import ShrhLayer
 
 class LayersNames(models.Model):
+    dtyp = models.ForeignKey(
+        ContractDomin,
+        on_delete=models.SET_NULL,
+        related_name="rlyrnamedtyp",
+        blank=True,
+        null=True,
+    )
     lyrgroup_en = models.CharField(
         max_length=40,
         unique=False,

@@ -225,7 +225,7 @@ class SharhKhadamatLayerListApiView(SearchMixin, APIView):
         class SharhKhadamatLayerListLayername(serializers.ModelSerializer):
             class Meta:
                 model = LayersNames
-                fields = ['id','lyrgroup_en','lyrgroup_fa',
+                fields = ['id','dtyp','lyrgroup_en','lyrgroup_fa',
                           'layername_en','layername_fa','geometrytype']
         class SharhKhadamatLayerListUser(serializers.ModelSerializer):
             class Meta:
@@ -443,7 +443,7 @@ class SharhKhadamatLayerDetailApiView(APIView):
         class SharhKhadamatLayerDetailLayername(serializers.ModelSerializer):
             class Meta:
                 model = LayersNames
-                fields = ['lyrgroup_en','lyrgroup_fa',
+                fields = ['lyrgroup_en','lyrgroup_fa','dtyp',
                           'layername_en','layername_fa','geometrytype']
         class SharhKhadamatLayerDetailUser(serializers.ModelSerializer):
             class Meta:

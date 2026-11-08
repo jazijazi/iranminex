@@ -6,8 +6,9 @@ from layers.models.models import (
 )
 
 class LayerNameAdmin(admin.ModelAdmin):
-    list_display = ['lyrgroup_en','lyrgroup_fa','layername_en','layername_fa','geometrytype',]
+    list_display = ['dtyp','lyrgroup_en','lyrgroup_fa','layername_en','layername_fa','geometrytype',]
     search_fields = ['lyrgroup_en' , 'lyrgroup_fa' , 'layername_en' , 'layername_fa']
+    list_filter = ['dtyp']
 
 class FeatureAttachmentAdmin(admin.ModelAdmin):
     list_display = ['pk' , 'upload_date' , 'file']
