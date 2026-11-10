@@ -8,7 +8,7 @@ class Fault_Gph_sec_Pl(LinkedToLayerTable):
     l_gph_sec_id = models.CharField(verbose_name="شناسه مقطع ژئوفیزیک",max_length=100, unique=False, blank=True, null=True)
     type_fault = models.CharField(verbose_name="نوع گسل",max_length=100, unique=False, blank=True, null=True)
     comment = models.CharField(verbose_name="توضیحات",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiLineStringField(srid=4326, blank=False, null=False) 
+    border = gis_models.MultiLineStringField(srid=3857, blank=False, null=False) 
     
     def __str__(self):
         return self.name
@@ -22,7 +22,7 @@ class Gph_Ano_S_Pg(LinkedToLayerTable):
     l_gph_sec_id = models.CharField(verbose_name="شناسه مقطع ژئوفیزیک",max_length=100, unique=False, blank=True, null=True)
     det_method = models.CharField(verbose_name="روش تعیین",max_length=100, unique=False, blank=True, null=True)
     comment = models.CharField(verbose_name="توضیحات",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -34,7 +34,7 @@ class Gph_Sec_P_Pl(LinkedToLayerTable):
     name = models.CharField(verbose_name="نام",max_length=100, unique=False, blank=True, null=True)
     l_gph_sec_id = models.CharField(verbose_name="شناسه مقطع ژئوفیزیک",max_length=100, unique=False, blank=True, null=True)
     comment = models.CharField(verbose_name="توضیحات",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiLineStringField(srid=4326, blank=False, null=False) 
+    border = gis_models.MultiLineStringField(srid=3857, blank=False, null=False) 
     
     def __str__(self):
         return self.name
@@ -48,7 +48,7 @@ class Grav_Ano_S_Pg(LinkedToLayerTable):
     lower_lim = models.FloatField(verbose_name="حد پایین",unique=False, blank=True, null=True)
     upper_lim = models.FloatField(verbose_name="حد بالا",unique=False, blank=True, null=True)
     comment = models.CharField(verbose_name="توضیحات",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.type
@@ -62,7 +62,7 @@ class IP_Ano_S_Pg(LinkedToLayerTable):
     lower_lim = models.FloatField(verbose_name="حد پایین",unique=False, blank=True, null=True)
     upper_lim = models.FloatField(verbose_name="حد بالا",unique=False, blank=True, null=True)
     comment = models.CharField(verbose_name="توضیحات",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.type
@@ -76,7 +76,7 @@ class Mag_Ano_S_Pg(LinkedToLayerTable):
     lower_lim = models.FloatField(verbose_name="حد پایین",unique=False, blank=True, null=True)
     upper_lim = models.FloatField(verbose_name="حد بالا",unique=False, blank=True, null=True)
     comment = models.CharField(verbose_name="توضیحات",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.type
@@ -92,7 +92,7 @@ class Rck_Typ_Gph_S_Pg(LinkedToLayerTable):
     origin = models.CharField(verbose_name="خاستگاه",max_length=100, unique=False, blank=True, null=True)
     comment_fa = models.CharField(verbose_name="توضیحات فارسی",max_length=250, unique=False, blank=True, null=True)
     comment_en = models.CharField(verbose_name="توضیحات انگلیسی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.sat_sensor_name

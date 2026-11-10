@@ -370,7 +370,7 @@ docker compose -f docker-compose.prod.yml exec web python manage.py dbshell
 ### Development Team
 - **Jazi**: jazi1374@gmail.com
 - **AminEbrahimi**: arcobject@gmail.com
-- **Company**: https://samanehnegar.com/
+- **Sherkat**: https://samanehnegar.com/
 
 ### Resources
 - **Documentation**: Check `ProjectDocs/` directory

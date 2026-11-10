@@ -48,7 +48,7 @@ class InitialBorder(CustomModel):
         null=True,
     )
     border = gis_models.MultiPolygonField(
-        srid=4326,
+        srid=3857,
         blank=False,
         null=False,
     )

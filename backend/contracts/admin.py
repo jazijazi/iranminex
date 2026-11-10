@@ -44,7 +44,7 @@ class ContractAdmin(admin.ModelAdmin):
     ]
     search_fields = ['title', 'number']
     list_select_related = ['dtyp']
-    autocomplete_fields = ['dtyp', 'company']
+    autocomplete_fields = ['dtyp', 'sherkat']
     inlines = [InitialBorderInline]
  
     def get_queryset(self, request):

@@ -96,7 +96,7 @@ def queryset_to_shapefile(
     output_dir: Optional[str] = None,
     zip_output: bool = True,
     filename: Optional[str] = None,
-    crs: str = "EPSG:4326",
+    crs: str = "EPSG:3857",
     exclude_fields: Optional[List[str]] = None,
 ) -> str:
     """

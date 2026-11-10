@@ -16,7 +16,7 @@ from rest_framework.views import APIView
 
 from accounts.models import User
 from common.mixins import SearchMixin
-from common.models.other import Company
+from common.models.other import Sherkat
 from common.pagination import CustomPagination
 from common.services.gis import queryset_to_shapefile
 from initialborders.services.gis import proccess_initialborder_zipfile
@@ -69,7 +69,7 @@ class ContractListApiViews(SearchMixin, APIView):
             model = Contract
             fields = [
                 "id", "title", "dtyp", "initborders", "number", "start_date", "end_date",
-                "progress", "is_completed", "department", "mablagh", "company",
+                "progress", "is_completed", "department", "mablagh", "sherkat",
             ]
 
     class ContractListInputSerializer(serializers.ModelSerializer):
@@ -82,9 +82,9 @@ class ContractListApiViews(SearchMixin, APIView):
                 "invalid_choice": f'انتخاب نامعتبر است. گزینه‌های معتبر: {", ".join([f"{choice[0]} ({choice[1]})" for choice in Contract.DEPARTMENT_CHOICES])}'
             },
         )
-        company = serializers.PrimaryKeyRelatedField(
+        sherkat = serializers.PrimaryKeyRelatedField(
             many=True,
-            queryset=Company.objects.all(),
+            queryset=Sherkat.objects.all(),
             error_messages={
                 "does_not_exist": 'شرکت با شناسه "{pk_value}" یافت نشد.',
                 "incorrect_type": "مقدار نامعتبر برای شناسه شرکت: باید عدد باشد.",
@@ -121,7 +121,7 @@ class ContractListApiViews(SearchMixin, APIView):
             model = Contract
             fields = [
                 "title", "dtyp", "number", "start_date", "end_date",
-                "progress", "is_completed", "department", "mablagh", "company",
+                "progress", "is_completed", "department", "mablagh", "sherkat",
                 "initborder_ids", "new_initborder_files", "new_initborder_titles",
             ]
 
@@ -164,7 +164,7 @@ class ContractListApiViews(SearchMixin, APIView):
         queryset = (
             self.apply_search(queryset, request)
             .select_related("dtyp")
-            .prefetch_related("company", "initborders")
+            .prefetch_related("sherkat", "initborders")
         )
 
         paginator = CustomPagination()
@@ -262,19 +262,19 @@ class ContractDetailsApiViews(APIView):
                 model = InitialBorder
                 fields = ["id", "title", "dtyp"]
 
-        class ContractDetailsOutputSerializerCompany(serializers.ModelSerializer):
+        class ContractDetailsOutputSerializerSherkat(serializers.ModelSerializer):
             class Meta:
-                model = Company
+                model = Sherkat
                 fields = ["id", "name", "typ", "service_typ", "code"]
 
         dtyp = ContractDetailsOutputSerializerDtyp()
         initborders = ContractDetailsOutputSerializerInitborder(many=True)
-        company = ContractDetailsOutputSerializerCompany(many=True)
+        sherkat = ContractDetailsOutputSerializerSherkat(many=True)
 
         class Meta:
             model = Contract
             fields = [
-                "id", "title", "dtyp", "initborders", "number", "progress", "company",
+                "id", "title", "dtyp", "initborders", "number", "progress", "sherkat",
                 "is_completed", "department", "start_date", "end_date",
                 "mablagh", "mablaghe_elhaghye", "tarikh_elhaghye",
                 "elhaghye",
@@ -295,7 +295,7 @@ class ContractDetailsApiViews(APIView):
             model = Contract
             fields = [
                 "title", "dtyp", "number", "start_date", "end_date",
-                "progress", "is_completed", "department", "mablagh", "company",
+                "progress", "is_completed", "department", "mablagh", "sherkat",
             ]
 
     def _get_contract(self, contractid, queryset=None):
@@ -309,7 +309,7 @@ class ContractDetailsApiViews(APIView):
         user: User = request.user
         contract, error = self._get_contract(
             contractid,
-            Contract.objects.select_related("dtyp").prefetch_related("company", "initborders__dtyp"),
+            Contract.objects.select_related("dtyp").prefetch_related("sherkat", "initborders__dtyp"),
         )
         if error:
             return error

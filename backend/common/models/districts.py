@@ -54,7 +54,7 @@ class Ostan(CustomModel):
         super().save(*args, **kwargs)
         # recompute in the database; update() doesn't call save(), so no recursion
         type(self).objects.filter(pk=self.pk).update(
-            area_ha=RawSQL('ST_Area(ST_Transform(border, 4326)::geography) / 10000.0', [])
+            area_ha=RawSQL('ST_Area(ST_Transform(border, 3857)::geography) / 10000.0', [])
         )
         self.refresh_from_db(fields=['area_ha'])
 

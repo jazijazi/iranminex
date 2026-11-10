@@ -13,7 +13,7 @@ from common.models.districts import (
     Ostan,
     Shahrestan
 )
-from common.models.other import Company
+from common.models.other import Sherkat
 from common.mixins import SearchMixin
 
 from django.db import connection
@@ -61,7 +61,7 @@ class ShahrestanListApiView(APIView):
             return Response({"detail": "خطا در خواندن لیست شهرستان ها"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
        
 
-class CompanyListApiView(SearchMixin, APIView):
+class SherkatListApiView(SearchMixin, APIView):
 
     def get_permissions(self):
         """
@@ -76,26 +76,26 @@ class CompanyListApiView(SearchMixin, APIView):
         
     search_fields = ['name' , 'code']
     
-    class CompanyListInputSerializer(serializers.ModelSerializer):
+    class SherkatListInputSerializer(serializers.ModelSerializer):
         class Meta:
-            model = Company
+            model = Sherkat
             fields = ['name' , 'code' , 'typ' , 'service_typ' , 'callnumber' , 'address' , 'comment']
-    class CompanyListOutputSerializer(serializers.ModelSerializer):
+    class SherkatListOutputSerializer(serializers.ModelSerializer):
         class Meta:
-            model = Company
+            model = Sherkat
             fields = ['id' , 'name' , 'code' , 'typ' , 'service_typ' , 'callnumber' , 'address' , 'comment']
 
     def get(self , request:Request) -> Response:
         """
-            GET: List of all Company`s
+            GET: List of all Sherkat`s
         """
         try:
-            all_company = Company.objects.all()
+            all_sherkat = Sherkat.objects.all()
             # Add Search query param to it
-            all_company = self.apply_search(all_company, request)
+            all_sherkat = self.apply_search(all_sherkat, request)
             paginator = CustomPagination()
-            paginated_queryset = paginator.paginate_queryset(all_company, request)
-            serializer = self.CompanyListOutputSerializer(paginated_queryset,many=True,context={'request': request})
+            paginated_queryset = paginator.paginate_queryset(all_sherkat, request)
+            serializer = self.SherkatListOutputSerializer(paginated_queryset,many=True,context={'request': request})
             return paginator.get_paginated_response(serializer.data)
         except Exception as e:
             print(e)
@@ -103,20 +103,20 @@ class CompanyListApiView(SearchMixin, APIView):
         
     def post(self , request:Request) -> Response:
         """
-            Create new Company 
+            Create new Sherkat 
         """
         try:
-            serializer = self.CompanyListInputSerializer(data=request.data)
+            serializer = self.SherkatListInputSerializer(data=request.data)
             if not serializer.is_valid():
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-            new_company  = serializer.save()
-            serialized_new_company = self.CompanyListOutputSerializer(new_company)
-            return Response(serialized_new_company.data , status=status.HTTP_201_CREATED)
+            new_sherkat  = serializer.save()
+            serialized_new_sherkat = self.SherkatListOutputSerializer(new_sherkat)
+            return Response(serialized_new_sherkat.data , status=status.HTTP_201_CREATED)
         except Exception as e:
             print(e)
             return Response({"detail": "خطا در ایجاد شرکت جدید"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)        
 
-class CompanyDetailsApiView(APIView):
+class SherkatDetailsApiView(APIView):
     def get_permissions(self):
         """
         Instantiates and returns the list of permissions that this view requires.
@@ -128,53 +128,53 @@ class CompanyDetailsApiView(APIView):
             # For all other methods (POST, PUT, PATCH, DELETE), require admin
             return [HasDynamicPermission()]
 
-    class CompanyDetailsOutputSerializer(serializers.ModelSerializer):
+    class SherkatDetailsOutputSerializer(serializers.ModelSerializer):
         class Meta:
-            model = Company
+            model = Sherkat
             fields = ['id' , 'name' , 'code' , 'typ' , 'service_typ' , 'callnumber' , 'address' , 'comment']
 
-    class CompanyDetailsInputSerializer(serializers.ModelSerializer):
+    class SherkatDetailsInputSerializer(serializers.ModelSerializer):
         class Meta:
-            model = Company
+            model = Sherkat
             fields = ['name' , 'code' , 'typ' , 'service_typ' , 'callnumber' , 'address' , 'comment']
 
 
-    def get(self , request:Request, companyid:int) -> Response:
+    def get(self , request:Request, sherkatid:int) -> Response:
         try:
-            company_instance = Company.objects.get(pk=companyid)
-            serializer = self.CompanyDetailsOutputSerializer(company_instance)
+            sherkat_instance = Sherkat.objects.get(pk=sherkatid)
+            serializer = self.SherkatDetailsOutputSerializer(sherkat_instance)
             return Response(serializer.data , status=status.HTTP_200_OK)
-        except Company.DoesNotExist:
+        except Sherkat.DoesNotExist:
             return Response({"detail":"شرکت با این آیدی وجود ندارد"},status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             print(e)
             return Response({"detail": "خطا در خواندن شرکت با این آیدی"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
-    def put(self , request:Request, companyid:int) -> Response:
+    def put(self , request:Request, sherkatid:int) -> Response:
         try:
-            company_instance = Company.objects.get(pk=companyid)
-            serializer = self.CompanyDetailsInputSerializer(
-                company_instance, 
+            sherkat_instance = Sherkat.objects.get(pk=sherkatid)
+            serializer = self.SherkatDetailsInputSerializer(
+                sherkat_instance, 
                 data=request.data, 
                 partial=True  # Allow partial updates
             )
             if not serializer.is_valid():
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-            updated_company = serializer.save()
-            serailized_updated_company = self.CompanyDetailsOutputSerializer(updated_company)
-            return Response(serailized_updated_company.data , status=status.HTTP_200_OK)
-        except Company.DoesNotExist:
+            updated_sherkat = serializer.save()
+            serailized_updated_sherkat = self.SherkatDetailsOutputSerializer(updated_sherkat)
+            return Response(serailized_updated_sherkat.data , status=status.HTTP_200_OK)
+        except Sherkat.DoesNotExist:
             return Response({"detail":"شرکت با این آیدی وجود ندارد"},status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             print(e)
             return Response({"detail": "خطا در خواندن شرکت با این آیدی"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
-    def delete(self , request:Request , companyid:str) -> Response:
+    def delete(self , request:Request , sherkatid:str) -> Response:
         try:
-            contract_instance = Company.objects.get(pk=companyid)
+            contract_instance = Sherkat.objects.get(pk=sherkatid)
             contract_instance.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
-        except Company.DoesNotExist:
+        except Sherkat.DoesNotExist:
             return Response({"detail":"شرکت با این آیدی وجود ندارد"},status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             print(e)

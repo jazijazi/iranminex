@@ -34,7 +34,7 @@ from contracts.models.models import (
     ContractDomin,
 )
 from common.utils.ipget import get_client_ip
-from common.models.other import Company
+from common.models.other import Sherkat
 from common.models.districts import Ostan
 from common.pagination import CustomPagination
 from common.services.notification_services import NotificationFactory 
@@ -220,12 +220,12 @@ class UserProfile(APIView):
                 model = Roles
                 fields = ['id' , 'apis' , 'tools' , 'title' , 'desc']
 
-        class UserProfileOutputSerializerCompany(serializers.ModelSerializer):
+        class UserProfileOutputSerializerSherkat(serializers.ModelSerializer):
             class Meta:
-                model = Company
+                model = Sherkat
                 fields = ['id','name','typ','service_typ','code']
         roles = UserProfileOutputSerializerRoles()
-        company = UserProfileOutputSerializerCompany()
+        sherkat = UserProfileOutputSerializerSherkat()
         class Meta:
             model = User
             fields = [
@@ -233,7 +233,7 @@ class UserProfile(APIView):
                 "first_name_fa","last_name_fa",
                 'phonenumber','codemeli','fax','start_access','end_access',
                 "address","email","last_login",
-                "is_staff","is_superuser","roles","company",
+                "is_staff","is_superuser","roles","sherkat",
             ]
 
     def get(self , request:Request) -> Response:

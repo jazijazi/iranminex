@@ -90,7 +90,7 @@ postgres:
     try_spatial_hilbert_sort: null
     try_spatial_morton_sort: null
   convert_to_mvt: {}
-  default_srid: 4326
+  default_srid: 3857
   functions: {}
   max_feature_count: null
   pool_size: 20

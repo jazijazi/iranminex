@@ -15,7 +15,7 @@ from rest_framework.permissions import (
 from common.pagination import CustomPagination
 from common.mixins import SearchMixin
 
-from common.models.other import Company
+from common.models.other import Sherkat
 from accounts.models import (
     User,
     Apis,
@@ -46,12 +46,12 @@ class UserManagementListApiView(SearchMixin, APIView):
             class Meta:
                 model = Roles
                 fields = ['id','title']
-        class UserManagementListOutputCompany(serializers.ModelSerializer):
+        class UserManagementListOutputSherkat(serializers.ModelSerializer):
             class Meta:
-                model = Company
+                model = Sherkat
                 fields = ['id','name','typ','service_typ','code']
         roles = UserManagementListOutputRoles()
-        company = UserManagementListOutputCompany()
+        sherkat = UserManagementListOutputSherkat()
         is_locked = serializers.SerializerMethodField()
 
         def get_is_locked(self, obj) -> bool:
@@ -64,7 +64,7 @@ class UserManagementListApiView(SearchMixin, APIView):
                       'accessible_initialborders',
                       'first_name','last_name','email','is_staff','is_active',
                       'phonenumber','codemeli','fax','start_access','end_access',
-                      'date_joined','last_login','roles','company',
+                      'date_joined','last_login','roles','sherkat',
                       'profile_picture', 'ip_white_list',
                       'last_ip_login', 'previous_last_login',
                       'locked_until', 'is_locked', 'user_attempt_login_limit']
@@ -205,7 +205,7 @@ class UserManagementListApiView(SearchMixin, APIView):
                       'accessible_initialborders',
                       'first_name','last_name','email','roles',
                       'phonenumber','codemeli','fax','start_access','end_access',
-                      'password','confirm_password','company',
+                      'password','confirm_password','sherkat',
                       'profile_picture', 'ip_white_list']
     
             
@@ -261,13 +261,13 @@ class UserManagementDetailsApiView(APIView):
             class Meta:
                 model = Roles
                 fields = ['id','title']
-        class UserManagementDetailsOutputCompany(serializers.ModelSerializer):
+        class UserManagementDetailsOutputSherkat(serializers.ModelSerializer):
             class Meta:
-                model = Company
+                model = Sherkat
                 fields = ['id','name','typ','service_typ','code']
 
         roles = UserManagementtDetailsOutputRoles()
-        company = UserManagementDetailsOutputCompany()
+        sherkat = UserManagementDetailsOutputSherkat()
         is_locked = serializers.SerializerMethodField()
 
         def get_is_locked(self, obj) -> bool:
@@ -281,7 +281,7 @@ class UserManagementDetailsApiView(APIView):
                       'accessible_initialborders',
                       'first_name','last_name','email','is_staff',
                       'phonenumber','codemeli','fax','start_access','end_access',
-                      'date_joined','last_login','is_active','roles','company',
+                      'date_joined','last_login','is_active','roles','sherkat',
                       'profile_picture', 'ip_white_list',
                       'last_ip_login', 'previous_last_login',
                       'locked_until', 'is_locked', 'user_attempt_login_limit']
@@ -387,7 +387,7 @@ class UserManagementDetailsApiView(APIView):
                       'accessible_contracts',
                       'accessible_initialborders',
                       'phonenumber','codemeli','fax','start_access','end_access',
-                      'first_name','last_name','email','roles','company',
+                      'first_name','last_name','email','roles','sherkat',
                       'profile_picture', 'ip_white_list',]                  
 
     def get(self , request: Request , userid:int) -> Response:

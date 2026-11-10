@@ -2,11 +2,11 @@ import json
 from django.contrib import admin 
 from django.utils.html import format_html
 from leaflet.admin import LeafletGeoAdmin
+from common.models.other import NoeKhadamat, Sherkat
 from common.models.districts import (
     Ostan,
     Shahrestan,
 )
-from common.models.other import Company
 from common.models.models import (
     DeletionLog
 )
@@ -18,9 +18,36 @@ class OstanAdmin(LeafletGeoAdmin):
 class ShahrestanAdmin(LeafletGeoAdmin):
     list_display = ('title' , 'code' , 'ostan__title')
     search_fields = ['title','code']
-class CompanyAdmin(admin.ModelAdmin):
-    list_display = ['name' , 'code' , 'typ' , 'service_typ' , 'callnumber']
-    search_fields = ['name' , 'code']
+class NoeKhadamatAdmin(admin.ModelAdmin):
+    """نوع خدمات (اکتشاف، حفاری، ...). search_fields برای autocomplete شرکت‌ها لازم است."""
+    list_display = ("title", "tedad_sherkat")
+    search_fields = ("title",)
+    ordering = ("title",)
+
+    @admin.display(description="تعداد شرکت‌ها")
+    def tedad_sherkat(self, obj):
+        return obj.rSherkatha.count()
+
+class SherkatAdmin(admin.ModelAdmin):
+    """لیست شرکت‌ها؛ فیلتر روی «مجاز به مشاور ارشد» و نوع خدمات."""
+    list_display = ("name", "code", "typ", "khadamat", "mojaz_moshaver_arshad", "callnumber")
+    list_filter = ("mojaz_moshaver_arshad", "noe_khadamat", "typ")
+    list_editable = ("mojaz_moshaver_arshad",)
+    search_fields = ("name", "code", "callnumber")
+    filter_horizontal = ("noe_khadamat",)
+    list_per_page = 30
+    fieldsets = (
+        ("مشخصات شرکت", {"fields": ("name", "code", "typ")}),
+        ("خدمات و دسترسی", {"fields": ("noe_khadamat", "mojaz_moshaver_arshad")}),
+        ("اطلاعات تماس", {"fields": ("callnumber", "address", "comment")}),
+    )
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).prefetch_related("noe_khadamat")
+
+    @admin.display(description="نوع خدمات")
+    def khadamat(self, obj):
+        return "، ".join(k.title for k in obj.noe_khadamat.all()) or "—"
 class DeletionLogAdmin(admin.ModelAdmin):
     """
     Browsable but tamper-proof: nobody can create or edit entries here, and
@@ -58,5 +85,6 @@ class DeletionLogAdmin(admin.ModelAdmin):
 
 admin.site.register(Ostan, OstanAdmin)
 admin.site.register(Shahrestan, ShahrestanAdmin)
-admin.site.register(Company, CompanyAdmin)
+admin.site.register(Sherkat, SherkatAdmin)
+admin.site.register(NoeKhadamat, NoeKhadamatAdmin)
 admin.site.register(DeletionLog, DeletionLogAdmin)

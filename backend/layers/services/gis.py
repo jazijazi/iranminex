@@ -233,13 +233,13 @@ def process_layer_data(
         if not compatibility['compatible']:
             return False, None, compatibility['error_message']
         
-        # Convert CRS to EPSG:4326 if needed
+        # Convert CRS to EPSG:3857 if needed
         if gdf.crs is None:
             return False, None, "سیستم مختصات فایل شیپ مشخص نیست"
         
-        if gdf.crs.to_epsg() != 4326:
+        if gdf.crs.to_epsg() != 3857:
             try:
-                gdf = gdf.to_crs(epsg=4326)
+                gdf = gdf.to_crs(epsg=3857)
             except Exception as e:
                 return False, None, f"خطا در تبدیل سیستم مختصات: {str(e)}"
         
@@ -378,22 +378,22 @@ def convert_geometry_to_django(shapely_geom, model_geom_type: str):
     
     if model_geom_type_lower == 'pointfield':
         if isinstance(shapely_geom, ShapelyPoint):
-            return Point(shapely_geom.x, shapely_geom.y, srid=4326)
+            return Point(shapely_geom.x, shapely_geom.y, srid=3857)
         else:
             raise ValueError(f"Cannot convert {type(shapely_geom).__name__} to Point")
     
     elif model_geom_type_lower == 'multipointfield':
         if isinstance(shapely_geom, ShapelyPoint):
-            return MultiPoint([Point(shapely_geom.x, shapely_geom.y, srid=4326)])
+            return MultiPoint([Point(shapely_geom.x, shapely_geom.y, srid=3857)])
         elif isinstance(shapely_geom, ShapelyMultiPoint):
-            points = [Point(pt.x, pt.y, srid=4326) for pt in shapely_geom.geoms]
+            points = [Point(pt.x, pt.y, srid=3857) for pt in shapely_geom.geoms]
             return MultiPoint(points)
         else:
             raise ValueError(f"Cannot convert {type(shapely_geom).__name__} to MultiPoint")
     
     elif model_geom_type_lower == 'linestringfield':
         if isinstance(shapely_geom, ShapelyLineString):
-            return LineString(list(shapely_geom.coords), srid=4326)
+            return LineString(list(shapely_geom.coords), srid=3857)
         else:
             raise ValueError(f"Cannot convert {type(shapely_geom).__name__} to LineString")
     
@@ -401,15 +401,15 @@ def convert_geometry_to_django(shapely_geom, model_geom_type: str):
         if isinstance(shapely_geom, ShapelyLineString):
             # Convert single LineString to MultiLineString
             # Create a LineString object first, then wrap it in MultiLineString
-            line_string = LineString(list(shapely_geom.coords), srid=4326)
-            return MultiLineString([line_string], srid=4326)
+            line_string = LineString(list(shapely_geom.coords), srid=3857)
+            return MultiLineString([line_string], srid=3857)
         elif isinstance(shapely_geom, ShapelyMultiLineString):
             # Create individual LineString objects for each line
             line_strings = []
             for line in shapely_geom.geoms:
-                line_string = LineString(list(line.coords), srid=4326)
+                line_string = LineString(list(line.coords), srid=3857)
                 line_strings.append(line_string)
-            return MultiLineString(line_strings, srid=4326)
+            return MultiLineString(line_strings, srid=3857)
         else:
             raise ValueError(f"Cannot convert {type(shapely_geom).__name__} to MultiLineString")
     
@@ -418,7 +418,7 @@ def convert_geometry_to_django(shapely_geom, model_geom_type: str):
             # Handle polygons with holes properly
             exterior_coords = list(shapely_geom.exterior.coords)
             interior_rings = [list(interior.coords) for interior in shapely_geom.interiors]
-            return Polygon(exterior_coords, *interior_rings, srid=4326)
+            return Polygon(exterior_coords, *interior_rings, srid=3857)
         else:
             raise ValueError(f"Cannot convert {type(shapely_geom).__name__} to Polygon")
     
@@ -427,47 +427,47 @@ def convert_geometry_to_django(shapely_geom, model_geom_type: str):
             # Handle polygons with holes properly
             exterior_coords = list(shapely_geom.exterior.coords)
             interior_rings = [list(interior.coords) for interior in shapely_geom.interiors]
-            polygon = Polygon(exterior_coords, *interior_rings, srid=4326)
-            return MultiPolygon([polygon], srid=4326)
+            polygon = Polygon(exterior_coords, *interior_rings, srid=3857)
+            return MultiPolygon([polygon], srid=3857)
         elif isinstance(shapely_geom, ShapelyMultiPolygon):
             polygons = []
             for poly in shapely_geom.geoms:
                 exterior_coords = list(poly.exterior.coords)
                 interior_rings = [list(interior.coords) for interior in poly.interiors]
-                polygon = Polygon(exterior_coords, *interior_rings, srid=4326)
+                polygon = Polygon(exterior_coords, *interior_rings, srid=3857)
                 polygons.append(polygon)
-            return MultiPolygon(polygons, srid=4326)
+            return MultiPolygon(polygons, srid=3857)
         else:
             raise ValueError(f"Cannot convert {type(shapely_geom).__name__} to MultiPolygon")
     
     elif model_geom_type_lower == 'geometryfield':
         # GeometryField can accept any geometry type
         if isinstance(shapely_geom, ShapelyPoint):
-            return Point(shapely_geom.x, shapely_geom.y, srid=4326)
+            return Point(shapely_geom.x, shapely_geom.y, srid=3857)
         elif isinstance(shapely_geom, ShapelyLineString):
-            return LineString(list(shapely_geom.coords), srid=4326)
+            return LineString(list(shapely_geom.coords), srid=3857)
         elif isinstance(shapely_geom, ShapelyPolygon):
             # Handle polygons with holes properly
             exterior_coords = list(shapely_geom.exterior.coords)
             interior_rings = [list(interior.coords) for interior in shapely_geom.interiors]
-            return Polygon(exterior_coords, *interior_rings, srid=4326)
+            return Polygon(exterior_coords, *interior_rings, srid=3857)
         elif isinstance(shapely_geom, ShapelyMultiPoint):
-            points = [Point(pt.x, pt.y, srid=4326) for pt in shapely_geom.geoms]
+            points = [Point(pt.x, pt.y, srid=3857) for pt in shapely_geom.geoms]
             return MultiPoint(points)
         elif isinstance(shapely_geom, ShapelyMultiLineString):
             line_strings = []
             for line in shapely_geom.geoms:
-                line_string = LineString(list(line.coords), srid=4326)
+                line_string = LineString(list(line.coords), srid=3857)
                 line_strings.append(line_string)
-            return MultiLineString(line_strings, srid=4326)
+            return MultiLineString(line_strings, srid=3857)
         elif isinstance(shapely_geom, ShapelyMultiPolygon):
             polygons = []
             for poly in shapely_geom.geoms:
                 exterior_coords = list(poly.exterior.coords)
                 interior_rings = [list(interior.coords) for interior in poly.interiors]
-                polygon = Polygon(exterior_coords, *interior_rings, srid=4326)
+                polygon = Polygon(exterior_coords, *interior_rings, srid=3857)
                 polygons.append(polygon)
-            return MultiPolygon(polygons, srid=4326)
+            return MultiPolygon(polygons, srid=3857)
         else:
             raise ValueError(f"Unsupported geometry type: {type(shapely_geom).__name__}")
     

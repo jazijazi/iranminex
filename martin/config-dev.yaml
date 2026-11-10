@@ -219,7 +219,7 @@ pmtiles:
 # ```yaml
 # postgres:
 #   - connection_string:  postgres://postgres:postgres@localhost:5432/db
-#     default_srid: 4326
+#     default_srid: 3857
 #   - connection_string:  postgres://postgres:postgres@another_host:5432/another_db
 #     default_srid: 3857
 # ```
@@ -290,7 +290,7 @@ postgres:
   # - explicitly configured
   convert_to_mvt: {}
   # If a spatial table has SRID 0, then this SRID will be used as a fallback
-  default_srid: 4326
+  default_srid: 3857
   # Associative arrays of function sources
   functions: {}
   # Limit the number of geo features per tile.

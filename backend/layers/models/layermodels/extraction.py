@@ -15,7 +15,7 @@ class Extraction_Block_Pg(LinkedToLayerTable):
     w_density         = models.FloatField(verbose_name="وزن مخصوص سنگ" , unique=False,blank=True,null=True)
     rock_density      = models.FloatField(verbose_name="وزن مخصوص باطله" , unique=False,blank=True,null=True)
     comment           = models.CharField(verbose_name="توضیحات " ,max_length=250, unique=False,blank=True,null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
 
     def __str__(self):
         return self.name_blast
@@ -27,7 +27,7 @@ class Extraction_Bench_Mark_Pt(LinkedToLayerTable):
     name = models.CharField(verbose_name="نام یا شماره" ,max_length=250, unique=False,blank=True,null=True)
     typ = models.CharField(verbose_name="نوع" ,max_length=250, unique=False,blank=True,null=True)
     elevation = models.FloatField(verbose_name="ارتفاع" , unique=False,blank=True,null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
 
     def __str__(self):
         return self.name
@@ -40,7 +40,7 @@ class Extraction_Mine_Dump_Pg(LinkedToLayerTable):
     volume_mine   = models.FloatField(verbose_name="حجم باطله" , unique=False,blank=True,null=True)
     survey_date   = models.CharField(verbose_name="تاریخ نقشه برداری" ,max_length=250, unique=False,blank=True,null=True)
     comment       = models.CharField(verbose_name="توضیحات" ,max_length=250, unique=False,blank=True,null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
 
     def __str__(self):
         return self.depo_n
@@ -53,7 +53,7 @@ class Extraction_Mine_Dump_Pl(LinkedToLayerTable):
     volume_mine   = models.FloatField(verbose_name="حجم باطله" , unique=False,blank=True,null=True)
     survey_date   = models.CharField(verbose_name="تاریخ نقشه برداری" ,max_length=250, unique=False,blank=True,null=True)
     comment       = models.CharField(verbose_name="توضیحات" ,max_length=250, unique=False,blank=True,null=True)
-    border = gis_models.MultiLineStringField(srid=4326, blank=False, null=False) 
+    border = gis_models.MultiLineStringField(srid=3857, blank=False, null=False) 
 
     def __str__(self):
         return self.depo_n
@@ -66,7 +66,7 @@ class Extraction_Mine_Dump_Pt(LinkedToLayerTable):
     volume_mine   = models.FloatField(verbose_name="حجم باطله" , unique=False,blank=True,null=True)
     survey_date   = models.CharField(verbose_name="تاریخ نقشه برداری" ,max_length=250, unique=False,blank=True,null=True)
     comment       = models.CharField(verbose_name="توضیحات" ,max_length=250, unique=False,blank=True,null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
 
     def __str__(self):
         return self.depo_n
@@ -88,7 +88,7 @@ class Extraction_Operation_Drilling_Pg(LinkedToLayerTable):
     w_Density     = models.FloatField(verbose_name="وزن مخصوص باطله" , unique=False,blank=True,null=True)
     rock_density  = models.FloatField(verbose_name="وزن مخصوص سنگ " , unique=False,blank=True,null=True)
     comment       = models.CharField(verbose_name="توضیحات " ,max_length=250, unique=False,blank=True,null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
 
     def __str__(self):
         return self.name_drill
@@ -110,7 +110,7 @@ class Extraction_Operation_Drilling_Pl(LinkedToLayerTable):
     w_Density     = models.FloatField(verbose_name="وزن مخصوص باطله" , unique=False,blank=True,null=True)
     rock_density  = models.FloatField(verbose_name="وزن مخصوص سنگ " , unique=False,blank=True,null=True)
     comment       = models.CharField(verbose_name="توضیحات " ,max_length=250, unique=False,blank=True,null=True)
-    border = gis_models.MultiLineStringField(srid=4326, blank=False, null=False) 
+    border = gis_models.MultiLineStringField(srid=3857, blank=False, null=False) 
     
 
     def __str__(self):
@@ -133,7 +133,7 @@ class Extraction_Operation_Drilling_Pt(LinkedToLayerTable):
     w_Density     = models.FloatField(verbose_name="وزن مخصوص باطله" , unique=False,blank=True,null=True)
     rock_density  = models.FloatField(verbose_name="وزن مخصوص سنگ " , unique=False,blank=True,null=True)
     comment       = models.CharField(verbose_name="توضیحات " ,max_length=250, unique=False,blank=True,null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
 
 
     def __str__(self):

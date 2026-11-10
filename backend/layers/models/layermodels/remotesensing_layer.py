@@ -8,7 +8,7 @@ class Alteration_RS_Pg(LinkedToLayerTable):
     alt_name = models.CharField(verbose_name="نام دگرسانی",max_length=100, unique=False, blank=True, null=True)
     comment_fa = models.CharField(verbose_name="توضیحات فارسی",max_length=250, unique=False, blank=True, null=True)
     comment_en = models.CharField(verbose_name="توضیحات لاتین",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.sat_sensor_name
@@ -20,7 +20,7 @@ class Fault_RS_Pl(LinkedToLayerTable):
     sat_sensor_name = models.CharField(verbose_name="نام سنجنده",max_length=100, unique=False, blank=True, null=True)
     typ = models.CharField(verbose_name="نوع",max_length=100, unique=False, blank=True, null=True)
     comment = models.CharField(verbose_name="توضیحات",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiLineStringField(srid=4326, blank=False, null=False) 
+    border = gis_models.MultiLineStringField(srid=3857, blank=False, null=False) 
     
     def __str__(self):
         return self.sat_sensor_name
@@ -31,7 +31,7 @@ class Fault_RS_Pl(LinkedToLayerTable):
 class Lineament_RS_Pl(LinkedToLayerTable):
     sat_sensor_name = models.CharField(verbose_name="نام سنجنده",max_length=100, unique=False, blank=True, null=True)
     comment = models.CharField(verbose_name="توضیحات",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiLineStringField(srid=4326, blank=False, null=False) 
+    border = gis_models.MultiLineStringField(srid=3857, blank=False, null=False) 
     
     def __str__(self):
         return self.sat_sensor_name
@@ -48,7 +48,7 @@ class Rck_Typ_RS_Pg(LinkedToLayerTable):
     origin = models.CharField(verbose_name="خاستگاه",max_length=100, unique=False, blank=True, null=True)
     comment_fa = models.CharField(verbose_name="توضیحات فارسی",max_length=250, unique=False, blank=True, null=True)
     comment_en = models.CharField(verbose_name="توضیحات انگلیسی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.sat_sensor_name
@@ -59,7 +59,7 @@ class Rck_Typ_RS_Pg(LinkedToLayerTable):
 class Ring_Struct_RS_Pl(LinkedToLayerTable):
     sat_sensor_name = models.CharField(verbose_name="نام سنجنده",max_length=100, unique=False, blank=True, null=True)
     comment = models.CharField(verbose_name="توضیحات",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiLineStringField(srid=4326, blank=False, null=False) 
+    border = gis_models.MultiLineStringField(srid=3857, blank=False, null=False) 
     
     def __str__(self):
         return self.sat_sensor_name
@@ -72,7 +72,7 @@ class RS_Ano_Pg(LinkedToLayerTable):
     priority = models.CharField(verbose_name="اولویت",max_length=100, unique=False, blank=True, null=True)
     det_method = models.CharField(verbose_name="روش تعیین",max_length=100, unique=False, blank=True, null=True)
     comment = models.CharField(verbose_name="توضیحات",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -83,7 +83,7 @@ class RS_Ano_Pg(LinkedToLayerTable):
 class RS_Lim_Pg(LinkedToLayerTable):
     name = models.CharField(verbose_name="نام",max_length=100, unique=False, blank=True, null=True)
     comment = models.CharField(verbose_name="توضیحات",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -95,7 +95,7 @@ class Sat_Image_Pg(LinkedToLayerTable):
     sat_sensor_name = models.CharField(verbose_name="نام سنجده",max_length=100, unique=False, blank=True, null=True)
     img_aquire_time = models.DateField(verbose_name="تاریخ اخذ تصویر",auto_now=False,auto_now_add=False,null=True,blank=True)
     comment = models.CharField(verbose_name="توضیحات",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name

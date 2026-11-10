@@ -12,7 +12,7 @@ class Anoml_EL_Pg(LinkedToLayerTable):
     upper_lim = models.FloatField(verbose_name="حد بالای آنومالی",unique=False, blank=True, null=True)
     lower_lim = models.FloatField(verbose_name="حد پایین آنومالی",unique=False, blank=True, null=True)
     comment = models.CharField(verbose_name="توضیحات",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.ele_name
@@ -25,7 +25,7 @@ class Gch_Ano_Pg(LinkedToLayerTable):
     method = models.CharField(verbose_name="روش تعیین",max_length=100, unique=False, blank=True, null=True)
     priority = models.CharField(verbose_name="اولویت",max_length=100, unique=False, blank=True, null=True)
     comment = models.CharField(verbose_name="توضیحات",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -37,7 +37,7 @@ class Gch_Lim_Pg(LinkedToLayerTable):
     name = models.CharField(verbose_name="نام محدوده",max_length=100, unique=False, blank=True, null=True)
     area = models.FloatField(verbose_name="مساحت محدوده",unique=False, blank=True, null=True)
     comment = models.CharField(verbose_name="توضیحات",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -50,7 +50,7 @@ class Gch_Pt_Sug_Pt(LinkedToLayerTable):
     sampling_ty = models.CharField(verbose_name="روش نمونه برداری",max_length=100, unique=False, blank=True, null=True)
     assay_type = models.CharField(verbose_name="روش آنالیز",max_length=100, unique=False, blank=True, null=True)
     comment = models.CharField(verbose_name="توضیحات ",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.sampleid
@@ -62,7 +62,7 @@ class Leaching_Pt(LinkedToLayerTable):
     type_m = models.CharField(verbose_name="نام کانی یا فلز",max_length=100, unique=False, blank=True, null=True)
     solvent_ty = models.CharField(verbose_name="نوع حلال",max_length=100, unique=False, blank=True, null=True)
     leach_ty = models.CharField(verbose_name="نوع لیچینگ ",max_length=100, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.type
@@ -79,7 +79,7 @@ class I_Cnt_El_Pl(LinkedToLayerTable):
     grade = models.FloatField(verbose_name="میزان عیار",unique=False, blank=True, null=True)
     type_smpl = models.CharField(verbose_name="محیط نمونه برداری",max_length=100, unique=False, blank=True, null=True)
     comment = models.CharField(verbose_name="توضیحات",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiLineStringField(srid=4326, blank=False, null=False) 
+    border = gis_models.MultiLineStringField(srid=3857, blank=False, null=False) 
     
     def __str__(self):
         return self.clss
@@ -90,7 +90,7 @@ class I_Cnt_El_Pl(LinkedToLayerTable):
 class O_Gch_C_Pg(LinkedToLayerTable):
     sampleid = models.CharField(verbose_name="شماره نمونه",max_length=100, unique=False, blank=True, null=True)
     descript = models.CharField(verbose_name="مشخصات نمونه",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.sampleid
@@ -213,7 +213,7 @@ class O_Gch_P_Pt(LinkedToLayerTable):
     XRF_PbO = models.FloatField(verbose_name="اکسید سرب",unique=False,blank=True,null=True)
  
     
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.sampleid
@@ -254,7 +254,7 @@ class Hydro_Gch_Pt_Pt(LinkedToLayerTable):
     kp = models.FloatField(verbose_name="پتاسیم",unique=False, blank=True, null=True)
     cn = models.FloatField(verbose_name="سیانید",unique=False, blank=True, null=True)
     sm2 = models.FloatField(verbose_name="سولفید",unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.sampleid
@@ -309,7 +309,7 @@ class O_H_Mnl_P_Pt(LinkedToLayerTable):
     altered_minerals = models.FloatField(verbose_name="کانی دگرسان شده",unique=False, blank=True, null=True)
     chalcopyrite = models.FloatField(verbose_name="کالکوپیریت",unique=False, blank=True, null=True)
     comment = models.CharField(verbose_name="توضیحات",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.sampleid
@@ -320,7 +320,7 @@ class O_H_Mnl_P_Pt(LinkedToLayerTable):
 class U_Drg_Z_Pg(LinkedToLayerTable):
     sampleid = models.CharField(verbose_name="شماره نمونه (کانی سنگین یا نمونه ژئوشیمی)",max_length=100, unique=False, blank=True, null=True)
     comment = models.CharField(verbose_name="توضیحات",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.sampleid

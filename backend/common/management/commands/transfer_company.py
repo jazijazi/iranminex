@@ -1,11 +1,11 @@
 import json
 import os
 from django.core.management.base import BaseCommand
-from common.models import Company
+from common.models import Sherkat
 
 
 class Command(BaseCommand):
-    help = 'Transfer old SherkatEjraei data to new Company model'
+    help = 'Transfer old SherkatEjraei data to new Sherkat model'
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -75,8 +75,8 @@ class Command(BaseCommand):
                 fields = item['fields']
                 old_pk = item['pk']
                 
-                # Create new Company - fields are identical
-                new_instance = Company.objects.create(
+                # Create new Sherkat - fields are identical
+                new_instance = Sherkat.objects.create(
                     name=fields.get('name', ''),
                     code=fields.get('code'),
                     typ=fields.get('typ'),
@@ -89,7 +89,7 @@ class Command(BaseCommand):
                 created_count += 1
                 
                 self.stdout.write(
-                    self.style.SUCCESS(f"Created Company: {new_instance.name} (old pk: {old_pk})")
+                    self.style.SUCCESS(f"Created Sherkat: {new_instance.name} (old pk: {old_pk})")
                 )
                 
             except Exception as e:

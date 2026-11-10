@@ -24,7 +24,7 @@ class Automation_System_Pg(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -53,7 +53,7 @@ class Automation_System_Pt(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -83,7 +83,7 @@ class Agitator_Pg(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -112,7 +112,7 @@ class Agitator_Pt(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -141,7 +141,7 @@ class Air_Receiverr_Pg(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -170,7 +170,7 @@ class Air_Receiver_Pt(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -199,7 +199,7 @@ class Air_Lift_Pg(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -228,7 +228,7 @@ class Air_Lift_Pt(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -257,7 +257,7 @@ class Boiler_House_Pg(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -286,7 +286,7 @@ class Boiler_House_Pt(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -315,7 +315,7 @@ class Bonker_Pg(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -344,7 +344,7 @@ class Bonker_Pt(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -360,7 +360,7 @@ class Cable_Pl(LinkedToLayerTable):
     capacity = models.FloatField(verbose_name="ظرفیت",unique=False, blank=True, null=True)
     depth = models.FloatField(verbose_name="عمق کار",unique=False, blank=True, null=True)
     sze = models.CharField(verbose_name="اندازه",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiLineStringField(srid=4326, blank=False, null=False) 
+    border = gis_models.MultiLineStringField(srid=3857, blank=False, null=False) 
     
     def __str__(self):
         return self.name
@@ -389,7 +389,7 @@ class Compressor_Pg(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -418,7 +418,7 @@ class Compressor_Pt(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -447,7 +447,7 @@ class Crusher_Pg(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -476,7 +476,7 @@ class Crusher_Pt(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -505,7 +505,7 @@ class Conveyor_Pg(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -534,7 +534,7 @@ class Conveyor_Pl(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiLineStringField(srid=4326, blank=False, null=False) 
+    border = gis_models.MultiLineStringField(srid=3857, blank=False, null=False) 
     
     def __str__(self):
         return self.name
@@ -563,7 +563,7 @@ class Conveyor_Pt(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -592,7 +592,7 @@ class Derrick_Pg(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -621,7 +621,7 @@ class Derrick_Pt(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -650,7 +650,7 @@ class Dost_Kalkator_Pg(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -679,7 +679,7 @@ class Dost_Kalkator_Pt(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -709,7 +709,7 @@ class Dryer_Pg(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -738,7 +738,7 @@ class Dryer_Pt(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -769,7 +769,7 @@ class ElectricityStation_Pg(LinkedToLayerTable):
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
     input_vol = models.FloatField(verbose_name="ولتاژ ورودی",unique=False, blank=True, null=True)
     output_vol = models.FloatField(verbose_name="ولتاژ خروجی",unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -800,7 +800,7 @@ class ElectricityStation_Pt(LinkedToLayerTable):
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
     input_vol = models.FloatField(verbose_name="ولتاژ ورودی",unique=False, blank=True, null=True)
     output_vol = models.FloatField(verbose_name="ولتاژ خروجی",unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -829,7 +829,7 @@ class Electrowinning_Pg(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -858,7 +858,7 @@ class Electrowinning_Pt(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -887,7 +887,7 @@ class Electrowinning_Cell_Pg(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -916,7 +916,7 @@ class Electrowinning_Cell_Pt(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -945,7 +945,7 @@ class Feeder_Pg(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -974,7 +974,7 @@ class Feeder_Pt(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -1003,7 +1003,7 @@ class Filter_Pg(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -1032,7 +1032,7 @@ class Filter_Pt(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -1061,7 +1061,7 @@ class Furnace_Pg(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -1090,7 +1090,7 @@ class Furnace_Pt(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -1111,7 +1111,7 @@ class Valve_Pg(LinkedToLayerTable):
     weight = models.FloatField(verbose_name="وزن",unique=False, blank=True, null=True)
     power = models.FloatField(verbose_name="قدرت",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -1132,7 +1132,7 @@ class Valve_Pt(LinkedToLayerTable):
     power = models.FloatField(verbose_name="قدرت",unique=False, blank=True, null=True)
     weight = models.FloatField(verbose_name="وزن",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -1161,7 +1161,7 @@ class Heat_Exchanger_Pg(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -1190,7 +1190,7 @@ class Heat_Exchanger_Pt(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -1219,7 +1219,7 @@ class Heating_system_Pg(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -1248,7 +1248,7 @@ class Heating_system_Pt(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -1277,7 +1277,7 @@ class High_Voltage_Pg(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -1306,7 +1306,7 @@ class High_Voltage_Pt(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -1335,7 +1335,7 @@ class Hydrocarbon_Pg(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -1364,7 +1364,7 @@ class Hydrocarbon_Pt(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -1393,7 +1393,7 @@ class Magnet_Pg(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -1422,7 +1422,7 @@ class Magnet_Pt(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -1442,7 +1442,7 @@ class Manhole_Pg(LinkedToLayerTable):
     year_construction = models.DateField(verbose_name="سال ساخت",auto_now=False,auto_now_add=False,null=True,blank=True)
     weight = models.FloatField(verbose_name="وزن",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -1461,7 +1461,7 @@ class Manhole_Pt(LinkedToLayerTable):
     year_construction = models.DateField(verbose_name="سال ساخت",auto_now=False,auto_now_add=False,null=True,blank=True)
     weight = models.FloatField(verbose_name="وزن",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -1490,7 +1490,7 @@ class Mill_Pg(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -1519,7 +1519,7 @@ class Mill_Pt(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -1548,7 +1548,7 @@ class Other_Pg(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -1577,7 +1577,7 @@ class Other_Pt(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -1606,7 +1606,7 @@ class Pump_Pg(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -1635,7 +1635,7 @@ class Pump_Pt(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -1664,7 +1664,7 @@ class Sump_pump_Pg(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -1693,7 +1693,7 @@ class Sump_pump_Pt(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -1722,7 +1722,7 @@ class Silo_Pg(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -1751,7 +1751,7 @@ class Silo_Pt(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -1780,7 +1780,7 @@ class Safety_showers_Pg(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -1809,7 +1809,7 @@ class Safety_Showers_Pt(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -1838,7 +1838,7 @@ class Screen_Pg(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -1867,7 +1867,7 @@ class Screen_Pt(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -1896,7 +1896,7 @@ class Shoot_Pg(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -1925,7 +1925,7 @@ class Shoot_Pt(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -1954,7 +1954,7 @@ class Storage_Pg(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -1983,7 +1983,7 @@ class Storage_Pt(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -2012,7 +2012,7 @@ class Rotary_Voloum_Pg(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -2041,7 +2041,7 @@ class Rotary_Voloum_Pt(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -2070,7 +2070,7 @@ class Tank_Pg(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -2099,7 +2099,7 @@ class Tank_Pt(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -2128,7 +2128,7 @@ class Trans_Pg(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -2157,7 +2157,7 @@ class Trans_Pt(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -2186,7 +2186,7 @@ class Tikner_Pg(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -2215,7 +2215,7 @@ class Tikner_Pt(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -2244,7 +2244,7 @@ class Vibrator_Pg(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -2273,7 +2273,7 @@ class Vibrator_Pt(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -2302,7 +2302,7 @@ class Weight_Gauge_Pg(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -2331,7 +2331,7 @@ class Weight_Gauge_Pt(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -2360,7 +2360,7 @@ class Weigh_Bridge_Pg(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -2389,7 +2389,7 @@ class Weigh_Bridge_Pt(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -2418,7 +2418,7 @@ class Tap_Pg(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -2447,7 +2447,7 @@ class Tap_Pt(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -2476,7 +2476,7 @@ class Chiler_Pg(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -2505,7 +2505,7 @@ class Chiler_Pt(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -2534,7 +2534,7 @@ class Tower_Separation_Pg(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -2563,7 +2563,7 @@ class Tower_Separation_Pt(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -2592,7 +2592,7 @@ class Pool_Eq_Pg(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -2620,7 +2620,7 @@ class Pool_Eq_Pt(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -2649,7 +2649,7 @@ class Grid_Stone_Pg(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -2677,7 +2677,7 @@ class Grid_Stone_Pt(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -2706,7 +2706,7 @@ class Ventilator_Pg(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -2735,7 +2735,7 @@ class Ventilator_Pl(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiLineStringField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiLineStringField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -2764,7 +2764,7 @@ class Ventilator_Pt(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -2793,7 +2793,7 @@ class Elevator_Pg(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -2822,7 +2822,7 @@ class Elevator_Pl(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiLineStringField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiLineStringField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -2851,7 +2851,7 @@ class Elevator_Pt(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -2868,7 +2868,7 @@ class Unit_Pg(LinkedToLayerTable):
     build_ty = models.CharField(verbose_name="نوع ساختمان",max_length=100, unique=False, blank=True, null=True)
     ceiling_ty = models.CharField(verbose_name="نوع سقف",max_length=100, unique=False, blank=True, null=True)
     comment= models.CharField(verbose_name="توضیحات",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -2884,7 +2884,7 @@ class Cable_Pg(LinkedToLayerTable):
     capacity = models.FloatField(verbose_name="ظرفیت",unique=False, blank=True, null=True)
     depth = models.FloatField(verbose_name="عمق کار",unique=False, blank=True, null=True)
     sze = models.FloatField(verbose_name="اندازه",unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False) 
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False) 
     
     def __str__(self):
         return self.name
@@ -2913,7 +2913,7 @@ class Hydrator_Pg(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -2942,7 +2942,7 @@ class Hydrator_Pt(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -2971,7 +2971,7 @@ class Pilar_Pg(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -3000,7 +3000,7 @@ class Pilar_Pt(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -3029,7 +3029,7 @@ class Fire_Extingiuseher_Pg(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -3058,7 +3058,7 @@ class Fire_Extingiuseher_Pt(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -3087,7 +3087,7 @@ class Sump_pump_Pl(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiLineStringField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiLineStringField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -3116,7 +3116,7 @@ class Fan_Pg(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -3145,7 +3145,7 @@ class Fan_Pt(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -3162,7 +3162,7 @@ class Unit_Pl(LinkedToLayerTable):
     build_ty = models.CharField(verbose_name="نوع ساختمان",max_length=100, unique=False, blank=True, null=True)
     ceiling_ty = models.CharField(verbose_name="نوع سقف",max_length=100, unique=False, blank=True, null=True)
     comment= models.CharField(verbose_name="توضیحات",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiLineStringField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiLineStringField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -3179,7 +3179,7 @@ class Unit_Pt(LinkedToLayerTable):
     build_ty = models.CharField(verbose_name="نوع ساختمان",max_length=100, unique=False, blank=True, null=True)
     ceiling_ty = models.CharField(verbose_name="نوع سقف",max_length=100, unique=False, blank=True, null=True)
     comment= models.CharField(verbose_name="توضیحات",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -3208,7 +3208,7 @@ class Other_Pl(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiLineStringField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiLineStringField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -3237,7 +3237,7 @@ class Platform_Pg(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -3266,7 +3266,7 @@ class Platform_Pt(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -3295,7 +3295,7 @@ class Cooling_Pg(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -3324,7 +3324,7 @@ class Cooling_Pt(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -3353,7 +3353,7 @@ class Cooling_Pl(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiLineStringField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiLineStringField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -3382,7 +3382,7 @@ class Heating_system_Pl(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiLineStringField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiLineStringField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -3411,7 +3411,7 @@ class Power_Water_Gaz_Meter_Pg(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -3440,7 +3440,7 @@ class Power_Water_Gaz_Meter_Pt(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -3463,7 +3463,7 @@ class Warning_Sign_Pt(LinkedToLayerTable):
     power = models.FloatField(verbose_name="قدرت",unique=False, blank=True, null=True)
     capacity = models.FloatField(verbose_name="ظرفیت دستگاه",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -3486,7 +3486,7 @@ class Warning_Sign_Pl(LinkedToLayerTable):
     power = models.FloatField(verbose_name="قدرت",unique=False, blank=True, null=True)
     capacity = models.FloatField(verbose_name="ظرفیت دستگاه",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiLineStringField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiLineStringField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -3515,7 +3515,7 @@ class Sprinkler_Pg(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -3544,7 +3544,7 @@ class Sprinkler_Pt(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -3574,7 +3574,7 @@ class Earthing_System_Pl(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiLineStringField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiLineStringField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -3603,7 +3603,7 @@ class Earthing_System_Pt(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -3624,7 +3624,7 @@ class Equipment_Box_Pg(LinkedToLayerTable):
     width = models.FloatField(verbose_name="عرض",unique=False, blank=True, null=True)
     capacity = models.FloatField(verbose_name="ظرفیت دستگاه",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -3645,7 +3645,7 @@ class Equipment_Box_Pt(LinkedToLayerTable):
     width = models.FloatField(verbose_name="عرض",unique=False, blank=True, null=True)
     capacity = models.FloatField(verbose_name="ظرفیت دستگاه",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -3675,7 +3675,7 @@ class FlairـPt(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -3704,7 +3704,7 @@ class FlairـPg(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -3733,7 +3733,7 @@ class Aeration_BlowerـPt(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -3762,7 +3762,7 @@ class Aeration_BlowerـPg(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -3791,7 +3791,7 @@ class ChimenyـPt(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -3820,7 +3820,7 @@ class ChimenyـPg(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -3849,7 +3849,7 @@ class Connector_Pg(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -3878,7 +3878,7 @@ class Connector_Pt(LinkedToLayerTable):
     remaining_time = models.FloatField(verbose_name="زمان باقی مانده",unique=False, blank=True, null=True)
     volume = models.FloatField(verbose_name="حجم کاری",unique=False, blank=True, null=True)
     technical_specifications = models.CharField(verbose_name="مشخصات فنی",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name

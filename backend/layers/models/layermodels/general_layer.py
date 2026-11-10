@@ -10,7 +10,7 @@ class Nut_Res_Area_Pg(LinkedToLayerTable):
     number = models.FloatField(verbose_name="شماره ثبت",unique=False, blank=True, null=True)
     date = models.DateField(verbose_name="تاریخ",auto_now=False,auto_now_add=False,null=True,blank=True)
     license_no = models.CharField(verbose_name="شماره مجوز",max_length=100, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -34,7 +34,7 @@ class Envi_Per_Area_Pg(LinkedToLayerTable):
     activ_ty = models.CharField(verbose_name="نوع فعالیت معدنی",max_length=100, unique=False, blank=True, null=True)
     extrac_cap = models.FloatField(verbose_name="ظرفیت استخراج",unique=False, blank=True, null=True)
     mineral_ty = models.CharField(verbose_name="نوع ماده معدنی",max_length=100, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.area_ty
@@ -46,7 +46,7 @@ class Env_Protection_Area_Pg(LinkedToLayerTable):
     name = models.CharField(verbose_name="نام",max_length=100, unique=False, blank=True, null=True)
     epareakind = models.CharField(verbose_name="نوع",max_length=100, unique=False, blank=True, null=True)
     comment = models.CharField(verbose_name="توضیحات",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -63,7 +63,7 @@ class Explor_Per_Area_Pg(LinkedToLayerTable):
     doc_date = models.DateField(verbose_name="تاریخ صدور پروانه",auto_now=False,auto_now_add=False,null=True,blank=True)
     exp_date = models.DateField(verbose_name="تاریخ انقضا",auto_now=False,auto_now_add=False,null=True,blank=True)
     comment = models.CharField(verbose_name="توضیحات",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -80,7 +80,7 @@ class Exp_Agr_Area_Pg(LinkedToLayerTable):
     doc_date = models.DateField(verbose_name="تاریخ صدور گواهی",auto_now=False,auto_now_add=False,null=True,blank=True)
     exp_date = models.DateField(verbose_name="تاریخ انقضا",auto_now=False,auto_now_add=False,null=True,blank=True)
     comment = models.CharField(verbose_name="توضیحات",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -104,7 +104,7 @@ class Exploit_Per_Area_Pg(LinkedToLayerTable):
     employment = models.FloatField(verbose_name="اشتغال",unique=False, blank=True, null=True)
     pile = models.FloatField(verbose_name="میزان دپو",unique=False, blank=True, null=True)
     comment = models.CharField(verbose_name="توضیحات",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -121,7 +121,7 @@ class Exp_Req_Area_Pg(LinkedToLayerTable):
     doc_date = models.DateField(verbose_name="تاریخ صدور پروانه",auto_now=False,auto_now_add=False,null=True,blank=True)
     exp_date = models.DateField(verbose_name="تاریخ انقضا",auto_now=False,auto_now_add=False,null=True,blank=True)
     comment = models.CharField(verbose_name="توضیحات",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -134,7 +134,7 @@ class Area_License_Pg(LinkedToLayerTable):
     number = models.FloatField(verbose_name="شماره ثبت",unique=False, blank=True, null=True)
     date = models.DateField(verbose_name="تاریخ",auto_now=False,auto_now_add=False,null=True,blank=True)
     license_no = models.CharField(verbose_name="شماره مجوز",max_length=100, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name

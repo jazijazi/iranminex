@@ -10,7 +10,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import FileExtensionValidator
 from django.utils import timezone
 from common.models.models import CustomModel
-from common.models.other import Company
+from common.models.other import Sherkat
 from common.validators import phone_validator , codemeli_validator
 from accounts.validators import validate_ip_whitelist
 from common.utils.image import compress_image
@@ -311,10 +311,10 @@ class User(AbstractUser):
         editable=False,
     )
 
-    company = models.ForeignKey(
-        Company,
+    sherkat = models.ForeignKey(
+        Sherkat,
         on_delete=models.SET_NULL,
-        related_name="rusercompany",
+        related_name="rusersherkat",
         blank=True,
         null=True,
         db_index=True  # Add index for faster lookups

@@ -4,8 +4,8 @@ from common.views import (
     OstanListApiView,
     ShahrestanListApiView,
 
-    CompanyListApiView,
-    CompanyDetailsApiView,
+    SherkatListApiView,
+    SherkatDetailsApiView,
 
     HealthCheck,
 )
@@ -15,8 +15,8 @@ urlpatterns = [
     path('ostan/' , OstanListApiView.as_view() , name="ostan-list"),
     path('shahrestan/' , ShahrestanListApiView.as_view() , name="shahrestan-list"),
 
-    path('company/' , CompanyListApiView.as_view() , name="company-list"),
-    path('company/<int:companyid>/' , CompanyDetailsApiView.as_view() , name="company-details"),
+    path('sherkat/' , SherkatListApiView.as_view() , name="sherkat-list"),
+    path('sherkat/<int:sherkatid>/' , SherkatDetailsApiView.as_view() , name="sherkat-details"),
 
     path('healthcheck/' , HealthCheck.as_view() , name="healthcheck"),
     

@@ -8,7 +8,7 @@ from django.core.exceptions import ValidationError
 
 from common.constants import SCALE_CHOICES
 from common.models.models import CustomModel
-from common.models.other import Company
+from common.models.other import Sherkat
 
 class ContractDomin(CustomModel):
     title = models.CharField(max_length=100, unique=True)
@@ -64,11 +64,13 @@ class Contract(CustomModel):
             'unique': "شماره قرارداد تکراری است"
         },
     )
-    company = models.ManyToManyField(
-        Company,
-        verbose_name="شرکت",
-        related_name="rcompanycontracts",
+    moshaver_arshad = models.ForeignKey(
+        Sherkat,
+        verbose_name="مشاور ارشد",
+        on_delete=models.PROTECT,
+        related_name="rmoshaverarshadqarardadha",
         blank=True,
+        null=True,
     )
     start_date = models.DateField(
         verbose_name="تاریخ شروع",
@@ -135,12 +137,25 @@ class Contract(CustomModel):
     def clean(self):
         """Model validation"""
         super().clean()
- 
+        errors = {}
+
+        if self.moshaver_arshad_id:
+            if not self.moshaver_arshad.mojaz_moshaver_arshad:
+                errors['moshaver_arshad'] = 'این شرکت مجاز به مشاور ارشد بودن نیست.'
+            elif not self._state.adding and self.rsherkatha.filter(
+                    sherkat_id=self.moshaver_arshad_id).exists():
+                errors['moshaver_arshad'] = 'این شرکت در همین قرارداد به‌عنوان شرکت اجرایی ثبت شده است.'
+
         if self.start_date and self.end_date and self.start_date > self.end_date:
-            raise ValidationError({
-                'end_date': 'تاریخ پایان نمی‌تواند قبل از تاریخ شروع باشد.',
-            })
- 
+            errors['end_date'] = 'تاریخ پایان نمی‌تواند قبل از تاریخ شروع باشد.'
+
+        if errors:
+            raise ValidationError(errors)
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.title} ({self.number or 'بدون شماره'})"
  
@@ -148,8 +163,6 @@ class Contract(CustomModel):
         verbose_name = "قرارداد"
         verbose_name_plural = "قراردادها"
         ordering = ['-created_at']
-
-
 class ContractElhaghye(CustomModel):
 
     contract = models.ForeignKey(

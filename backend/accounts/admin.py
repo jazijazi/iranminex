@@ -109,7 +109,7 @@ class UserInitialBorderPermissionInline(TabularInlinePaginated):
 
 class USERSINADMIN(admin.ModelAdmin):
     form = UserAdminForm
-    list_display = ['id','username','first_name_fa','last_name_fa','roles','company__name','is_active','is_superuser']
+    list_display = ['id','username','first_name_fa','last_name_fa','roles','sherkat__name','is_active','is_superuser']
     list_filter = ['is_active', 'is_superuser']
     search_fields = ['username','first_name_fa','last_name_fa','first_name','last_name']
     list_display_links = ['username']
@@ -129,7 +129,7 @@ class USERSINADMIN(admin.ModelAdmin):
                     ),
         }),
         ('وضعیت و نقش', {
-            'fields': ('is_active', 'is_staff', 'is_superuser', 'roles', 'company','user_attempt_login_limit'),
+            'fields': ('is_active', 'is_staff', 'is_superuser', 'roles', 'sherkat','user_attempt_login_limit'),
             'classes': ('collapse',)
         }),
         ('تاریخ‌ها', {

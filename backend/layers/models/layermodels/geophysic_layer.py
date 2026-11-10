@@ -8,7 +8,7 @@ class Gph_Ano_Pg(LinkedToLayerTable):
     priority = models.CharField(verbose_name="اولویت",max_length=100, unique=False, blank=True, null=True)
     det_method = models.CharField(verbose_name="روش تعیین",max_length=100, unique=False, blank=True, null=True)
     comment = models.CharField(verbose_name="توضیحات",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -20,7 +20,7 @@ class A_Gph_Sec_Pl(LinkedToLayerTable):
     name = models.CharField(verbose_name="نام",max_length=100, unique=False, blank=True, null=True)
     azimuth = models.FloatField(verbose_name="آزیموت",unique=False, blank=True, null=True)
     comment = models.CharField(verbose_name="توضیحات",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiLineStringField(srid=4326, blank=False, null=False) 
+    border = gis_models.MultiLineStringField(srid=3857, blank=False, null=False) 
     
     def __str__(self):
         return self.name
@@ -35,7 +35,7 @@ class A_Radiometric_Domains_Pg(LinkedToLayerTable):
     k = models.FloatField(verbose_name="پتاسیم",unique=False, blank=True, null=True)
     th = models.FloatField(verbose_name="توریوم",unique=False, blank=True, null=True)
     u = models.FloatField(verbose_name="اورانیوم",unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.age
@@ -47,7 +47,7 @@ class Fault_Gph_Pl(LinkedToLayerTable):
     name = models.CharField(verbose_name="نام سنجنده",max_length=100, unique=False, blank=True, null=True)
     type_fault = models.CharField(verbose_name="نوع گسل",max_length=100, unique=False, blank=True, null=True)
     comment = models.CharField(verbose_name="توضیحات",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiLineStringField(srid=4326, blank=False, null=False) 
+    border = gis_models.MultiLineStringField(srid=3857, blank=False, null=False) 
     
     def __str__(self):
         return self.name
@@ -60,7 +60,7 @@ class Gph_Lim_Pg(LinkedToLayerTable):
     typ = models.CharField(verbose_name="نوع",max_length=100, unique=False, blank=True, null=True)
     mthod = models.CharField(verbose_name="روش",max_length=100, unique=False, blank=True, null=True)
     comment = models.CharField(verbose_name="توضیحات",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -72,7 +72,7 @@ class Gph_Intrusives_Pg(LinkedToLayerTable):
     sus = models.CharField(verbose_name="خودپذیری",max_length=100, unique=False, blank=True, null=True)
     depth = models.FloatField(verbose_name="عمق",unique=False, blank=True, null=True)
     comment = models.CharField(verbose_name="توضیحات",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.sus
@@ -91,7 +91,7 @@ class Gph_Sec_Pl(LinkedToLayerTable):
     start_y_coor = models.FloatField(verbose_name="مختصاتY ابتدا",unique=False, blank=True, null=True)
     mthod = models.CharField(verbose_name="روش",max_length=100, unique=False, blank=True, null=True)
     comment = models.CharField(verbose_name="توضیحات",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiLineStringField(srid=4326, blank=False, null=False) 
+    border = gis_models.MultiLineStringField(srid=3857, blank=False, null=False) 
     
     def __str__(self):
         return self.name
@@ -104,7 +104,7 @@ class Gph_P_Pt(LinkedToLayerTable):
     comment = models.CharField(verbose_name="توضیحات",max_length=250, unique=False, blank=True, null=True)
     typ = models.CharField(verbose_name="نوع",max_length=100, unique=False, blank=True, null=True)
     mthod = models.CharField(verbose_name="روش",max_length=100, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -117,7 +117,7 @@ class GPS_Base_Station_Pt(LinkedToLayerTable):
     y = models.FloatField(verbose_name="عرض",unique=False, blank=True, null=True)
     z = models.FloatField(verbose_name="ارتفاع",unique=False, blank=True, null=True)
     comment = models.CharField(verbose_name="توضیحات",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.x
@@ -131,7 +131,7 @@ class Gr_Field_Pt(LinkedToLayerTable):
     th_ppm = models.FloatField(verbose_name="میزان غلظت توریم",unique=False, blank=True, null=True)
     u_ppm = models.FloatField(verbose_name="میزان غلظت اورانیوم",unique=False, blank=True, null=True)
     comment = models.CharField(verbose_name="توضیحات",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.lithology
@@ -156,7 +156,7 @@ class Rck_Typ_Rad_Pg(LinkedToLayerTable):
     min_k = models.FloatField(verbose_name="مینیمم پتاسیم",unique=False, blank=True, null=True)
     avg_k = models.FloatField(verbose_name="میانگین پتاسیم",unique=False, blank=True, null=True)
     sdu_k = models.FloatField(verbose_name="انحراف معیار پتاسیم",unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.depth
@@ -169,7 +169,7 @@ class Rck_Typ_Mag_Pg(LinkedToLayerTable):
     origin = models.CharField(verbose_name="خاستگاه",max_length=100, unique=False, blank=True, null=True)
     sus = models.FloatField(verbose_name="خودپذيري",unique=False, blank=True, null=True)
     lithology = models.CharField(verbose_name="سنگ شناسی",max_length=100, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.depth
@@ -183,7 +183,7 @@ class Rad_Ano_Pg(LinkedToLayerTable):
     maxx = models.FloatField(verbose_name="حداکثر",unique=False, blank=True, null=True)
     ave = models.FloatField(verbose_name="میانگین",unique=False, blank=True, null=True)
     comment = models.CharField(verbose_name="توضیحات",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -194,7 +194,7 @@ class Rad_Ano_Pg(LinkedToLayerTable):
 class Shallow_Magnetic_Ano_Pg(LinkedToLayerTable):
     name = models.CharField(verbose_name="نام",max_length=100, unique=False, blank=True, null=True)
     comment = models.CharField(verbose_name="توضیحات",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -208,7 +208,7 @@ class Gph_Contr_Pl(LinkedToLayerTable):
     method = models.CharField(verbose_name="روش",max_length=100, unique=False, blank=True, null=True)
     value = models.CharField(verbose_name="مقدار",max_length=100, unique=False, blank=True, null=True)
     comment = models.CharField(verbose_name="توضیحات",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiLineStringField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiLineStringField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -221,7 +221,7 @@ class L_Grv_Ano_Pg(LinkedToLayerTable):
     minn = models.FloatField(verbose_name="حداقل",unique=False, blank=True, null=True)  
     maxx = models.FloatField(verbose_name="حداکثر",unique=False, blank=True, null=True)
     comment = models.CharField(verbose_name="توضیحات",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.type_m
@@ -234,7 +234,7 @@ class Ip_Ano_Pg(LinkedToLayerTable):
     minn = models.FloatField(verbose_name="حداقل",unique=False, blank=True, null=True)  
     maxx = models.FloatField(verbose_name="حداکثر",unique=False, blank=True, null=True)
     comment = models.CharField(verbose_name="توضیحات",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.type_m
@@ -248,7 +248,7 @@ class Megnetic_Body_Pg(LinkedToLayerTable):
     maxx = models.FloatField(verbose_name="حداکثر",unique=False, blank=True, null=True)
     ave = models.FloatField(verbose_name="میانگین",unique=False, blank=True, null=True)
     comment = models.CharField(verbose_name="توضیحات",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPolygonField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPolygonField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.type_m
@@ -266,7 +266,7 @@ class Pnt_Gel_Pt(LinkedToLayerTable):
     poten_dif = models.FloatField(verbose_name="میزان اختلاف پوتانسیل",unique=False, blank=True, null=True)
     self_poten = models.FloatField(verbose_name="میزان خودپتانسیل",unique=False, blank=True, null=True)
     comment = models.CharField(verbose_name="توضیحات",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -280,7 +280,7 @@ class Brit_Struc_Gph_Pl(LinkedToLayerTable):
     gph_st_type = models.CharField(verbose_name="نوع مطالعات ژیوفیزیکی",max_length=250, unique=False, blank=True, null=True)
     geophysic_scale = models.CharField(verbose_name="مقیاس مطالعات ژیوفیزیکی",max_length=250, unique=False, blank=True, null=True)
     comment = models.CharField(verbose_name="توضیحات",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiLineStringField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiLineStringField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -302,7 +302,7 @@ class Euler_Pt(LinkedToLayerTable):
     wndsize = models.FloatField(verbose_name="اندازه پنجره",unique=False, blank=True, null=True)  
     bckgrnd = models.FloatField(verbose_name="مقدار زمینه",unique=False, blank=True, null=True)  
     mask = models.CharField(verbose_name="ماسک",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
 
     def __str__(self):
         return self.name
@@ -315,7 +315,7 @@ class Tillt_Contr_Pl(LinkedToLayerTable):
     name = models.CharField(verbose_name="نام",max_length=100, unique=False, blank=True, null=True)
     value = models.FloatField(verbose_name="مقدار",unique=False, blank=True, null=True)
     comment = models.CharField(verbose_name="توضیحات",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiLineStringField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiLineStringField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name
@@ -334,7 +334,7 @@ class Mag_Grid_Pnt_Pt(LinkedToLayerTable):
     tmi_vdi = models.FloatField(verbose_name="مشتق قایم  مرتبه اول شدت باقیمانده",unique=False, blank=True, null=True)
     tmi_hdi = models.FloatField(verbose_name="مشتق مرتبه اول شدت باقیمانده",unique=False, blank=True, null=True)
     rtp = models.FloatField(verbose_name="برگردان به قطب شدت میدان مغناطیسی",unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
 
     def __str__(self):
         return self.pointid
@@ -347,7 +347,7 @@ class Pnt_Elmag_Pt(LinkedToLayerTable):
     appa_conduct = models.FloatField(verbose_name="میزان رسانایی ظاهری",unique=False, blank=True, null=True)
     gph_profile_id = models.CharField(verbose_name="شناسه پروفیل برداشت مطالعات ژیوفیزیک",max_length=100,unique=False, blank=True, null=True)
     comment = models.CharField(verbose_name="توضیحات",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
 
     def __str__(self):
         return self.pointid
@@ -364,7 +364,7 @@ class Pnt_Rad_Pt(LinkedToLayerTable):
     k = models.FloatField(verbose_name="میزان پتاسیم",unique=False, blank=True, null=True)
     tc = models.FloatField(verbose_name="شمارش کل",unique=False, blank=True, null=True)
     comment = models.CharField(verbose_name="توضیحات",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
 
     def __str__(self):
         return self.name
@@ -379,7 +379,7 @@ class Pnt_Grv_Pt(LinkedToLayerTable):
     grv_rsd = models.FloatField(verbose_name="میزان آنومالی باقی مانده گرانی",unique=False, blank=True, null=True)
     z = models.FloatField(verbose_name="ارتفاع",unique=False, blank=True, null=True)
     comment = models.CharField(verbose_name="توضیحات",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
 
     def __str__(self):
         return self.name
@@ -397,7 +397,7 @@ class Pnt_Gmag_Pt(LinkedToLayerTable):
     dur_cor = models.FloatField(verbose_name="تصحیح روزانه",unique=False, blank=True, null=True)
     inclination = models.FloatField(verbose_name="زاویه میل",unique=False, blank=True, null=True)
     comment = models.CharField(verbose_name="توضیحات",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiPointField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiPointField(srid=3857, blank=False, null=False)
 
     def __str__(self):
         return self.name
@@ -408,7 +408,7 @@ class Pnt_Gmag_Pt(LinkedToLayerTable):
 class Magnetic_Linear_Trend_Pl(LinkedToLayerTable):
     name = models.CharField(verbose_name="نام یا شماره",max_length=100, unique=False, blank=True, null=True)
     comment = models.CharField(verbose_name="توضیحات",max_length=250, unique=False, blank=True, null=True)
-    border = gis_models.MultiLineStringField(srid=4326, blank=False, null=False)
+    border = gis_models.MultiLineStringField(srid=3857, blank=False, null=False)
     
     def __str__(self):
         return self.name

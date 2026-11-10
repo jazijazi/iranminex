@@ -13,7 +13,7 @@ from common.services.gis import drop_zm, validate_geodataframe
 
 def convert_gdf_to_multipolygon(gdf: GeoDataFrame) -> MultiPolygon:
     """
-    Merge every Polygon / MultiPolygon row of a GeoDataFrame (EPSG:4326)
+    Merge every Polygon / MultiPolygon row of a GeoDataFrame (EPSG:3857)
     into one Django MultiPolygon. Other geometry types and empty rows are skipped.
     """
     polygons = []
@@ -37,14 +37,14 @@ def convert_gdf_to_multipolygon(gdf: GeoDataFrame) -> MultiPolygon:
     if not polygons:
         raise ValueError("No valid polygon geometries found")
 
-    return MultiPolygon(*polygons, srid=4326)
+    return MultiPolygon(*polygons, srid=3857)
 
 
 def proccess_initialborder_zipfile(
     zipfile_obj: UploadedFile,
 ) -> Tuple[bool, Optional[MultiPolygon], str]:
     """
-    Read a zipped shapefile and convert it to one Django MultiPolygon (EPSG:4326).
+    Read a zipped shapefile and convert it to one Django MultiPolygon (EPSG:3857).
 
     Returns:
         (True, MultiPolygon, "")         on success
@@ -88,9 +88,9 @@ def proccess_initialborder_zipfile(
             if gdf.crs is None:
                 return False, None, "مختصات شیپ ورودی صحیح نمی‌باشد"
 
-            if gdf.crs.to_epsg() != 4326:
+            if gdf.crs.to_epsg() != 3857:
                 try:
-                    gdf = gdf.to_crs(epsg=4326)
+                    gdf = gdf.to_crs(epsg=3857)
                 except Exception as e:
                     return False, None, f"خطا در مختصات شیپ فایل: {str(e)}"
 

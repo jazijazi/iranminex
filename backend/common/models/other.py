@@ -3,7 +3,24 @@ from django.db import models
 
 from common.models.models import CustomModel
 
-class Company(CustomModel):
+
+class NoeKhadamat(CustomModel):
+    """نوع خدمات شرکت‌ها: اکتشاف، حفاری، ژئوفیزیک، چاه‌پیمایی، آزمایشگاه، ..."""
+
+    title = models.CharField(
+        verbose_name="عنوان",
+        max_length=100,
+        unique=True
+    )
+
+    def __str__(self):
+        return self.title
+
+    class Meta:
+        verbose_name = "نوع خدمات"
+        verbose_name_plural = "انواع خدمات"
+
+class Sherkat(CustomModel):
     name = models.CharField(
         verbose_name="نام شرکت",
         max_length=100,
@@ -28,12 +45,15 @@ class Company(CustomModel):
         null=True, 
         unique=False
     )
-    service_typ = models.CharField(
+    noe_khadamat = models.ManyToManyField(
+        NoeKhadamat,
         verbose_name="نوع خدمات",
-        max_length=100, 
+        related_name="rSherkatha",
         blank=True,
-        null=True, 
-        unique=False
+    )
+    mojaz_moshaver_arshad = models.BooleanField(
+        verbose_name="مجاز به مشاور ارشد بودن",
+        default=True,
     )
     callnumber = models.CharField(
         verbose_name="شماره تماس",

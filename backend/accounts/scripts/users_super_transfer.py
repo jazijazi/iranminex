@@ -8,7 +8,7 @@ from django.contrib.auth.hashers import make_password
 
 def transfer_users():
     # Import models
-    from accounts.models import User, Company
+    from accounts.models import User, Sherkat
 
     try:
         old_conn = psycopg2.connect(
@@ -80,11 +80,11 @@ def transfer_users():
                 skip_count += 1
                 continue
 
-            # Find company by sherkat_id if exists
-            company = None
+            # Find sherkat by sherkat_id if exists
+            sherkat = None
             if sherkat_id:
                 try:
-                    # Get company name and code from old database
+                    # Get sherkat name and code from old database
                     old_cursor.execute("""
                         SELECT name, code
                         FROM public.prjapi_sherkatejraei
@@ -94,13 +94,13 @@ def transfer_users():
                     
                     if sherkat_data:
                         sherkat_name, sherkat_code = sherkat_data
-                        # Try to find company in new database
+                        # Try to find sherkat in new database
                         if sherkat_code:
-                            company = Company.objects.filter(name=sherkat_name, code=sherkat_code).first()
+                            sherkat = Sherkat.objects.filter(name=sherkat_name, code=sherkat_code).first()
                         else:
-                            company = Company.objects.filter(name=sherkat_name).first()
+                            sherkat = Sherkat.objects.filter(name=sherkat_name).first()
                 except Exception as e:
-                    print(f"  ⚠ Warning: Could not find company for user '{username}': {e}")
+                    print(f"  ⚠ Warning: Could not find sherkat for user '{username}': {e}")
 
             # Create new user
             with transaction.atomic():
@@ -112,7 +112,7 @@ def transfer_users():
                     last_name_fa=last_name_fa,
                     address=address,
                     password=hashed_password,
-                    company=company,
+                    sherkat=sherkat,
                     is_active=True,
                     is_staff=False,
                     is_superuser=False
@@ -128,8 +128,8 @@ def transfer_users():
                 new_user.save()
                 
                 success_count += 1
-                company_name = company.name if company else 'N/A'
-                print(f"✓ Transferred: {username} (Company: {company_name})")
+                sherkat_name = sherkat.name if sherkat else 'N/A'
+                print(f"✓ Transferred: {username} (Sherkat: {sherkat_name})")
 
         except Exception as e:
             error_count += 1
