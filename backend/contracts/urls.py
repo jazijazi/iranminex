@@ -9,13 +9,13 @@ from contracts.views.contractviews import (
 
     ContractDomainsListApiView,
 )
-from contracts.views.sharhkhadamatviews import (
-    SharhkhadamatListApiView,
-    SharhkhadamatDetailApiView,
+# from contracts.views.sharhkhadamatviews import (
+    # SharhkhadamatListApiView,
+    # SharhkhadamatDetailApiView,
 
-    SharhKhadamatLayerListApiView,
-    SharhKhadamatLayerDetailApiView,
-)
+    # SharhKhadamatLayerListApiView,
+    # SharhKhadamatLayerDetailApiView,
+# )
 from contracts.views.commnentsview import(
     CommentListApiView,
     # CommentDetailsApiView,
@@ -28,11 +28,11 @@ from contracts.views.attachmentviews import(
     ContractAttachmentListApiView,
     ContractAttachmentDetailsApiView,
 
-    SharhbaseAttachmentDomainListApiView,
-    SharhbaseAttachmentDomainDetailsApiView,
+    # SharhbaseAttachmentDomainListApiView,
+    # SharhbaseAttachmentDomainDetailsApiView,
     
-    SharhbaseAttachmentListApiView,
-    SharhbaseAttachmentDetailsApiView,
+    # SharhbaseAttachmentListApiView,
+    # SharhbaseAttachmentDetailsApiView,
 )
 
 urlpatterns = [
@@ -48,8 +48,8 @@ urlpatterns = [
     path('attachment-domains/<int:pk>/', ContractAttachmentDomainDetailsApiView.as_view(), name='contractattachmentdomain-details'),
 
     # Sharhbase attachment domains (global resources)
-    path('sharhbase-attachment-domains/', SharhbaseAttachmentDomainListApiView.as_view(), name='sharhbaseattachmentdomain-list'),
-    path('sharhbase-attachment-domains/<int:pk>/', SharhbaseAttachmentDomainDetailsApiView.as_view(), name='sharhbaseattachmentdomain-details'),
+    # path('sharhbase-attachment-domains/', SharhbaseAttachmentDomainListApiView.as_view(), name='sharhbaseattachmentdomain-list'),
+    # path('sharhbase-attachment-domains/<int:pk>/', SharhbaseAttachmentDomainDetailsApiView.as_view(), name='sharhbaseattachmentdomain-details'),
 
     # Contract Elhaghye
     path('<uuid:contractid>/elhaghye/', ContractElhaghyeListApiViews.as_view(), name='contractelhaghye-list'),
@@ -60,16 +60,16 @@ urlpatterns = [
     path('<uuid:contractid>/attachments/<int:contractattachmentid>/', ContractAttachmentDetailsApiView.as_view(), name='contractattachment-details'),
 
     # Sharhkhadamat
-    path('<uuid:contractid>/sharhkhadamat/', SharhkhadamatListApiView.as_view(), name='contract-shrbase-list'),
-    path('<uuid:contractid>/sharhkhadamat/<int:shrhbaseid>/', SharhkhadamatDetailApiView.as_view(), name='contract-shrbase-detail'),
+    # path('<uuid:contractid>/sharhkhadamat/', SharhkhadamatListApiView.as_view(), name='contract-shrbase-list'),
+    # path('<uuid:contractid>/sharhkhadamat/<int:shrhbaseid>/', SharhkhadamatDetailApiView.as_view(), name='contract-shrbase-detail'),
 
     # Sharhkhadamat layers
-    path('<uuid:contractid>/sharhkhadamat-layers/', SharhKhadamatLayerListApiView.as_view(), name='contract-shrlyr-list'),
-    path('<uuid:contractid>/sharhkhadamat-layers/<int:shrhid>/', SharhKhadamatLayerDetailApiView.as_view(), name='contract-shrlyr-detail'),
+    # path('<uuid:contractid>/sharhkhadamat-layers/', SharhKhadamatLayerListApiView.as_view(), name='contract-shrlyr-list'),
+    # path('<uuid:contractid>/sharhkhadamat-layers/<int:shrhid>/', SharhKhadamatLayerDetailApiView.as_view(), name='contract-shrlyr-detail'),
 
     # Sharhbase attachments
-    path('<uuid:contractid>/sharhkhadamat/<int:shrhbaseid>/attachments/', SharhbaseAttachmentListApiView.as_view(), name='sharhbaseattachment-list'),
-    path('<uuid:contractid>/sharhkhadamat/<int:shrhbaseid>/attachments/<int:sharhbaseattachmentid>/', SharhbaseAttachmentDetailsApiView.as_view(), name='sharhbaseattachment-details'),
+    # path('<uuid:contractid>/sharhkhadamat/<int:shrhbaseid>/attachments/', SharhbaseAttachmentListApiView.as_view(), name='sharhbaseattachment-list'),
+    # path('<uuid:contractid>/sharhkhadamat/<int:shrhbaseid>/attachments/<int:sharhbaseattachmentid>/', SharhbaseAttachmentDetailsApiView.as_view(), name='sharhbaseattachment-details'),
 
     # Comments
     path('<uuid:contractid>/sharhkhadamat-layers/<int:shrhlayerid>/comments/', CommentListApiView.as_view(), name='comments-list'),

@@ -38,7 +38,7 @@ from django.db.models import Sum
 from common.constants import SCALE_CHOICES
 from common.models.models import CustomModel
 from contracts.models.models import Contract
-from layers.models.models import LayersNames
+# from layers.models.models import LayersNames
 
 
 # ════════════════════════════════════════════════════════════════════
@@ -477,11 +477,11 @@ class ShrhLayer(CustomModel):
         on_delete=models.CASCADE,
         related_name="shr_layers",
     )
-    layer_name = models.ForeignKey(
-        LayersNames,
-        on_delete=models.CASCADE,
-        related_name="layer_shrlyrs",
-    )
+    # layer_name = models.ForeignKey(
+    #     LayersNames,
+    #     on_delete=models.CASCADE,
+    #     related_name="layer_shrlyrs",
+    # )
     raster_uuid = models.CharField(
         verbose_name="raster uuid",
         max_length=100,
@@ -599,7 +599,7 @@ class ShrhLayer(CustomModel):
     class Meta:
         verbose_name = "لایه شرح خدمات"
         verbose_name_plural = "لایه‌های شرح خدمات"
-        ordering = ['shrh_contract', 'layer_name']
+        ordering = ['shrh_contract',] #'layer_name'
 
 
 # ════════════════════════════════════════════════════════════════════

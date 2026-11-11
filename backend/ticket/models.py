@@ -159,4 +159,4 @@ class TicketComment(CustomModel):
         ordering = ["created_at"]
 
     def __str__(self):
-        return f"Comment by {self.author.username} on {self.ticket.number}"
+        return f"ShrhLayerComment by {self.author.username} on {self.ticket.number}"

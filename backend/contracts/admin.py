@@ -247,8 +247,8 @@ class ShrhLayerCommentAdmin(admin.ModelAdmin):
     list_display = ("khalaseh", "shrh_layer", "writer", "noe", "created_at")
     list_filter = ("created_at",)
     search_fields = ("text", "writer__username", "shrh_layer__shrh_contract__shrh_catalog__title")
-    autocomplete_fields = ("shrh_layer", "parent")
-    list_select_related = ("shrh_layer__layer_name", "shrh_layer__shrh_contract__shrh_catalog", "writer")
+    autocomplete_fields = ("parent",) #shrh_layer
+    # list_select_related = ("shrh_layer__layer_name", "shrh_layer__shrh_contract__shrh_catalog", "writer")
     readonly_fields = ("writer", "created_at")
     fields = ("shrh_layer", "parent", "text", "writer", "created_at")
 
@@ -312,17 +312,17 @@ class ShrhContractAdmin(WriterFormsetMixin, admin.ModelAdmin):
 class ShrhLayerAdmin(WriterFormsetMixin, admin.ModelAdmin):
     """بارگذاری/تایید فقط با action تا کاربر و زمان همیشه درست ثبت شود."""
     list_display = ("__str__", "contract", "vaziat", "upload_count", "last_uploaded_by", "verified_by")
-    list_filter = ("is_uploaded", "is_verified", "layer_name")
+    list_filter = ("is_uploaded", "is_verified") #layer_name
     search_fields = ("shrh_contract__shrh_catalog__title", "shrh_contract__contract__title", "raster_uuid")
-    autocomplete_fields = ("shrh_contract", "layer_name")
-    list_select_related = ("shrh_contract__contract", "shrh_contract__shrh_catalog", "layer_name",
-                           "last_uploaded_by", "verified_by")
+    autocomplete_fields = ("shrh_contract", ) #layer_name
+    list_select_related = ("shrh_contract__contract", "shrh_contract__shrh_catalog",
+                           "last_uploaded_by", "verified_by") #layer_name
     readonly_fields = ("is_uploaded", "last_uploaded_date", "last_uploaded_by", "upload_count",
                        "is_verified", "verified_by", "verified_at")
     actions = ["action_uploaded", "action_verify"]
     inlines = [ShrhLayerCommentInline]
     fieldsets = (
-        ("لایه", {"fields": ("shrh_contract", "layer_name", "raster_uuid")}),
+        ("لایه", {"fields": ("shrh_contract","raster_uuid")}), #layer_name
         ("اندازه و قیمت", {"fields": ("layer_weight", "layer_volume", "unit_price")}),
         ("بارگذاری", {"fields": ("is_uploaded", "last_uploaded_date", "last_uploaded_by", "upload_count")}),
         ("تایید نهایی", {"fields": ("is_verified", "verified_by", "verified_at")}),

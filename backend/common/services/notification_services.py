@@ -7,7 +7,7 @@ from accounts.models import (
     Notification
 )
 from contracts.models.comments import (
-    Comment,
+    ShrhLayerComment,
 )
 from contracts.models.SharhKhadamats import (
     ShrhLayer,
@@ -56,12 +56,12 @@ class NotificationFactory:
         return new_notif
 
     @classmethod
-    def for_comment(cls, comment:Comment, exclude_users: list|None = None) -> List[Notification]:
+    def for_comment(cls, comment:ShrhLayerComment, exclude_users: list|None = None) -> List[Notification]:
         """
         Create notifications when a new comment is posted
         
         Args:
-            comment: Comment instance
+            comment: ShrhLayerComment instance
             exclude_users: List of users to exclude from notifications
             
         Returns:
@@ -127,12 +127,12 @@ class NotificationFactory:
         return notifications
     
     @classmethod
-    def for_reply(cls, reply:Comment) -> List[Notification]:
+    def for_reply(cls, reply:ShrhLayerComment) -> List[Notification]:
         """
         Create notifications when someone replies to a comment
         
         Args:
-            reply: Comment instance that is a reply
+            reply: ShrhLayerComment instance that is a reply
             
         Returns:
             List of created notification instances

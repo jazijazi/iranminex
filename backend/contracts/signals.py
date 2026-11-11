@@ -5,10 +5,10 @@ from django.db import transaction
 from django.contrib.auth import get_user_model
 
 from contracts.models.models import ShrhLayer
-from contracts.models.comments import Comment
+from contracts.models.comments import ShrhLayerComment
 from common.services.notification_services import NotificationFactory
 
-@receiver(post_save, sender=Comment)
+@receiver(post_save, sender=ShrhLayerComment)
 def send_comment_notifications(sender, instance, created, **kwargs):
     if created:
         try:

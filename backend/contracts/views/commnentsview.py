@@ -25,7 +25,7 @@ from contracts.models.SharhKhadamats import (
     ShrhLayer,
 )
 from contracts.models.comments import (
-    Comment,
+    ShrhLayerComment,
 )
 
 delete_logger = logging.getLogger('delete_activity_logger')
@@ -47,13 +47,13 @@ class CommentListApiView(APIView):
         writer = CommentListOutputSerializerUser()
 
         class Meta:
-            model = Comment
+            model = ShrhLayerComment
             fields = ['pk','writer','parent','text','created_at']
 
     class CommentListInputSerializer(serializers.ModelSerializer):
         parent_id = serializers.IntegerField(required=False)
         class Meta:
-            model = Comment
+            model = ShrhLayerComment
             fields = ['parent_id' , 'text']
 
         def validate_parent_id(self, value):
@@ -61,9 +61,9 @@ class CommentListApiView(APIView):
             if value is not None:
                 print("validate_parent >>>>>" , value)
                 try:
-                    parent_comment = Comment.objects.get(pk=value)
+                    parent_comment = ShrhLayerComment.objects.get(pk=value)
                     return value
-                except Comment.DoesNotExist:
+                except ShrhLayerComment.DoesNotExist:
                     raise serializers.ValidationError("نظر والد با این آیدی وجود ندارد")
             return None
             
@@ -74,13 +74,13 @@ class CommentListApiView(APIView):
 
     def get(self , request:Request , shrhlayerid:int) -> Response:
         """
-            Return List of All Comment related to this sharhlayer instance
+            Return List of All ShrhLayerComment related to this sharhlayer instance
         """
         try:
             thisuser = request.user
             shrhlayer_instance = ShrhLayer.objects.get(pk=shrhlayerid) 
                         
-            all_comments = Comment.objects.filter(sharhlayer=shrhlayer_instance).order_by('-created_at')
+            all_comments = ShrhLayerComment.objects.filter(sharhlayer=shrhlayer_instance).order_by('-created_at')
             serializ_data = self.CommentListOutputSerializer(all_comments , many=True)
             return Response(serializ_data.data , status=status.HTTP_200_OK)
 
@@ -92,7 +92,7 @@ class CommentListApiView(APIView):
         
     def post(self , request:Request , shrhlayerid:int) -> Response:
         """
-            Create A New Comment to the SharhLayer Instance
+            Create A New ShrhLayerComment to the SharhLayer Instance
         """
         try:
 
@@ -100,7 +100,7 @@ class CommentListApiView(APIView):
             shrhlayer_instance = ShrhLayer.objects.get(pk=shrhlayerid) 
                         
             # Check if user's last comment on this sharhlayer
-            last_comment = Comment.objects.filter(
+            last_comment = ShrhLayerComment.objects.filter(
                 sharhlayer=shrhlayer_instance
             ).order_by('-created_at').first()
             
@@ -124,19 +124,19 @@ class CommentListApiView(APIView):
             parent_comment = None
             if parent_id:
                 try:
-                    parent_comment = Comment.objects.get(pk=parent_id)
+                    parent_comment = ShrhLayerComment.objects.get(pk=parent_id)
                     if parent_comment.sharhlayer != shrhlayer_instance:
                         return Response(
                             {"detail": "نظر والد متعلق به این لایه شرح خدماتی نیست"}, 
                             status=status.HTTP_400_BAD_REQUEST
                         )
-                except Comment.DoesNotExist:
+                except ShrhLayerComment.DoesNotExist:
                     return Response(
                         {"detail": "نظر والد وجود ندارد"}, 
                         status=status.HTTP_400_BAD_REQUEST
                     )
             
-            new_comment = Comment.objects.create(
+            new_comment = ShrhLayerComment.objects.create(
                 sharhlayer=shrhlayer_instance,
                 writer=thisuser,
                 parent=parent_comment,
@@ -159,13 +159,13 @@ class CommentListApiView(APIView):
 
 #     def delete(self , request:Request , shrhlayerid:int , commentid:int) -> Response:
 #         """
-#             Delete A Comment buy user 
+#             Delete A ShrhLayerComment buy user 
 #         """
 #         try:
 #             thisuser = request.user
 #             shrhlayer_instance = ShrhLayer.objects.get(pk=shrhlayerid) 
                         
-#             comment_instance = Comment.objects.get(pk=commentid)
+#             comment_instance = ShrhLayerComment.objects.get(pk=commentid)
 
 #             if not (thisuser == comment_instance.writer or thisuser.is_superuser):
 #                 return Response({"detail":"شما اجازه حذف این نظر را ندارید"},status=status.HTTP_400_BAD_REQUEST)
@@ -175,7 +175,7 @@ class CommentListApiView(APIView):
 
 #             return Response(status=status.HTTP_204_NO_CONTENT)
         
-#         except Comment.DoesNotExist:
+#         except ShrhLayerComment.DoesNotExist:
 #             return Response({"detail":"نظری با این آیدی وجود ندارد"},status=status.HTTP_404_NOT_FOUND)
 #         except ShrhLayer.DoesNotExist:
 #             return Response({"detail":"لایه شرح خدماتی با این آیدی وجود ندارد"},status=status.HTTP_404_NOT_FOUND)
