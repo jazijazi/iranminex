@@ -1,57 +1,29 @@
+"""
+contracts/admin.py
+==================
+ادمین قرارداد و شرح خدمات.
+
+نکته‌ها:
+  • ShrhCatalog فقط برای مشاهده/ویرایش جزئی است؛ داده‌اش از اکسل seed می‌شود.
+  • کادر (MultiPolygon) با نقشهٔ GIS ادمین نمایش داده می‌شود (Django >= 4.0).
+  • تایید/بارگذاری لایه فقط با action انجام می‌شود تا verified_by / verified_at
+    همیشه درست ثبت شوند.
+  • اگر Contract قبلاً در این فایل ثبت شده، ثبت قبلی را حذف کنید.
+"""
 from django.contrib import admin, messages
 from django.contrib.gis import admin as gis_admin
 from django.core.exceptions import ValidationError
 from django.utils.html import format_html
 
 from common.models.other import Sherkat
-from initialborders.models.models import InitialBorder
-
-from contracts.models.comments import (
-    Comment,
-)
-from contracts.models.attachment import (
-
-    ContractAttachment,
-    ContractAttachmentDomain,
-
-    SharhbaseAttachment,
-    SharhbaseAttachmentDomain,
-)
 from contracts.models.models import (
     Contract, ContractDomin, ContractElhaghye,
     Faz, Vahed, ShrhCatalog,
     NaghshSherkat, SherkatContract,
     EkhtesasShrh, ShrhContract, ShrhLayer,
+    ShrhAttachmentDomain, ShrhAttachment, ShrhLayerComment,
 )
 
-
-    
-class InitialBorderInline(admin.TabularInline):
-    """Shows the initial borders that belong to a contract."""
-    model = InitialBorder
-    fk_name = "contract"
-    fields = ['title', 'dtyp']
-    autocomplete_fields = ['dtyp']
-    extra = 0
-    show_change_link = True
-
-@admin.register(ContractElhaghye)
-class ContractElhaghyeAdmin(admin.ModelAdmin):
-    list_display = ['title', 'contract__title', 'mablagh', 'tarikh']
-    search_fields = ['title', 'contract__title']
-    list_filter = ['tarikh']
-    autocomplete_fields = ['contract']
-
-@admin.register(ContractAttachment)
-
-class ContractAttachmentAdmin(admin.ModelAdmin):
-    autocomplete_fields = ["contract"]
-
-@admin.register(ContractAttachmentDomain)
-
-class ContractAttachmentDomainAdmin(admin.ModelAdmin):
-    list_display = ['code' , 'name_en' , 'name_fa']
-    search_fields = ['code' , 'name_en' , 'name_fa']
 
 # ───────────────────────── ابزار نمایش ─────────────────────────
 
@@ -204,10 +176,100 @@ class EkhtesasShrhAdmin(gis_admin.GISModelAdmin):
         return progress_bar(obj.pishraft)
 
 
+# ───────────────────────── پیوست‌ها و نظرات ─────────────────────────
+
+class WriterFormsetMixin:
+    """در inline ها، نویسندهٔ رکوردهای جدید را خودکار request.user می‌گذارد."""
+
+    def save_formset(self, request, form, formset, change):
+        instances = formset.save(commit=False)
+        for obj in formset.deleted_objects:
+            obj.delete()
+        for obj in instances:
+            if hasattr(obj, "writer_id") and not obj.writer_id:
+                obj.writer = request.user
+            obj.save()
+        formset.save_m2m()
+
+
+@admin.register(ShrhAttachmentDomain)
+class ShrhAttachmentDomainAdmin(admin.ModelAdmin):
+    list_display = ("code", "name_fa", "name_en", "typ")
+    list_display_links = ("code", "name_fa")
+    list_filter = ("typ",)
+    search_fields = ("name_fa", "name_en", "code")
+    ordering = ("code",)
+
+
+class ShrhAttachmentInline(admin.TabularInline):
+    model = ShrhAttachment
+    extra = 0
+    fields = ("dtyp", "file", "writer", "created_at")
+    readonly_fields = ("writer", "created_at")
+    verbose_name_plural = "پیوست‌ها"
+
+
+@admin.register(ShrhAttachment)
+class ShrhAttachmentAdmin(admin.ModelAdmin):
+    list_display = ("filename_link", "shrh_contract", "dtyp", "writer", "created_at")
+    list_filter = ("dtyp", "created_at")
+    search_fields = ("file", "shrh_contract__contract__title", "shrh_contract__shrh_catalog__title",
+                     "writer__username")
+    autocomplete_fields = ("shrh_contract",)
+    list_select_related = ("shrh_contract__contract", "shrh_contract__shrh_catalog", "dtyp", "writer")
+    readonly_fields = ("writer", "created_at")
+    fields = ("shrh_contract", "dtyp", "file", "writer", "created_at")
+
+    def save_model(self, request, obj, form, change):
+        if not change and not obj.writer_id:
+            obj.writer = request.user
+        super().save_model(request, obj, form, change)
+
+    @admin.display(description="فایل")
+    def filename_link(self, obj):
+        try:
+            return format_html('<a href="{}" target="_blank">{}</a>', obj.file.url, obj.filename)
+        except ValueError:
+            return obj.filename or "—"
+
+
+class ShrhLayerCommentInline(admin.StackedInline):
+    model = ShrhLayerComment
+    fk_name = "shrh_layer"
+    extra = 0
+    fields = ("text", "parent", "writer", "created_at")
+    readonly_fields = ("writer", "created_at")
+    verbose_name_plural = "نظرات"
+
+
+@admin.register(ShrhLayerComment)
+class ShrhLayerCommentAdmin(admin.ModelAdmin):
+    list_display = ("khalaseh", "shrh_layer", "writer", "noe", "created_at")
+    list_filter = ("created_at",)
+    search_fields = ("text", "writer__username", "shrh_layer__shrh_contract__shrh_catalog__title")
+    autocomplete_fields = ("shrh_layer", "parent")
+    list_select_related = ("shrh_layer__layer_name", "shrh_layer__shrh_contract__shrh_catalog", "writer")
+    readonly_fields = ("writer", "created_at")
+    fields = ("shrh_layer", "parent", "text", "writer", "created_at")
+
+    def save_model(self, request, obj, form, change):
+        if not change and not obj.writer_id:
+            obj.writer = request.user
+        super().save_model(request, obj, form, change)
+
+    @admin.display(description="متن")
+    def khalaseh(self, obj):
+        return obj.text if len(obj.text) <= 60 else obj.text[:60] + "…"
+
+    @admin.display(description="نوع")
+    def noe(self, obj):
+        return badge("پاسخ", "#0891b2") if obj.is_reply else badge("نظر", "#7c3aed")
+
+
 # ───────────────────────── بندهای شرح خدمات قرارداد ─────────────────────────
 
 @admin.register(ShrhContract)
-class ShrhContractAdmin(admin.ModelAdmin):
+class ShrhContractAdmin(WriterFormsetMixin, admin.ModelAdmin):
     list_display = ("contract", "band", "scale", "percentage", "completion_bar", "sherkat", "ekhtesas_vaziat")
     list_filter = ("scale", "shrh_catalog__faz", "contract")
     search_fields = ("contract__title", "shrh_catalog__title", "shrh_catalog__code")
@@ -215,6 +277,7 @@ class ShrhContractAdmin(admin.ModelAdmin):
     list_select_related = ("contract", "shrh_catalog", "ekhtesas__sherkat_contract__sherkat")
     list_per_page = 40
     actions = ["khali_kardan_ekhtesas"]
+    inlines = [ShrhAttachmentInline]
     fieldsets = (
         ("قرارداد و بند", {"fields": ("contract", "shrh_catalog", "scale")}),
         ("وزن و پیشرفت", {"fields": ("percentage", "worked_percentage")}),
@@ -246,7 +309,7 @@ class ShrhContractAdmin(admin.ModelAdmin):
 # ───────────────────────── لایه‌ها ─────────────────────────
 
 @admin.register(ShrhLayer)
-class ShrhLayerAdmin(admin.ModelAdmin):
+class ShrhLayerAdmin(WriterFormsetMixin, admin.ModelAdmin):
     """بارگذاری/تایید فقط با action تا کاربر و زمان همیشه درست ثبت شود."""
     list_display = ("__str__", "contract", "vaziat", "upload_count", "last_uploaded_by", "verified_by")
     list_filter = ("is_uploaded", "is_verified", "layer_name")
@@ -257,6 +320,7 @@ class ShrhLayerAdmin(admin.ModelAdmin):
     readonly_fields = ("is_uploaded", "last_uploaded_date", "last_uploaded_by", "upload_count",
                        "is_verified", "verified_by", "verified_at")
     actions = ["action_uploaded", "action_verify"]
+    inlines = [ShrhLayerCommentInline]
     fieldsets = (
         ("لایه", {"fields": ("shrh_contract", "layer_name", "raster_uuid")}),
         ("اندازه و قیمت", {"fields": ("layer_weight", "layer_volume", "unit_price")}),
