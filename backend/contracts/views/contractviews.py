@@ -25,7 +25,7 @@ from contracts.models.models import (
     ShrhCatalog,
     ShrhContract,
 )
-from initialborders.models.models import InitialBorder, InitialBorderDomin
+from initialborders.models.models import InitialBorder, ContractInitialBorder, InitialBorderDomin
 from logs.utils import get_details_from_request
 
 delete_logger = logging.getLogger("delete_activity_logger")
@@ -40,7 +40,9 @@ class ContractListApiViews(SearchMixin, APIView):
     POST (application/json): create a contract together with its initial borders
     and its shrh items (selected from ShrhCatalog).
         - initborder_ids   : ids of already existing initial borders
-                             (must not belong to another contract). At least one is required.
+                             (must not be linked to another contract that is still active,
+                             i.e. not completed and its end_date not passed).
+                             At least one is required.
         - shrh_items       : (optional) list of objects, each one becomes a ShrhContract row:
                                {"shrh_catalog": <id>, "scale": <int|null>,
                                 "percentage": <0-100>, "worked_percentage": <0-100>}
@@ -218,14 +220,14 @@ class ContractListApiViews(SearchMixin, APIView):
                 # lock the rows so two requests cannot grab the same border
                 locked = list(InitialBorder.objects.select_for_update().filter(pk__in=ids))
                 for border in locked:
-                    if border.contract_id is not None:
-                        raise ValidationError(
-                            {"initborder_ids": f"محدوده «{border.title}» قبلا به قرارداد دیگری اختصاص داده شده است"}
-                        )
                     if not user.is_superuser and not user.has_access_to_initialborder(border):
                         raise PermissionDenied("کاربر به این محدوده اولیه دسترسی ندارد")
-                # update() does not touch the geometry, so no ostan recalculation is needed
-                InitialBorder.objects.filter(pk__in=ids).update(contract=contract)
+                    try:
+                        # create() (not add()/update()) so that ContractInitialBorder.clean()
+                        # runs and rejects borders that still have an active contract
+                        ContractInitialBorder.objects.create(contract=contract, initial_border=border)
+                    except DjangoValidationError as e:
+                        raise ValidationError({"initborder_ids": e.messages})
 
                 # contract_domin of every catalog item was already checked against
                 # contract.dtyp in the serializer; ekhtesas is filled later
@@ -251,9 +253,9 @@ class ContractListApiViews(SearchMixin, APIView):
 class ContractDetailsApiViews(APIView):
     """
     GET: retrieve a contract
-    PUT: partial update of a contract (its initial borders are managed through
-         the initial border endpoints, using their `contract` field)
-    DELETE: delete a contract (its initial borders are kept, they just become unattached)
+    PUT: partial update of a contract
+    DELETE: delete a contract (its initial borders are kept, only their links
+            to this contract are removed)
 
     Object-level check: superuser, or a user who has access to this contract.
     """
@@ -364,7 +366,8 @@ class ContractDetailsApiViews(APIView):
         try:
             updated_contract = serializer.save()
         except DjangoValidationError as e:
-            # model.clean() errors (e.g. start_date > end_date) -> 400 instead of 500
+            # model.clean() errors (e.g. start_date > end_date, or re-activating a contract
+            # whose borders already have another active contract) -> 400 instead of 500
             raise ValidationError(e.message_dict if hasattr(e, "error_dict") else e.messages)
 
         return Response(
@@ -384,8 +387,6 @@ class ContractDetailsApiViews(APIView):
         contract.delete()
         delete_logger.warning(f"حذف قرارداد {title}", extra=get_details_from_request(request))
         return Response(status=status.HTTP_204_NO_CONTENT)
-
-
 # --------------------------------------------------------------------------- #
 # ContractElhaghye
 # --------------------------------------------------------------------------- #

@@ -35,8 +35,6 @@ class InitialBorderListViews(SearchMixin, APIView):
     """
     GET: list initial borders (superuser: all, others: only accessible ones)
     POST: create an initial border from a zipped shapefile.
-          `contract` is optional: a border can be created separately and
-          attached to a contract later.
     """
 
     search_fields = ["title", "ostan__name_fa", "dtyp__title"]
@@ -52,12 +50,21 @@ class InitialBorderListViews(SearchMixin, APIView):
                 model = InitialBorderDomin
                 fields = ["id", "title", "code"]
 
+        class InitialBorderListOutputSerializerContract(serializers.ModelSerializer):
+            class Meta:
+                model = Contract
+                fields = ["id", "title", "number", "is_completed", "end_date"]
+
         dtyp = InitialBorderListOutputSerializerDomain()
         ostan = InitialBorderListOutputSerializerOstan(many=True)
+        contracts = InitialBorderListOutputSerializerContract(many=True, read_only=True)
 
         class Meta:
             model = InitialBorder
-            fields = ["id", "title", "dtyp", "ostan", "center", "bbox", "parentid", "contract"]
+            fields = [
+                "id", "title", "dtyp", "ostan", "contracts", "center", "bbox", "parentid",
+                "onvan_sazemani", "code_sazemani", "esm_mahali", "name_motaghazi", "name_made",
+            ]
 
     class InitialBorderListInputSerializer(serializers.ModelSerializer):
         file = serializers.FileField(
@@ -76,20 +83,23 @@ class InitialBorderListViews(SearchMixin, APIView):
 
         class Meta:
             model = InitialBorder
-            fields = ["title", "dtyp", "file", "parentid", "contract"]
+            fields = [
+                "title", "dtyp", "file", "parentid",
+                "onvan_sazemani", "code_sazemani", "esm_mahali", "name_motaghazi", "name_made",
+            ]
 
     def get(self, request: Request) -> Response:
         user: User = request.user
-        
+
         if user.is_superuser:
             queryset = InitialBorder.objects.all()
         else:
             queryset = user.get_accessible_initialborder()
-        
+
         queryset = (
             self.apply_search(queryset, request)
             .select_related("dtyp")
-            .prefetch_related("ostan")
+            .prefetch_related("ostan", "contracts")
         )
 
         paginator = CustomPagination()
@@ -103,10 +113,6 @@ class InitialBorderListViews(SearchMixin, APIView):
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        contract = data.get("contract")
-        if contract is not None and not user.is_superuser and not user.has_contract_access(contract):
-            return Response({"detail": "کاربر به این قرارداد دسترسی ندارد"}, status=status.HTTP_403_FORBIDDEN)
-
         ok, border, message = proccess_initialborder_zipfile(data["file"])
         if not ok:
             return Response({"detail": message}, status=status.HTTP_400_BAD_REQUEST)
@@ -117,7 +123,11 @@ class InitialBorderListViews(SearchMixin, APIView):
                 border=border,
                 dtyp=data.get("dtyp"),
                 parentid=data.get("parentid"),
-                contract=contract,
+                onvan_sazemani=data.get("onvan_sazemani"),
+                code_sazemani=data.get("code_sazemani"),
+                esm_mahali=data.get("esm_mahali"),
+                name_motaghazi=data.get("name_motaghazi"),
+                name_made=data.get("name_made"),
             )
             # creator automatically gets access to what they created
             user.grant_initialborder_access(initial_border=new_border)
@@ -143,22 +153,32 @@ class InitialBorderDetailViews(APIView):
                 model = InitialBorderDomin
                 fields = ["id", "title", "code"]
 
+        class InitialBorderDetailOutputSerializerContract(serializers.ModelSerializer):
+            class Meta:
+                model = Contract
+                fields = ["id", "title", "number", "is_completed", "end_date"]
+
         dtyp = InitialBorderDetailOutputSerializerDomain()
         ostan = InitialBorderDetailOutputSerializerOstan(many=True)
+        contracts = InitialBorderDetailOutputSerializerContract(many=True, read_only=True)
 
         class Meta:
             model = InitialBorder
-            fields = ["id", "title", "dtyp", "ostan", "center", "bbox", "parentid", "contract"]
+            fields = [
+                "id", "title", "dtyp", "ostan", "contracts", "center", "bbox", "parentid",
+                "onvan_sazemani", "code_sazemani", "esm_mahali", "name_motaghazi", "name_made",
+            ]
 
     class InitialBorderDetailInputSerializer(serializers.Serializer):
         title = serializers.CharField(max_length=250, required=False)
         parentid = serializers.PrimaryKeyRelatedField(
             queryset=InitialBorder.objects.all(), required=False, allow_null=True
         )
-        # attach to a contract (or send null to detach)
-        contract = serializers.PrimaryKeyRelatedField(
-            queryset=Contract.objects.all(), required=False, allow_null=True
-        )
+        onvan_sazemani = serializers.CharField(max_length=255, required=False, allow_null=True, allow_blank=True)
+        code_sazemani = serializers.CharField(max_length=255, required=False, allow_null=True, allow_blank=True)
+        esm_mahali = serializers.CharField(max_length=255, required=False, allow_null=True, allow_blank=True)
+        name_motaghazi = serializers.CharField(max_length=255, required=False, allow_null=True, allow_blank=True)
+        name_made = serializers.CharField(max_length=255, required=False, allow_null=True, allow_blank=True)
         file = serializers.FileField(
             required=False,
             validators=[
@@ -177,7 +197,11 @@ class InitialBorderDetailViews(APIView):
     def get(self, request: Request, pk: int) -> Response:
         user: User = request.user
         try:
-            border = InitialBorder.objects.select_related("dtyp").prefetch_related("ostan").get(pk=pk)
+            border = (
+                InitialBorder.objects.select_related("dtyp")
+                .prefetch_related("ostan", "contracts")
+                .get(pk=pk)
+            )
         except InitialBorder.DoesNotExist:
             return Response({"detail": "محدوده اولیه یافت نشد"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -216,11 +240,16 @@ class InitialBorderDetailViews(APIView):
                 return Response({"detail": "محدوده نمی‌تواند والد خودش باشد"}, status=status.HTTP_400_BAD_REQUEST)
             border.parentid = data["parentid"]
 
-        if "contract" in data:
-            new_contract = data["contract"]
-            if new_contract is not None and not user.is_superuser and not user.has_contract_access(new_contract):
-                return Response({"detail": "کاربر به این قرارداد دسترسی ندارد"}, status=status.HTTP_403_FORBIDDEN)
-            border.contract = new_contract
+        if "onvan_sazemani" in data:
+            border.onvan_sazemani = data["onvan_sazemani"]
+        if "code_sazemani" in data:
+            border.code_sazemani = data["code_sazemani"]
+        if "esm_mahali" in data:
+            border.esm_mahali = data["esm_mahali"]
+        if "name_motaghazi" in data:
+            border.name_motaghazi = data["name_motaghazi"]
+        if "name_made" in data:
+            border.name_made = data["name_made"]
 
         if data.get("file"):
             ok, multipolygon, error = proccess_initialborder_zipfile(data["file"])
@@ -255,8 +284,7 @@ class InitialBorderDetailViews(APIView):
             f"حذف موفق محدوده اولیه {title}",
             extra=get_details_from_request(request),
         )
-        return Response(status=status.HTTP_204_NO_CONTENT)
-    
+        return Response(status=status.HTTP_204_NO_CONTENT)  
     
 class InitialBorderDownloadExportShape(APIView):
     def post(self, request: Request, pk: int) -> Response:

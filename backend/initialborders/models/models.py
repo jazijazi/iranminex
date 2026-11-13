@@ -1,6 +1,8 @@
-from django.db import models
+from django.utils import timezone
+from django.db.models import Q
+from django.db import models , transaction
+from django.core.exceptions import ValidationError
 from django.contrib.gis.db import models as gis_models
-from django.db import transaction
 from common.models.models import CustomModel
 from common.models.districts import Ostan
 from contracts.models.models import Contract
@@ -22,16 +24,11 @@ class InitialBorder(CustomModel):
         blank=False,
         null=False,
     )
-    # Many initial borders -> one contract.
-    # null/blank=True because an initial border can be created separately,
-    # before it is attached to any contract.
-    contract = models.ForeignKey(
+    contracts = models.ManyToManyField(
         Contract,
-        verbose_name="قرارداد",
-        on_delete=models.SET_NULL,
-        related_name="initborders",
+        through="ContractInitialBorder",
+        related_name="initborders",   # contract.initborders still works
         blank=True,
-        null=True,
     )
     dtyp = models.ForeignKey(
         InitialBorderDomin,
@@ -57,6 +54,40 @@ class InitialBorder(CustomModel):
         verbose_name="استان",
         related_name="rostaninitialborder",
         blank=True,
+    )
+    onvan_sazemani = models.CharField(
+        verbose_name="عنوان سازمانی",
+        max_length=255,
+        blank=True,
+        null=True,
+    )
+
+    code_sazemani = models.CharField(
+        verbose_name="کد سازمانی",
+        max_length=255,
+        blank=True,
+        null=True,
+    )
+
+    esm_mahali = models.CharField(
+        verbose_name="اسم محلی",
+        max_length=255,
+        blank=True,
+        null=True,
+    )
+
+    name_motaghazi = models.CharField(
+        verbose_name="نام متقاظی",
+        max_length=255,
+        blank=True,
+        null=True,
+    )
+
+    name_made = models.CharField(
+        verbose_name="نام ماده/گروه",
+        max_length=255,
+        blank=True,
+        null=True,
     )
  
     @property
@@ -97,6 +128,66 @@ class InitialBorder(CustomModel):
         verbose_name = "لیست محدوده اولیه"
         verbose_name_plural = "لیست محدوده‌های اولیه"
 
+class ContractInitialBorder(CustomModel):
+    contract = models.ForeignKey(
+        Contract,
+        on_delete=models.CASCADE,
+        related_name="border_links",
+        verbose_name="قرارداد",
+    )
+    initial_border = models.ForeignKey(
+        InitialBorder,
+        on_delete=models.CASCADE,
+        related_name="contract_links",
+        verbose_name="محدوده اولیه",
+    )
+
+    class Meta:
+        verbose_name = "ارتباط قرارداد و محدوده اولیه"
+        verbose_name_plural = "ارتباط قراردادها و محدوده‌های اولیه"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["contract", "initial_border"],
+                name="uniq_contract_initial_border",
+            ),
+        ]
+
+    def _blocking_links(self):
+        """Links of the same border whose contract is still active."""
+        today = timezone.localdate()
+        return (
+            ContractInitialBorder.objects
+            .filter(initial_border_id=self.initial_border_id)
+            .exclude(pk=self.pk)
+            .filter(contract__is_completed=False)
+            .filter(
+                Q(contract__end_date__isnull=True)
+                | Q(contract__end_date__gte=today)
+            )
+        )
+
+    def clean(self):
+        super().clean()
+        if not self.initial_border_id or not self.contract_id:
+            return
+        today = timezone.localdate()
+        c = self.contract
+        if c.is_completed or (c.end_date and c.end_date < today):
+            return  # a finished contract can't conflict with an active one
+        blocking = self._blocking_links().select_related("contract").first()
+        if blocking:
+            raise ValidationError(
+                f"این محدوده اولیه هم‌اکنون به قرارداد «{blocking.contract.title}» "
+                "متصل است. فقط پس از خاتمه یافتن آن (یا گذشتن تاریخ پایان) "
+                "می‌توان آن را به قرارداد دیگری متصل کرد."
+            )
+
+    def save(self, *args, **kwargs):
+        with transaction.atomic():
+            # lock the border row so two requests can't link it at the same time
+            InitialBorder.objects.select_for_update().get(pk=self.initial_border_id)
+            self.full_clean()
+            super().save(*args, **kwargs)
 
 
 #Attachment

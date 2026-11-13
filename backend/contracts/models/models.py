@@ -1,7 +1,8 @@
 import uuid
-from datetime import date
+from datetime import timezone
 
 from django.db import models
+from django.db.models import Q
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.contrib.gis.db import models as gis_models
 from django.core.exceptions import ValidationError
@@ -9,7 +10,6 @@ from django.core.exceptions import ValidationError
 from common.constants import SCALE_CHOICES
 from common.models.models import CustomModel
 from common.models.other import Sherkat
-
 class ContractDomin(CustomModel):
     title = models.CharField(max_length=100, unique=True)
     code = models.IntegerField(unique=True)
@@ -148,6 +148,26 @@ class Contract(CustomModel):
 
         if self.start_date and self.end_date and self.start_date > self.end_date:
             errors['end_date'] = 'تاریخ پایان نمی‌تواند قبل از تاریخ شروع باشد.'
+
+        if not self._state.adding:
+            from initialborders.models.models import ContractInitialBorder
+            today = timezone.localdate()
+            is_active = not self.is_completed and (self.end_date is None or self.end_date >= today)
+            if is_active:
+                clash = (
+                    ContractInitialBorder.objects
+                    .filter(initial_border__contract_links__contract=self)
+                    .exclude(contract=self)
+                    .filter(contract__is_completed=False)
+                    .filter(Q(contract__end_date__isnull=True) | Q(contract__end_date__gte=today))
+                    .select_related("initial_border", "contract")
+                    .first()
+                )
+                if clash:
+                    errors['is_completed'] = (
+                        f"محدوده «{clash.initial_border.title}» هم‌اکنون به قرارداد "
+                        f"«{clash.contract.title}» متصل است؛ این قرارداد نمی‌تواند دوباره فعال شود."
+                    )
 
         if errors:
             raise ValidationError(errors)

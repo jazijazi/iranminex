@@ -4,6 +4,7 @@ from leaflet.admin import LeafletGeoAdmin
 from initialborders.models.models import (
     InitialBorder,
     InitialBorderDomin,
+    ContractInitialBorder,
     #Attachment
     InitialBorderAttachment,
     InitialBorderAttachmentDomain
@@ -21,23 +22,42 @@ class InitialBorderAttachmentDomainInline(admin.TabularInline):
     model = InitialBorderAttachmentDomain
     extra = 1
 
+class ContractInitialBorderInline(admin.TabularInline):
+    model = ContractInitialBorder
+    fk_name = "initial_border"
+    extra = 1
+    autocomplete_fields = ["contract"]
+
 class InitialBorderAdmin(LeafletGeoAdmin):
-    search_fields = ['title', 'dtyp__title', 'contract__title']
-    list_filter = ['dtyp', 'ostan']
-    list_display = ['id', 'title', 'contract', 'dtyp', 'parentid', 'display_ostans']
-    list_select_related = ['contract', 'dtyp', 'parentid']
-    autocomplete_fields = ['contract', 'parentid', 'dtyp']
-    inlines = [InitialBorderAttachmentInline]
-    readonly_fields = ['ostan']
- 
+    search_fields = ["title", "dtyp__title", "contracts__title"]
+    list_filter = ["dtyp", "ostan"]
+    list_display = ["id", "title", "display_contracts", "dtyp", "parentid", "display_ostans"]
+    list_select_related = ["dtyp", "parentid"]
+    autocomplete_fields = ["parentid", "dtyp"]
+    inlines = [ContractInitialBorderInline, InitialBorderAttachmentInline]
+    readonly_fields = ["ostan"]
+
     def get_queryset(self, request):
-        return super().get_queryset(request).prefetch_related('ostan')
- 
+        return (
+            super().get_queryset(request)
+            .select_related("dtyp", "parentid")
+            .prefetch_related("ostan", "contracts")
+        )
+
+    def get_search_results(self, request, queryset, search_term):
+        queryset, may_have_duplicates = super().get_search_results(
+            request, queryset, search_term
+        )
+        # searching through contracts__title can return the same row twice
+        return queryset, True
+
     @admin.display(description="استان‌ها")
     def display_ostans(self, obj):
         return ", ".join(p.name_fa for p in obj.ostan.all())
 
-
+    @admin.display(description="قراردادها")
+    def display_contracts(self, obj):
+        return ", ".join(c.title for c in obj.contracts.all())
 class InitialBorderDominModalAdmin(admin.ModelAdmin):
     list_display = ['id', 'title', 'code']
     search_fields = ['title', 'code']
