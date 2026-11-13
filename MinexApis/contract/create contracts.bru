@@ -6,17 +6,33 @@ meta {
 
 post {
   url: localhost:8000/api/contracts/
-  body: multipartForm
+  body: json
   auth: bearer
 }
 
 auth:bearer {
-  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJleHAiOjE3OTM4ODc4MDgsImlhdCI6MTc5Mzg3ODgwOCwidHlwZSI6ImFjY2VzcyJ9.r4Y87S4MExmHriq7mwtlRcBGcL_g162oPlxnGvWfkoU
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJleHAiOjE3OTQ1NzI1ODksImlhdCI6MTc5NDU2MzU4OSwidHlwZSI6ImFjY2VzcyJ9.Z85ZNz6-LSkZztBIkGH8JbUWVXsdcJfVgJX3bn2xN20
 }
 
-body:multipart-form {
-  title: con2
-  initborder_ids: 2
+body:json {
+  {
+    "title": "قرارداد یک",
+    "dtyp": 1,
+    "number": "54",
+    "start_date": "2024-01-03",
+    "end_date": "2027-01-01",
+    "progress": 0.0,
+    "is_completed": false,
+    "department": "1",
+    "mablagh": "1000",
+    "moshaver_arshad":1,
+    "initborder_ids": [1],
+    "shrh_items": [
+      {"shrh_catalog": 12, "scale": 1000, "percentage": 10, "worked_percentage": 0},
+      {"shrh_catalog": 12, "scale": 500,  "percentage": 5},
+      {"shrh_catalog": 15, "percentage": 20}
+    ]
+  }
 }
 
 settings {

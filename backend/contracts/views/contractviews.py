@@ -67,7 +67,7 @@ class ContractListApiViews(SearchMixin, APIView):
         class ContractListOutputSerializerMoshaverArshad(serializers.ModelSerializer):
             class Meta:
                 model = Sherkat
-                fields = ["id", "name", "typ", "service_typ", "code"]
+                fields = ["id", "name", "typ", "code"]
 
         dtyp = ContractListOutputSerializerDtyp()
         initborders = ContractListOutputSerializerInitborder(many=True)
@@ -279,7 +279,7 @@ class ContractDetailsApiViews(APIView):
         class ContractDetailsOutputSerializerMoshaverArshad(serializers.ModelSerializer):
             class Meta:
                 model = Sherkat
-                fields = ["id", "name", "typ", "service_typ", "code"]
+                fields = ["id", "name", "typ", "code"]
 
         dtyp = ContractDetailsOutputSerializerDtyp()
         initborders = ContractDetailsOutputSerializerInitborder(many=True)
