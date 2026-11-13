@@ -92,7 +92,7 @@ class ShrhCatalogAdmin(admin.ModelAdmin):
     ordering = ("faz__order", "order")
     list_per_page = 60
     fieldsets = (
-        ("جایگاه در درخت", {"fields": ("faz", "parent", "is_group", "code", "order")}),
+        ("جایگاه در درخت", {"fields": ("contract_domin","faz", "parent", "is_group", "code", "order")}),
         ("مشخصات بند", {"fields": ("title", "vahed", "description")}),
     )
 
