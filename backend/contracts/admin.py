@@ -83,11 +83,11 @@ class NaghshSherkatAdmin(admin.ModelAdmin):
 @admin.register(ShrhCatalog)
 class ShrhCatalogAdmin(admin.ModelAdmin):
     """درخت کاتالوگ اکسل: گروه‌ها پررنگ و بندها با تورفتگی نمایش داده می‌شوند."""
-    list_display = ("code", "onvan", "faz", "vahed", "noe", "order")
+    list_display = ("contract_domin", "code", "onvan", "faz", "vahed", "noe", "order")
     list_display_links = ("code", "onvan")
-    list_filter = ("faz", "is_group", "vahed")
+    list_filter = ("faz", "is_group", "vahed","contract_domin")
     search_fields = ("title", "code", "description")
-    autocomplete_fields = ("parent", "vahed")
+    autocomplete_fields = ("parent", "vahed","contract_domin")
     list_select_related = ("faz", "vahed", "parent")
     ordering = ("faz__order", "order")
     list_per_page = 60

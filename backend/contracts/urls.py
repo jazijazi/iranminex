@@ -6,33 +6,33 @@ from contracts.views.contractviews import (
 
     ContractElhaghyeListApiViews,
     ContractElhaghyeDetailsApiViews,
-
-    ContractDomainsListApiView,
-)
-# from contracts.views.sharhkhadamatviews import (
-    # SharhkhadamatListApiView,
-    # SharhkhadamatDetailApiView,
-
-    # SharhKhadamatLayerListApiView,
-    # SharhKhadamatLayerDetailApiView,
-# )
-from contracts.views.commnentsview import(
-    CommentListApiView,
-    # CommentDetailsApiView,
 )
 from contracts.views.attachmentviews import(
-
-    ContractAttachmentDomainListApiView,
-    ContractAttachmentDomainDetailsApiView,
-
     ContractAttachmentListApiView,
     ContractAttachmentDetailsApiView,
+)
+from contracts.views.donmains import (
+    VahedListApiViews,
+    VahedDetailsApiViews,
 
-    # SharhbaseAttachmentDomainListApiView,
-    # SharhbaseAttachmentDomainDetailsApiView,
+    FazListApiViews,
+    FazDetailsApiViews,
     
-    # SharhbaseAttachmentListApiView,
-    # SharhbaseAttachmentDetailsApiView,
+    ContractDominListApiViews,
+    ContractDominDetailsApiViews,
+    
+    NaghshSherkatListApiViews,
+    NaghshSherkatDetailsApiViews,
+    
+    ContractAttachmentDomainListApiViews,
+    ContractAttachmentDomainDetailsApiViews,
+    
+    ShrhAttachmentDomainListApiViews,
+    ShrhAttachmentDomainDetailsApiViews,
+)
+from contracts.views.sharhkhadamatviews import(
+    ShrhCatalogListApiViews,
+    ShrhCatalogDetailsApiViews,
 )
 
 urlpatterns = [
@@ -40,12 +40,6 @@ urlpatterns = [
     path('', ContractListApiViews.as_view(), name='contract-list'),
     path('<uuid:contractid>/', ContractDetailsApiViews.as_view(), name='contract-details'),
 
-    # Contract domains (global resources)
-    path('domains/', ContractDomainsListApiView.as_view(), name='contractdomains-list'),
-
-    # Contract attachment domains (global resources)
-    path('attachment-domains/', ContractAttachmentDomainListApiView.as_view(), name='contractattachmentdomain-list'),
-    path('attachment-domains/<int:pk>/', ContractAttachmentDomainDetailsApiView.as_view(), name='contractattachmentdomain-details'),
 
     # Sharhbase attachment domains (global resources)
     # path('sharhbase-attachment-domains/', SharhbaseAttachmentDomainListApiView.as_view(), name='sharhbaseattachmentdomain-list'),
@@ -60,8 +54,8 @@ urlpatterns = [
     path('<uuid:contractid>/attachments/<int:contractattachmentid>/', ContractAttachmentDetailsApiView.as_view(), name='contractattachment-details'),
 
     # Sharhkhadamat
-    # path('<uuid:contractid>/sharhkhadamat/', SharhkhadamatListApiView.as_view(), name='contract-shrbase-list'),
-    # path('<uuid:contractid>/sharhkhadamat/<int:shrhbaseid>/', SharhkhadamatDetailApiView.as_view(), name='contract-shrbase-detail'),
+    path('sharhcatalog/' , ShrhCatalogListApiViews.as_view() , name="shathcatalog-list"),
+    path('sharhcatalog/<int:pk>/' , ShrhCatalogDetailsApiViews.as_view() , name="shathcatalog-details"),
 
     # Sharhkhadamat layers
     # path('<uuid:contractid>/sharhkhadamat-layers/', SharhKhadamatLayerListApiView.as_view(), name='contract-shrlyr-list'),
@@ -71,6 +65,20 @@ urlpatterns = [
     # path('<uuid:contractid>/sharhkhadamat/<int:shrhbaseid>/attachments/', SharhbaseAttachmentListApiView.as_view(), name='sharhbaseattachment-list'),
     # path('<uuid:contractid>/sharhkhadamat/<int:shrhbaseid>/attachments/<int:sharhbaseattachmentid>/', SharhbaseAttachmentDetailsApiView.as_view(), name='sharhbaseattachment-details'),
 
-    # Comments
-    path('<uuid:contractid>/sharhkhadamat-layers/<int:shrhlayerid>/comments/', CommentListApiView.as_view(), name='comments-list'),
+
+
+    #Dominas
+    path('vahed/' , VahedListApiViews.as_view(), name="vahed-list"),
+    path('vahed/<int:pk>/' , VahedDetailsApiViews.as_view(), name="vahed-details"),
+    path('faz/' , FazListApiViews.as_view(), name="faz-list"),
+    path('faz/<int:pk>/' , FazDetailsApiViews.as_view(), name="faz-details"),
+    path('domain/' , ContractDominListApiViews.as_view(), name="domain-list"),
+    path('domain/<int:pk>/' , ContractDominDetailsApiViews.as_view(), name="domain-details"),
+    path('naghsh/' , NaghshSherkatListApiViews.as_view(), name="naghsh-list"),
+    path('naghsh/<int:pk>/' , NaghshSherkatDetailsApiViews.as_view(), name="naghsh-details"),
+    path('contractattachmentdomain/' , ContractAttachmentDomainListApiViews.as_view(), name="contract-atach-domin-list"),
+    path('contractattachmentdomain/<int:pk>/' , ContractAttachmentDomainDetailsApiViews.as_view(), name="contract-atach-domin-details"),
+    path('sharhattachmentdomain/' , ShrhAttachmentDomainListApiViews.as_view(), name="sharh-atach-domin-list"),
+    path('sharhattachmentdomain/<int:pk>/' , ShrhAttachmentDomainDetailsApiViews.as_view(), name="sharh-atach-domin-details"),
+
 ]

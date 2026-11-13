@@ -1,0 +1,21 @@
+meta {
+  name: list sharhcatalog
+  type: http
+  seq: 1
+}
+
+get {
+  url: http://localhost:8000/api/contracts/sharhcatalog/
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJleHAiOjE3OTQ1NjYzODIsImlhdCI6MTc5NDU1NzM4MiwidHlwZSI6ImFjY2VzcyJ9.8ASVKWSfTlUBGyIOiv3FUXKGFNBshE7_RdjfX9yXXl0
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+  forwardAuthorizationHeader: false
+}

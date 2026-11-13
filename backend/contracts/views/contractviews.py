@@ -4,8 +4,8 @@ import logging
 from datetime import datetime
 
 from django.conf import settings
-from django.contrib.gis.geos import MultiPolygon
-from django.core.validators import FileExtensionValidator
+from django.core.exceptions import ValidationError as DjangoValidationError
+
 from django.db import transaction
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework import serializers, status
@@ -18,12 +18,12 @@ from accounts.models import User
 from common.mixins import SearchMixin
 from common.models.other import Sherkat
 from common.pagination import CustomPagination
-from common.services.gis import queryset_to_shapefile
-from initialborders.services.gis import proccess_initialborder_zipfile
 from contracts.models.models import (
     Contract,
     ContractDomin,
     ContractElhaghye,
+    ShrhCatalog,
+    ShrhContract,
 )
 from initialborders.models.models import InitialBorder, InitialBorderDomin
 from logs.utils import get_details_from_request
@@ -32,21 +32,19 @@ delete_logger = logging.getLogger("delete_activity_logger")
 api_activity_logger = logging.getLogger("api_activity_logger")
 
 
-# --------------------------------------------------------------------------- #
-# Contract
-# --------------------------------------------------------------------------- #
 class ContractListApiViews(SearchMixin, APIView):
     """
     GET: list of contracts (superuser: all, others: only the ones they have access to)
 
-    POST (multipart/form-data): create a contract together with its initial borders.
-        A contract can get initial borders in two ways, at the same time:
-          - initborder_ids          : ids of already existing initial borders
-                                      (must not belong to another contract)
-          - new_initborder_files    : zipped shapefiles, one border per file
-            new_initborder_titles   : one title per file, same order / same count
-        At least one border is required. Everything is created in ONE transaction:
-        if any part fails, nothing is saved.
+    POST (multipart/form-data): create a contract together with its initial borders
+    and its shrh items (selected from ShrhCatalog).
+        - initborder_ids   : ids of already existing initial borders
+                             (must not belong to another contract). At least one is required.
+        - shrh_catalog_ids : (optional) ids of ShrhCatalog items. Every item must be a
+                             non-group item whose `contract_domin` is the same as the
+                             contract's `dtyp`. Each one becomes a ShrhContract row.
+        - moshaver_arshad  : (optional) id of a Sherkat that is allowed to be moshaver arshad.
+        Everything is created in ONE transaction: if any part fails, nothing is saved.
     """
 
     search_fields = ["title", "dtyp__title", "number"]
@@ -62,14 +60,20 @@ class ContractListApiViews(SearchMixin, APIView):
                 model = InitialBorder
                 fields = ["id", "title"]
 
+        class ContractListOutputSerializerMoshaverArshad(serializers.ModelSerializer):
+            class Meta:
+                model = Sherkat
+                fields = ["id", "name", "typ", "service_typ", "code"]
+
         dtyp = ContractListOutputSerializerDtyp()
         initborders = ContractListOutputSerializerInitborder(many=True)
+        moshaver_arshad = ContractListOutputSerializerMoshaverArshad()
 
         class Meta:
             model = Contract
             fields = [
                 "id", "title", "dtyp", "initborders", "number", "start_date", "end_date",
-                "progress", "is_completed", "department", "mablagh", "sherkat",
+                "progress", "is_completed", "department", "mablagh", "moshaver_arshad",
             ]
 
     class ContractListInputSerializer(serializers.ModelSerializer):
@@ -82,16 +86,17 @@ class ContractListApiViews(SearchMixin, APIView):
                 "invalid_choice": f'انتخاب نامعتبر است. گزینه‌های معتبر: {", ".join([f"{choice[0]} ({choice[1]})" for choice in Contract.DEPARTMENT_CHOICES])}'
             },
         )
-        sherkat = serializers.PrimaryKeyRelatedField(
-            many=True,
+        moshaver_arshad = serializers.PrimaryKeyRelatedField(
             queryset=Sherkat.objects.all(),
+            required=False,
+            allow_null=True,
             error_messages={
                 "does_not_exist": 'شرکت با شناسه "{pk_value}" یافت نشد.',
                 "incorrect_type": "مقدار نامعتبر برای شناسه شرکت: باید عدد باشد.",
             },
         )
 
-        # --- initial borders (not model fields of Contract) ---
+        # --- not model fields of Contract ---
         initborder_ids = serializers.PrimaryKeyRelatedField(
             many=True,
             queryset=InitialBorder.objects.all(),
@@ -101,56 +106,65 @@ class ContractListApiViews(SearchMixin, APIView):
                 "incorrect_type": "نوع آیدی محدوده اولیه معتبر نمیباشد",
             },
         )
-        new_initborder_files = serializers.ListField(
-            child=serializers.FileField(
-                validators=[
-                    FileExtensionValidator(
-                        allowed_extensions=["zip"],
-                        message="فایل محدوده حتما باید با فرمت zip باشد",
-                    )
-                ]
-            ),
+        shrh_catalog_ids = serializers.PrimaryKeyRelatedField(
+            many=True,
+            queryset=ShrhCatalog.objects.all(),
             required=False,
-        )
-        new_initborder_titles = serializers.ListField(
-            child=serializers.CharField(max_length=250),
-            required=False,
+            error_messages={
+                "does_not_exist": "بند کاتالوگ با شناسه «{pk_value}» یافت نشد.",
+                "incorrect_type": "نوع آیدی بند کاتالوگ معتبر نمیباشد",
+            },
         )
 
         class Meta:
             model = Contract
             fields = [
                 "title", "dtyp", "number", "start_date", "end_date",
-                "progress", "is_completed", "department", "mablagh", "sherkat",
-                "initborder_ids", "new_initborder_files", "new_initborder_titles",
+                "progress", "is_completed", "department", "mablagh", "moshaver_arshad",
+                "initborder_ids", "shrh_catalog_ids",
             ]
 
-        def validate_new_initborder_files(self, files):
-            for f in files:
-                if f.size > 100 * 1024 * 1024:
-                    raise serializers.ValidationError(f"File size cannot exceed 100 MB: {f.name}")
-            return files
+        def validate_moshaver_arshad(self, sherkat):
+            if sherkat and not sherkat.mojaz_moshaver_arshad:
+                raise serializers.ValidationError("این شرکت مجاز به مشاور ارشد بودن نیست.")
+            return sherkat
 
         def validate(self, attrs):
-            files = attrs.get("new_initborder_files", [])
-            titles = attrs.get("new_initborder_titles", [])
             ids = attrs.get("initborder_ids", [])
+            catalogs = attrs.get("shrh_catalog_ids", [])
+            dtyp = attrs.get("dtyp")
 
-            if len(files) != len(titles):
-                raise serializers.ValidationError(
-                    {"new_initborder_titles": "تعداد عنوان‌ها باید با تعداد فایل‌ها برابر باشد"}
-                )
             if len(set(b.pk for b in ids)) != len(ids):
                 raise serializers.ValidationError({"initborder_ids": "آیدی محدوده تکراری است"})
-            if not files and not ids:
+            if not ids:
                 raise serializers.ValidationError(
-                    {"initborder_ids": "حداقل یک محدوده اولیه (موجود یا فایل جدید) الزامی است"}
+                    {"initborder_ids": "حداقل یک محدوده اولیه الزامی است"}
                 )
+
+            if catalogs:
+                if len(set(c.pk for c in catalogs)) != len(catalogs):
+                    raise serializers.ValidationError({"shrh_catalog_ids": "آیدی بند کاتالوگ تکراری است"})
+
+                groups = [c for c in catalogs if c.is_group]
+                if groups:
+                    raise serializers.ValidationError(
+                        {"shrh_catalog_ids": f"گروه قابل انتخاب نیست؛ فقط بند انتخاب شود. کد گروه‌ها: {', '.join(str(c.code) for c in groups)}"}
+                    )
+
+                if dtyp is None:
+                    raise serializers.ValidationError(
+                        {"shrh_catalog_ids": "برای انتخاب بند، ابتدا باید نوع قرارداد مشخص شود"}
+                    )
+                mismatched = [c for c in catalogs if c.contract_domin_id != dtyp.pk]
+                if mismatched:
+                    raise serializers.ValidationError(
+                        {"shrh_catalog_ids": f"نوع قرارداد این بندها با نوع قرارداد انتخاب‌شده یکی نیست. کد بندها: {', '.join(str(c.code) for c in mismatched)}"}
+                    )
             return attrs
 
         def create(self, validated_data):
             # these are handled by the view, they are not Contract fields
-            for key in ("initborder_ids", "new_initborder_files", "new_initborder_titles"):
+            for key in ("initborder_ids", "shrh_catalog_ids"):
                 validated_data.pop(key, None)
             return super().create(validated_data)
 
@@ -163,8 +177,8 @@ class ContractListApiViews(SearchMixin, APIView):
 
         queryset = (
             self.apply_search(queryset, request)
-            .select_related("dtyp")
-            .prefetch_related("sherkat", "initborders")
+            .select_related("dtyp", "moshaver_arshad")
+            .prefetch_related("initborders")
         )
 
         paginator = CustomPagination()
@@ -180,27 +194,13 @@ class ContractListApiViews(SearchMixin, APIView):
         data = serializer.validated_data
 
         existing_borders = data.get("initborder_ids", [])
-        files = data.get("new_initborder_files", [])
-        titles = data.get("new_initborder_titles", [])
+        catalogs = data.get("shrh_catalog_ids", [])
 
-        # 1) parse the shapefiles BEFORE opening the transaction (it is slow, and
-        #    we do not want to hold DB locks while reading zip files)
-        parsed_borders = []
-        file_errors = {}
-        for index, (upload, title) in enumerate(zip(files, titles)):
-            ok, geometry, message = proccess_initialborder_zipfile(upload)
-            if not ok:
-                file_errors[str(index)] = f"{upload.name}: {message}"
-            else:
-                parsed_borders.append((title, geometry))
-        if file_errors:
-            raise ValidationError({"new_initborder_files": file_errors})
+        # one transaction: contract + attaching borders + shrh items + access
+        try:
+            with transaction.atomic():
+                contract = serializer.save()
 
-        # 2) one transaction: contract + new borders + attaching existing borders + access
-        with transaction.atomic():
-            contract = serializer.save()
-
-            if existing_borders:
                 ids = [b.pk for b in existing_borders]
                 # lock the rows so two requests cannot grab the same border
                 locked = list(InitialBorder.objects.select_for_update().filter(pk__in=ids))
@@ -214,15 +214,16 @@ class ContractListApiViews(SearchMixin, APIView):
                 # update() does not touch the geometry, so no ostan recalculation is needed
                 InitialBorder.objects.filter(pk__in=ids).update(contract=contract)
 
-            for title, geometry in parsed_borders:
-                new_border = InitialBorder.objects.create(
-                    title=title,
-                    border=geometry,
-                    contract=contract,
-                )
-                user.grant_initialborder_access(initial_border=new_border)
+                # contract_domin of every catalog item was already checked against
+                # contract.dtyp in the serializer; weight / scale / ekhtesas are filled later
+                for catalog in catalogs:
+                    ShrhContract.objects.create(contract=contract, shrh_catalog=catalog)
 
-            user.grant_contract_access(contract=contract)
+                user.grant_contract_access(contract=contract)
+        except DjangoValidationError as e:
+            # model.clean() errors (e.g. start_date > end_date) -> 400 instead of 500,
+            # the transaction is already rolled back at this point
+            raise ValidationError(e.message_dict if hasattr(e, "error_dict") else e.messages)
 
         api_activity_logger.info(
             f"ساخت موفق قرارداد {contract.title}",
@@ -262,19 +263,19 @@ class ContractDetailsApiViews(APIView):
                 model = InitialBorder
                 fields = ["id", "title", "dtyp"]
 
-        class ContractDetailsOutputSerializerSherkat(serializers.ModelSerializer):
+        class ContractDetailsOutputSerializerMoshaverArshad(serializers.ModelSerializer):
             class Meta:
                 model = Sherkat
                 fields = ["id", "name", "typ", "service_typ", "code"]
 
         dtyp = ContractDetailsOutputSerializerDtyp()
         initborders = ContractDetailsOutputSerializerInitborder(many=True)
-        sherkat = ContractDetailsOutputSerializerSherkat(many=True)
+        moshaver_arshad = ContractDetailsOutputSerializerMoshaverArshad()
 
         class Meta:
             model = Contract
             fields = [
-                "id", "title", "dtyp", "initborders", "number", "progress", "sherkat",
+                "id", "title", "dtyp", "initborders", "number", "progress", "moshaver_arshad",
                 "is_completed", "department", "start_date", "end_date",
                 "mablagh", "mablaghe_elhaghye", "tarikh_elhaghye",
                 "elhaghye",
@@ -290,13 +291,30 @@ class ContractDetailsApiViews(APIView):
                 "invalid_choice": f'انتخاب نامعتبر است. گزینه‌های معتبر: {", ".join([f"{choice[0]} ({choice[1]})" for choice in Contract.DEPARTMENT_CHOICES])}'
             },
         )
+        moshaver_arshad = serializers.PrimaryKeyRelatedField(
+            queryset=Sherkat.objects.all(),
+            required=False,
+            allow_null=True,
+            error_messages={
+                "does_not_exist": 'شرکت با شناسه "{pk_value}" یافت نشد.',
+                "incorrect_type": "مقدار نامعتبر برای شناسه شرکت: باید عدد باشد.",
+            },
+        )
 
         class Meta:
             model = Contract
             fields = [
                 "title", "dtyp", "number", "start_date", "end_date",
-                "progress", "is_completed", "department", "mablagh", "sherkat",
+                "progress", "is_completed", "department", "mablagh", "moshaver_arshad",
             ]
+
+        def validate_moshaver_arshad(self, sherkat):
+            if sherkat:
+                if not sherkat.mojaz_moshaver_arshad:
+                    raise serializers.ValidationError("این شرکت مجاز به مشاور ارشد بودن نیست.")
+                if self.instance.rsherkatha.filter(sherkat_id=sherkat.pk).exists():
+                    raise serializers.ValidationError("این شرکت در همین قرارداد به‌عنوان شرکت اجرایی ثبت شده است.")
+            return sherkat
 
     def _get_contract(self, contractid, queryset=None):
         queryset = queryset if queryset is not None else Contract.objects.all()
@@ -309,7 +327,7 @@ class ContractDetailsApiViews(APIView):
         user: User = request.user
         contract, error = self._get_contract(
             contractid,
-            Contract.objects.select_related("dtyp").prefetch_related("sherkat", "initborders__dtyp"),
+            Contract.objects.select_related("dtyp", "moshaver_arshad").prefetch_related("initborders__dtyp"),
         )
         if error:
             return error
@@ -330,7 +348,11 @@ class ContractDetailsApiViews(APIView):
 
         serializer = self.ContractDetailsInputSerializer(contract, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
-        updated_contract = serializer.save()
+        try:
+            updated_contract = serializer.save()
+        except DjangoValidationError as e:
+            # model.clean() errors (e.g. start_date > end_date) -> 400 instead of 500
+            raise ValidationError(e.message_dict if hasattr(e, "error_dict") else e.messages)
 
         return Response(
             self.ContractDetailsOutputSerializer(updated_contract, context={"request": request}).data
@@ -349,7 +371,9 @@ class ContractDetailsApiViews(APIView):
         contract.delete()
         delete_logger.warning(f"حذف قرارداد {title}", extra=get_details_from_request(request))
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
 
+    
 # --------------------------------------------------------------------------- #
 # ContractElhaghye
 # --------------------------------------------------------------------------- #
@@ -405,7 +429,6 @@ class ContractElhaghyeListApiViews(APIView):
             self.ContractElhaghyeListOutputSerializer(elhaghye, context={"request": request}).data,
             status=status.HTTP_201_CREATED,
         )
-
 
 class ContractElhaghyeDetailsApiViews(APIView):
     """
@@ -486,21 +509,3 @@ class ContractElhaghyeDetailsApiViews(APIView):
             f"حذف الحاقیه قرارداد {contract.title}", extra=get_details_from_request(request)
         )
         return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-# --------------------------------------------------------------------------- #
-# ContractDomin
-# --------------------------------------------------------------------------- #
-class ContractDomainsListApiView(APIView):
-    """GET: list of all contract domains (they are tied to layer names, so they can't be created here)."""
-
-    permission_classes = [AllowAny]
-
-    class ContractDomainsListOutputSerializer(serializers.ModelSerializer):
-        class Meta:
-            model = ContractDomin
-            fields = ["id", "title", "code"]
-
-    def get(self, request: Request) -> Response:
-        queryset = ContractDomin.objects.all()
-        return Response(self.ContractDomainsListOutputSerializer(queryset, many=True).data)

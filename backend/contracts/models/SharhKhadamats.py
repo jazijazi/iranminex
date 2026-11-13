@@ -37,7 +37,7 @@ from django.db.models import Sum
 
 from common.constants import SCALE_CHOICES
 from common.models.models import CustomModel
-from contracts.models.models import Contract
+from contracts.models.models import ContractDomin,Contract
 # from layers.models.models import LayersNames
 
 
@@ -110,6 +110,15 @@ class ShrhCatalog(CustomModel):
       بعضی بندها مستقیماً زیر فاز هستند، پس `parent` اختیاری است.
     - وزن (درصد) و مقدار اینجا نیست؛ آن‌ها مخصوص هر قرارداد است (ShrhContract).
     """
+    contract_domin = models.ForeignKey(
+        ContractDomin,
+        verbose_name="نوع قرارداد",
+        on_delete=models.PROTECT,
+        related_name="rshrhcatalogha",
+        blank=False,
+        null=False,
+    )
+
     code = models.PositiveIntegerField(
         verbose_name="کد (ردیف اکسل)",
         unique=True,
@@ -340,7 +349,7 @@ class EkhtesasShrh(CustomModel):
 
 class ShrhContract(CustomModel):
     """
-    یک بند از کاتالوگ که برای یک قرارداد انتخاب شده است (جایگزین ShrhCatalog قدیمی).
+    یک بند از کاتالوگ که برای یک قرارداد انتخاب شده است (جایگزین SharhBase قدیمی).
 
     - سازمان هنگام ساخت قرارداد بندها را از ShrhCatalog انتخاب و «وزن» هر کدام
       (percentage) را مشخص می‌کند.

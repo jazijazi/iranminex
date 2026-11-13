@@ -6,7 +6,7 @@ import openpyxl
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
-
+from contracts.models.models import ContractDomin
 from contracts.models.SharhKhadamats import Faz, Vahed, ShrhCatalog
 
 class Command(BaseCommand):
@@ -23,6 +23,12 @@ class Command(BaseCommand):
             "--dry-run",
             action="store_true",
             help="Validate and preview without saving changes.",
+        )
+        parser.add_argument(
+            "--domain_id",
+            type=int,
+            required=True,
+            help="ContractDomin ID to assign to all catalog records.",
         )
 
     @staticmethod
@@ -60,6 +66,14 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         excel_path = Path(options["file"])
         dry_run = options["dry_run"]
+        domain_id = options["domain_id"]
+
+        try:
+            contract_domin = ContractDomin.objects.get(pk=domain_id)
+        except ContractDomin.DoesNotExist:
+            raise CommandError(
+                f"ContractDomin with ID {domain_id} does not exist."
+            )
 
         if not excel_path.exists():
             raise CommandError(f"Excel file not found: {excel_path}")
@@ -173,6 +187,7 @@ class Command(BaseCommand):
                         obj, created = ShrhCatalog.objects.update_or_create(
                             code=code,
                             defaults={
+                                "contract_domin": contract_domin,
                                 "faz": faz,
                                 "parent": None,
                                 "is_group": True,
@@ -204,6 +219,7 @@ class Command(BaseCommand):
                         ShrhCatalog.objects.update_or_create(
                             code=code,
                             defaults={
+                                "contract_domin": contract_domin,
                                 "faz": faz,
                                 "parent": parent,
                                 "is_group": False,
