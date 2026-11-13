@@ -32,17 +32,21 @@ delete_logger = logging.getLogger("delete_activity_logger")
 api_activity_logger = logging.getLogger("api_activity_logger")
 
 
+
 class ContractListApiViews(SearchMixin, APIView):
     """
     GET: list of contracts (superuser: all, others: only the ones they have access to)
 
-    POST (multipart/form-data): create a contract together with its initial borders
+    POST (application/json): create a contract together with its initial borders
     and its shrh items (selected from ShrhCatalog).
         - initborder_ids   : ids of already existing initial borders
                              (must not belong to another contract). At least one is required.
-        - shrh_catalog_ids : (optional) ids of ShrhCatalog items. Every item must be a
-                             non-group item whose `contract_domin` is the same as the
-                             contract's `dtyp`. Each one becomes a ShrhContract row.
+        - shrh_items       : (optional) list of objects, each one becomes a ShrhContract row:
+                               {"shrh_catalog": <id>, "scale": <int|null>,
+                                "percentage": <0-100>, "worked_percentage": <0-100>}
+                             Every shrh_catalog must be a non-group item whose `contract_domin`
+                             is the same as the contract's `dtyp`. The same catalog item may be
+                             repeated only with different scales (at most once without scale).
         - moshaver_arshad  : (optional) id of a Sherkat that is allowed to be moshaver arshad.
         Everything is created in ONE transaction: if any part fails, nothing is saved.
     """
@@ -106,22 +110,30 @@ class ContractListApiViews(SearchMixin, APIView):
                 "incorrect_type": "نوع آیدی محدوده اولیه معتبر نمیباشد",
             },
         )
-        shrh_catalog_ids = serializers.PrimaryKeyRelatedField(
-            many=True,
-            queryset=ShrhCatalog.objects.all(),
-            required=False,
-            error_messages={
-                "does_not_exist": "بند کاتالوگ با شناسه «{pk_value}» یافت نشد.",
-                "incorrect_type": "نوع آیدی بند کاتالوگ معتبر نمیباشد",
-            },
-        )
+
+        class ContractListInputSerializerShrhItem(serializers.ModelSerializer):
+            shrh_catalog = serializers.PrimaryKeyRelatedField(
+                queryset=ShrhCatalog.objects.all(),
+                error_messages={
+                    "does_not_exist": "بند کاتالوگ با شناسه «{pk_value}» یافت نشد.",
+                    "incorrect_type": "نوع آیدی بند کاتالوگ معتبر نمیباشد",
+                },
+            )
+
+            class Meta:
+                model = ShrhContract
+                fields = ["shrh_catalog", "scale", "percentage", "worked_percentage"]
+                # uniqueness (catalog + scale) is checked in the parent serializer
+                validators = []
+
+        shrh_items = ContractListInputSerializerShrhItem(many=True, required=False)
 
         class Meta:
             model = Contract
             fields = [
                 "title", "dtyp", "number", "start_date", "end_date",
                 "progress", "is_completed", "department", "mablagh", "moshaver_arshad",
-                "initborder_ids", "shrh_catalog_ids",
+                "initborder_ids", "shrh_items",
             ]
 
         def validate_moshaver_arshad(self, sherkat):
@@ -131,7 +143,7 @@ class ContractListApiViews(SearchMixin, APIView):
 
         def validate(self, attrs):
             ids = attrs.get("initborder_ids", [])
-            catalogs = attrs.get("shrh_catalog_ids", [])
+            items = attrs.get("shrh_items", [])
             dtyp = attrs.get("dtyp")
 
             if len(set(b.pk for b in ids)) != len(ids):
@@ -141,30 +153,31 @@ class ContractListApiViews(SearchMixin, APIView):
                     {"initborder_ids": "حداقل یک محدوده اولیه الزامی است"}
                 )
 
-            if catalogs:
-                if len(set(c.pk for c in catalogs)) != len(catalogs):
-                    raise serializers.ValidationError({"shrh_catalog_ids": "آیدی بند کاتالوگ تکراری است"})
-
-                groups = [c for c in catalogs if c.is_group]
-                if groups:
-                    raise serializers.ValidationError(
-                        {"shrh_catalog_ids": f"گروه قابل انتخاب نیست؛ فقط بند انتخاب شود. کد گروه‌ها: {', '.join(str(c.code) for c in groups)}"}
-                    )
-
+            if items:
                 if dtyp is None:
                     raise serializers.ValidationError(
-                        {"shrh_catalog_ids": "برای انتخاب بند، ابتدا باید نوع قرارداد مشخص شود"}
+                        {"shrh_items": "برای انتخاب بند، ابتدا باید نوع قرارداد مشخص شود"}
                     )
-                mismatched = [c for c in catalogs if c.contract_domin_id != dtyp.pk]
-                if mismatched:
-                    raise serializers.ValidationError(
-                        {"shrh_catalog_ids": f"نوع قرارداد این بندها با نوع قرارداد انتخاب‌شده یکی نیست. کد بندها: {', '.join(str(c.code) for c in mismatched)}"}
-                    )
+
+                errors = {}
+                seen = set()
+                for index, item in enumerate(items):
+                    catalog = item["shrh_catalog"]
+                    scale = item.get("scale")
+                    if catalog.is_group:
+                        errors[str(index)] = f"گروه قابل انتخاب نیست؛ فقط بند انتخاب شود. کد گروه: {catalog.code}"
+                    elif catalog.contract_domin_id != dtyp.pk:
+                        errors[str(index)] = f"نوع قرارداد بند با کد {catalog.code} با نوع قرارداد انتخاب‌شده یکی نیست"
+                    elif (catalog.pk, scale) in seen:
+                        errors[str(index)] = f"بند با کد {catalog.code} با این مقیاس تکراری است"
+                    seen.add((catalog.pk, scale))
+                if errors:
+                    raise serializers.ValidationError({"shrh_items": errors})
             return attrs
 
         def create(self, validated_data):
             # these are handled by the view, they are not Contract fields
-            for key in ("initborder_ids", "shrh_catalog_ids"):
+            for key in ("initborder_ids", "shrh_items"):
                 validated_data.pop(key, None)
             return super().create(validated_data)
 
@@ -194,7 +207,7 @@ class ContractListApiViews(SearchMixin, APIView):
         data = serializer.validated_data
 
         existing_borders = data.get("initborder_ids", [])
-        catalogs = data.get("shrh_catalog_ids", [])
+        shrh_items = data.get("shrh_items", [])
 
         # one transaction: contract + attaching borders + shrh items + access
         try:
@@ -215,9 +228,9 @@ class ContractListApiViews(SearchMixin, APIView):
                 InitialBorder.objects.filter(pk__in=ids).update(contract=contract)
 
                 # contract_domin of every catalog item was already checked against
-                # contract.dtyp in the serializer; weight / scale / ekhtesas are filled later
-                for catalog in catalogs:
-                    ShrhContract.objects.create(contract=contract, shrh_catalog=catalog)
+                # contract.dtyp in the serializer; ekhtesas is filled later
+                for item in shrh_items:
+                    ShrhContract.objects.create(contract=contract, **item)
 
                 user.grant_contract_access(contract=contract)
         except DjangoValidationError as e:
@@ -371,9 +384,8 @@ class ContractDetailsApiViews(APIView):
         contract.delete()
         delete_logger.warning(f"حذف قرارداد {title}", extra=get_details_from_request(request))
         return Response(status=status.HTTP_204_NO_CONTENT)
-    
 
-    
+
 # --------------------------------------------------------------------------- #
 # ContractElhaghye
 # --------------------------------------------------------------------------- #
