@@ -21,7 +21,10 @@ from contracts.models.models import (
     Contract,
 )
 from contracts.models.SharhKhadamats import (
+    Faz,
+    Vahed,
     ShrhCatalog,
+    ShrhContract,
 )
 from common.mixins import SearchMixin , FilterMixin
 
@@ -205,6 +208,75 @@ class ShrhCatalogDetailsApiViews(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+class ShrhContractListApiViews(SearchMixin, APIView):
+    """
+    GET: بندهای شرح خدمات یک قرارداد
+        ?assigned=true|false  -> فقط بندهای اختصاص‌داده‌شده / آزاد
+        ?faz=<id>             -> فقط بندهای یک فاز
+    """
+    search_fields = ["shrh_catalog__title",]
+ 
+    class ShrhContractListOutputSerializer(serializers.ModelSerializer):
+        class ShrhContractListOutputSerializerFaz(serializers.ModelSerializer):
+            class Meta:
+                model = Faz
+                fields = ["id", "title", "order"]
+
+        class ShrhContractListOutputSerializerVahed(serializers.ModelSerializer):
+            class Meta:
+                model = Vahed
+                fields = ["id", "title"]
+
+        code = serializers.IntegerField(source="shrh_catalog.code", read_only=True)
+        title = serializers.CharField(source="shrh_catalog.title", read_only=True)
+        faz = ShrhContractListOutputSerializerFaz(source="shrh_catalog.faz", read_only=True)
+        vahed = ShrhContractListOutputSerializerVahed(source="shrh_catalog.vahed", read_only=True)
+
+
+        class Meta:
+            model = ShrhContract
+            fields = [
+                "pk", "shrh_catalog", "code", "title", "faz", "vahed",
+                "scale", "percentage", "worked_percentage", "ekhtesas",
+            ]
+            class Meta:
+                model = ShrhContract
+                fields = [
+                    "pk", "shrh_catalog", "code", "title", "faz", "vahed_title",
+                    "scale", "percentage", "worked_percentage", "ekhtesas",
+                ]
+ 
+    def get(self, request: Request, contractid: str) -> Response:
+        user: User = request.user
+        try:
+            contract = Contract.objects.get(pk=contractid)
+        except Contract.DoesNotExist:
+            return Response({"detail": "قراردادی با این آیدی وجود ندارد"}, status=status.HTTP_404_NOT_FOUND)
+ 
+        if not user.is_superuser and not user.has_contract_access(contract):
+            return Response({"detail": "کاربر به این قرارداد دسترسی ندارد"}, status=status.HTTP_403_FORBIDDEN)
+ 
+        queryset = ShrhContract.objects.filter(contract=contract).select_related(
+            "shrh_catalog", "shrh_catalog__vahed"
+        ).order_by("shrh_catalog__order", "pk")
+ 
+        assigned = request.query_params.get("assigned")
+        if assigned == "true":
+            queryset = queryset.filter(ekhtesas__isnull=False)
+        elif assigned == "false":
+            queryset = queryset.filter(ekhtesas__isnull=True)
+        faz = request.query_params.get("faz")
+        if faz:
+            queryset = queryset.filter(shrh_catalog__faz_id=faz)
+ 
+        queryset = self.apply_search(queryset, request)
+        paginator = CustomPagination()
+        page = paginator.paginate_queryset(queryset, request)
+        serializer = self.ShrhContractListOutputSerializer(page, many=True, context={"request": request})
+        api_activity_logger.info(f"خواندن لیست بندهای قرارداد {contract.title}", extra=get_details_from_request(request))
+ 
+        return paginator.get_paginated_response(serializer.data)
+ 
 
 
 

@@ -33,6 +33,9 @@ from contracts.views.donmains import (
 from contracts.views.sharhkhadamatviews import(
     ShrhCatalogListApiViews,
     ShrhCatalogDetailsApiViews,
+
+    ShrhContractListApiViews,
+    
 )
 
 urlpatterns = [
@@ -56,6 +59,7 @@ urlpatterns = [
     # Sharhkhadamat
     path('sharhcatalog/' , ShrhCatalogListApiViews.as_view() , name="shathcatalog-list"),
     path('sharhcatalog/<int:pk>/' , ShrhCatalogDetailsApiViews.as_view() , name="shathcatalog-details"),
+    path('<uuid:contractid>/sharh-items/' , ShrhContractListApiViews.as_view() , name="sharcontract-list"),
 
     # Sharhkhadamat layers
     # path('<uuid:contractid>/sharhkhadamat-layers/', SharhKhadamatLayerListApiView.as_view(), name='contract-shrlyr-list'),

@@ -1,0 +1,21 @@
+meta {
+  name: contract sharh
+  type: http
+  seq: 2
+}
+
+get {
+  url: http://localhost:8000/api/contracts/72b25f81-68ae-40c3-a8ce-740fa7e9619e/sharh-items/
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJleHAiOjE3OTQ1ODMyODMsImlhdCI6MTc5NDU3NDI4MywidHlwZSI6ImFjY2VzcyJ9.2gmRVu0Ar549qTWTn5_i8odxiQvc_i7S4V67XJ0t_ek
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+  forwardAuthorizationHeader: false
+}
