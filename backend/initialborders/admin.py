@@ -3,6 +3,7 @@ from leaflet.admin import LeafletGeoAdmin
 
 from initialborders.models.models import (
     InitialBorder,
+    InitialBorderMadeDomin,
     InitialBorderDomin,
     ContractInitialBorder,
     #Attachment
@@ -18,6 +19,10 @@ class InitialBorderAttachmentInline(admin.TabularInline):
     extra = 1
     autocomplete_fields = ['dtyp_attach']
 
+class InitialBorderMadeDominInline(admin.TabularInline):
+    model = InitialBorderMadeDomin
+    extra = 1
+
 class InitialBorderAttachmentDomainInline(admin.TabularInline):
     model = InitialBorderAttachmentDomain
     extra = 1
@@ -31,16 +36,16 @@ class ContractInitialBorderInline(admin.TabularInline):
 class InitialBorderAdmin(LeafletGeoAdmin):
     search_fields = ["title", "dtyp__title", "contracts__title"]
     list_filter = ["dtyp", "ostan"]
-    list_display = ["id", "title", "display_contracts", "dtyp", "parentid", "display_ostans"]
-    list_select_related = ["dtyp", "parentid"]
-    autocomplete_fields = ["parentid", "dtyp"]
+    list_display = ["id", "title", "display_contracts", "dtyp", "display_ostans"]
+    list_select_related = ["dtyp", "made"]
+    autocomplete_fields = ["dtyp","made"]
     inlines = [ContractInitialBorderInline, InitialBorderAttachmentInline]
     readonly_fields = ["ostan"]
 
     def get_queryset(self, request):
         return (
             super().get_queryset(request)
-            .select_related("dtyp", "parentid")
+            .select_related("dtyp",)
             .prefetch_related("ostan", "contracts")
         )
 
@@ -63,6 +68,10 @@ class InitialBorderDominModalAdmin(admin.ModelAdmin):
     search_fields = ['title', 'code']
     inlines = [InitialBorderAttachmentDomainInline]
 
+class InitialBorderMadeDominAdmin(admin.ModelAdmin):
+    list_display = ['id', 'title',]
+    search_fields = ['title',]
+
 class InitialBorderAttachmentModalAdmin(admin.ModelAdmin):
     list_display = ['id', 'rinitialborder', 'dtyp_attach', 'upload_date', 'writer']
     list_filter = ['dtyp_attach', 'upload_date', 'writer']
@@ -77,6 +86,7 @@ class InitialBorderAttachmentDomainModalAdmin(admin.ModelAdmin):
 
 admin.site.register(InitialBorder , InitialBorderAdmin)
 admin.site.register(InitialBorderDomin , InitialBorderDominModalAdmin)
+admin.site.register(InitialBorderMadeDomin , InitialBorderMadeDominAdmin)
 #Attachment
 admin.site.register(InitialBorderAttachment , InitialBorderAttachmentModalAdmin)
 admin.site.register(InitialBorderAttachmentDomain , InitialBorderAttachmentDomainModalAdmin)

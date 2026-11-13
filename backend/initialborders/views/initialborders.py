@@ -23,7 +23,7 @@ from initialborders.models.attachment import (
     InitialBorderAttachment,
     InitialBorderAttachmentDomain,
 )
-from initialborders.models.models import InitialBorder, InitialBorderDomin
+from initialborders.models.models import InitialBorder, InitialBorderMadeDomin, InitialBorderDomin
 from initialborders.services.gis import proccess_initialborder_zipfile
 from logs.utils import get_details_from_request
 
@@ -37,7 +37,7 @@ class InitialBorderListViews(SearchMixin, APIView):
     POST: create an initial border from a zipped shapefile.
     """
 
-    search_fields = ["title", "ostan__name_fa", "dtyp__title"]
+    search_fields = ["title", "code_cadaster", "ostan__name_fa", "dtyp__title", "made__title"]
 
     class InitialBorderListOutputSerializer(serializers.ModelSerializer):
         class InitialBorderListOutputSerializerOstan(serializers.ModelSerializer):
@@ -50,6 +50,11 @@ class InitialBorderListViews(SearchMixin, APIView):
                 model = InitialBorderDomin
                 fields = ["id", "title", "code"]
 
+        class InitialBorderListOutputSerializerMade(serializers.ModelSerializer):
+            class Meta:
+                model = InitialBorderMadeDomin
+                fields = ["id", "title"]
+
         class InitialBorderListOutputSerializerContract(serializers.ModelSerializer):
             class Meta:
                 model = Contract
@@ -57,17 +62,20 @@ class InitialBorderListViews(SearchMixin, APIView):
 
         dtyp = InitialBorderListOutputSerializerDomain()
         ostan = InitialBorderListOutputSerializerOstan(many=True)
+        made = InitialBorderListOutputSerializerMade(many=True, read_only=True)
         contracts = InitialBorderListOutputSerializerContract(many=True, read_only=True)
 
         class Meta:
             model = InitialBorder
             fields = [
-                "id", "title", "dtyp", "ostan", "contracts", "center", "bbox", "parentid",
-                "onvan_sazemani", "code_sazemani", "esm_mahali", "name_motaghazi", "name_made",
+                "id", "title", "dtyp", "ostan", "made", "contracts", "center", "bbox",
+                "code_cadaster", "onvan_sazemani", "code_sazemani", "esm_mahali",
+                "name_motaghazi", "file",
             ]
 
     class InitialBorderListInputSerializer(serializers.ModelSerializer):
-        file = serializers.FileField(
+        # zipped shapefile -> becomes the `border` geometry
+        border_file = serializers.FileField(
             validators=[
                 FileExtensionValidator(
                     allowed_extensions=["zip"],
@@ -75,6 +83,11 @@ class InitialBorderListViews(SearchMixin, APIView):
                 )
             ]
         )
+
+        def validate_border_file(self, value):
+            if value.size > 100 * 1024 * 1024:
+                raise serializers.ValidationError("File size cannot exceed 100 MB.")
+            return value
 
         def validate_file(self, value):
             if value.size > 100 * 1024 * 1024:
@@ -84,8 +97,8 @@ class InitialBorderListViews(SearchMixin, APIView):
         class Meta:
             model = InitialBorder
             fields = [
-                "title", "dtyp", "file", "parentid",
-                "onvan_sazemani", "code_sazemani", "esm_mahali", "name_motaghazi", "name_made",
+                "title", "dtyp", "made", "border_file", "file", "code_cadaster",
+                "onvan_sazemani", "code_sazemani", "esm_mahali", "name_motaghazi",
             ]
 
     def get(self, request: Request) -> Response:
@@ -99,12 +112,12 @@ class InitialBorderListViews(SearchMixin, APIView):
         queryset = (
             self.apply_search(queryset, request)
             .select_related("dtyp")
-            .prefetch_related("ostan", "contracts")
+            .prefetch_related("ostan", "contracts", "made")
         )
 
         paginator = CustomPagination()
         page = paginator.paginate_queryset(queryset, request)
-        serializer = self.InitialBorderListOutputSerializer(page, many=True)
+        serializer = self.InitialBorderListOutputSerializer(page, many=True, context={"request": request})
         return paginator.get_paginated_response(serializer.data)
 
     def post(self, request: Request) -> Response:
@@ -113,7 +126,7 @@ class InitialBorderListViews(SearchMixin, APIView):
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        ok, border, message = proccess_initialborder_zipfile(data["file"])
+        ok, border, message = proccess_initialborder_zipfile(data["border_file"])
         if not ok:
             return Response({"detail": message}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -121,14 +134,16 @@ class InitialBorderListViews(SearchMixin, APIView):
             new_border = InitialBorder.objects.create(
                 title=data["title"],
                 border=border,
+                file=data["file"],
                 dtyp=data.get("dtyp"),
-                parentid=data.get("parentid"),
+                code_cadaster=data.get("code_cadaster"),
                 onvan_sazemani=data.get("onvan_sazemani"),
                 code_sazemani=data.get("code_sazemani"),
                 esm_mahali=data.get("esm_mahali"),
                 name_motaghazi=data.get("name_motaghazi"),
-                name_made=data.get("name_made"),
             )
+            if "made" in data:
+                new_border.made.set(data["made"])
             # creator automatically gets access to what they created
             user.grant_initialborder_access(initial_border=new_border)
 
@@ -136,7 +151,10 @@ class InitialBorderListViews(SearchMixin, APIView):
             f"ساخت موفق محدوده اولیه {new_border.title}",
             extra=get_details_from_request(request),
         )
-        return Response(self.InitialBorderListOutputSerializer(new_border).data, status=status.HTTP_201_CREATED)
+        return Response(
+            self.InitialBorderListOutputSerializer(new_border, context={"request": request}).data,
+            status=status.HTTP_201_CREATED,
+        )
 
 
 class InitialBorderDetailViews(APIView):
@@ -153,6 +171,11 @@ class InitialBorderDetailViews(APIView):
                 model = InitialBorderDomin
                 fields = ["id", "title", "code"]
 
+        class InitialBorderDetailOutputSerializerMade(serializers.ModelSerializer):
+            class Meta:
+                model = InitialBorderMadeDomin
+                fields = ["id", "title"]
+
         class InitialBorderDetailOutputSerializerContract(serializers.ModelSerializer):
             class Meta:
                 model = Contract
@@ -160,26 +183,31 @@ class InitialBorderDetailViews(APIView):
 
         dtyp = InitialBorderDetailOutputSerializerDomain()
         ostan = InitialBorderDetailOutputSerializerOstan(many=True)
+        made = InitialBorderDetailOutputSerializerMade(many=True, read_only=True)
         contracts = InitialBorderDetailOutputSerializerContract(many=True, read_only=True)
 
         class Meta:
             model = InitialBorder
             fields = [
-                "id", "title", "dtyp", "ostan", "contracts", "center", "bbox", "parentid",
-                "onvan_sazemani", "code_sazemani", "esm_mahali", "name_motaghazi", "name_made",
+                "id", "title", "dtyp", "ostan", "made", "contracts", "center", "bbox",
+                "code_cadaster", "onvan_sazemani", "code_sazemani", "esm_mahali",
+                "name_motaghazi", "file",
             ]
 
     class InitialBorderDetailInputSerializer(serializers.Serializer):
         title = serializers.CharField(max_length=250, required=False)
-        parentid = serializers.PrimaryKeyRelatedField(
-            queryset=InitialBorder.objects.all(), required=False, allow_null=True
+        dtyp = serializers.PrimaryKeyRelatedField(
+            queryset=InitialBorderDomin.objects.all(), required=False, allow_null=True
         )
+        made = serializers.PrimaryKeyRelatedField(
+            queryset=InitialBorderMadeDomin.objects.all(), many=True, required=False
+        )
+        code_cadaster = serializers.CharField(max_length=255, required=False, allow_null=True, allow_blank=True)
         onvan_sazemani = serializers.CharField(max_length=255, required=False, allow_null=True, allow_blank=True)
         code_sazemani = serializers.CharField(max_length=255, required=False, allow_null=True, allow_blank=True)
         esm_mahali = serializers.CharField(max_length=255, required=False, allow_null=True, allow_blank=True)
         name_motaghazi = serializers.CharField(max_length=255, required=False, allow_null=True, allow_blank=True)
-        name_made = serializers.CharField(max_length=255, required=False, allow_null=True, allow_blank=True)
-        file = serializers.FileField(
+        border_file = serializers.FileField(
             required=False,
             validators=[
                 FileExtensionValidator(
@@ -188,6 +216,12 @@ class InitialBorderDetailViews(APIView):
                 )
             ],
         )
+        file = serializers.FileField(required=False)
+
+        def validate_border_file(self, value):
+            if value.size > 100 * 1024 * 1024:
+                raise serializers.ValidationError("File size cannot exceed 100 MB.")
+            return value
 
         def validate_file(self, value):
             if value.size > 100 * 1024 * 1024:
@@ -199,7 +233,7 @@ class InitialBorderDetailViews(APIView):
         try:
             border = (
                 InitialBorder.objects.select_related("dtyp")
-                .prefetch_related("ostan", "contracts")
+                .prefetch_related("ostan", "contracts", "made")
                 .get(pk=pk)
             )
         except InitialBorder.DoesNotExist:
@@ -212,7 +246,7 @@ class InitialBorderDetailViews(APIView):
             )
             return Response({"detail": "کاربر به این محدوده اولیه دسترسی ندارد"}, status=status.HTTP_403_FORBIDDEN)
 
-        return Response(self.InitialBorderDetailOutputSerializer(border).data)
+        return Response(self.InitialBorderDetailOutputSerializer(border, context={"request": request}).data)
 
     def put(self, request: Request, pk: int) -> Response:
         user: User = request.user
@@ -235,11 +269,11 @@ class InitialBorderDetailViews(APIView):
         if "title" in data:
             border.title = data["title"]
 
-        if "parentid" in data:
-            if data["parentid"] is not None and data["parentid"].pk == border.pk:
-                return Response({"detail": "محدوده نمی‌تواند والد خودش باشد"}, status=status.HTTP_400_BAD_REQUEST)
-            border.parentid = data["parentid"]
+        if "dtyp" in data:
+            border.dtyp = data["dtyp"]
 
+        if "code_cadaster" in data:
+            border.code_cadaster = data["code_cadaster"]
         if "onvan_sazemani" in data:
             border.onvan_sazemani = data["onvan_sazemani"]
         if "code_sazemani" in data:
@@ -248,21 +282,26 @@ class InitialBorderDetailViews(APIView):
             border.esm_mahali = data["esm_mahali"]
         if "name_motaghazi" in data:
             border.name_motaghazi = data["name_motaghazi"]
-        if "name_made" in data:
-            border.name_made = data["name_made"]
 
-        if data.get("file"):
-            ok, multipolygon, error = proccess_initialborder_zipfile(data["file"])
+        if data.get("border_file"):
+            ok, multipolygon, error = proccess_initialborder_zipfile(data["border_file"])
             if not ok:
                 return Response({"detail": error}, status=status.HTTP_400_BAD_REQUEST)
             border.border = multipolygon
 
+        if data.get("file"):
+            border.file = data["file"]
+
         border.save()
+
+        if "made" in data:
+            border.made.set(data["made"])
+
         api_activity_logger.info(
             f"ویرایش موفق محدوده اولیه {border.title}",
             extra=get_details_from_request(request),
         )
-        return Response(self.InitialBorderDetailOutputSerializer(border).data)
+        return Response(self.InitialBorderDetailOutputSerializer(border, context={"request": request}).data)
 
     def delete(self, request: Request, pk: int) -> Response:
         user: User = request.user
@@ -284,7 +323,7 @@ class InitialBorderDetailViews(APIView):
             f"حذف موفق محدوده اولیه {title}",
             extra=get_details_from_request(request),
         )
-        return Response(status=status.HTTP_204_NO_CONTENT)  
+        return Response(status=status.HTTP_204_NO_CONTENT) 
     
 class InitialBorderDownloadExportShape(APIView):
     def post(self, request: Request, pk: int) -> Response:

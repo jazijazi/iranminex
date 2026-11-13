@@ -166,7 +166,7 @@ class ContractListApiViews(SearchMixin, APIView):
                 for index, item in enumerate(items):
                     catalog = item["shrh_catalog"]
                     scale = item.get("scale")
-                    if catalog.is_group:
+                    if catalog.is_onvan_asli:
                         errors[str(index)] = f"گروه قابل انتخاب نیست؛ فقط بند انتخاب شود. کد گروه: {catalog.code}"
                     elif catalog.contract_domin_id != dtyp.pk:
                         errors[str(index)] = f"نوع قرارداد بند با کد {catalog.code} با نوع قرارداد انتخاب‌شده یکی نیست"

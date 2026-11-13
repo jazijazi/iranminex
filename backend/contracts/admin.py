@@ -83,29 +83,29 @@ class NaghshSherkatAdmin(admin.ModelAdmin):
 @admin.register(ShrhCatalog)
 class ShrhCatalogAdmin(admin.ModelAdmin):
     """درخت کاتالوگ اکسل: گروه‌ها پررنگ و بندها با تورفتگی نمایش داده می‌شوند."""
-    list_display = ("contract_domin", "code", "onvan", "faz", "vahed", "noe", "order")
-    list_display_links = ("code", "onvan")
-    list_filter = ("faz", "is_group", "vahed","contract_domin")
-    search_fields = ("title", "code", "description")
+    list_display = ("contract_domin", "onvan", "faz", "vahed", "noe", "order")
+    list_display_links = ( "onvan",)
+    list_filter = ("faz", "is_onvan_asli", "vahed","contract_domin")
+    search_fields = ("title", "description")
     autocomplete_fields = ("parent", "vahed","contract_domin")
     list_select_related = ("faz", "vahed", "parent")
     ordering = ("faz__order", "order")
     list_per_page = 60
     fieldsets = (
-        ("جایگاه در درخت", {"fields": ("contract_domin","faz", "parent", "is_group", "code", "order")}),
+        ("جایگاه در درخت", {"fields": ("contract_domin","faz", "parent", "is_onvan_asli", "order")}),
         ("مشخصات بند", {"fields": ("title", "vahed", "description")}),
     )
 
     @admin.display(description="عنوان", ordering="title")
     def onvan(self, obj):
-        if obj.is_group:
+        if obj.is_onvan_asli:
             return format_html("<strong>{}</strong>", obj.title)
         pad = 18 if obj.parent_id else 0
         return format_html('<span style="padding-right:{}px">↳ {}</span>', pad, obj.title)
 
     @admin.display(description="نوع")
     def noe(self, obj):
-        return badge("گروه", "#7c3aed") if obj.is_group else badge("بند", "#0891b2")
+        return badge("گروه", "#7c3aed") if obj.is_onvan_asli else badge("بند", "#0891b2")
 
 
 # ───────────────────────── شرکت‌های قرارداد ─────────────────────────

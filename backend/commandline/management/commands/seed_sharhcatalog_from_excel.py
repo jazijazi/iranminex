@@ -53,7 +53,7 @@ class Command(BaseCommand):
         )
 
     @staticmethod
-    def is_group_row(cell, unit):
+    def is_onvan_asli_row(cell, unit):
         color = cell.fill.fgColor
 
         return (
@@ -180,17 +180,16 @@ class Command(BaseCommand):
                                 f"  NEW UNIT (DRY RUN): {unit_title}"
                             )
 
-                if self.is_group_row(title_cell, unit_title):
+                if self.is_onvan_asli_row(title_cell, unit_title):
 
                     # Group row.
                     if not dry_run:
                         obj, created = ShrhCatalog.objects.update_or_create(
-                            code=code,
                             defaults={
                                 "contract_domin": contract_domin,
                                 "faz": faz,
                                 "parent": None,
-                                "is_group": True,
+                                "is_onvan_asli": True,
                                 "title": title,
                                 "vahed": None,
                                 "description": description,
@@ -217,12 +216,11 @@ class Command(BaseCommand):
 
                     if not dry_run:
                         ShrhCatalog.objects.update_or_create(
-                            code=code,
                             defaults={
                                 "contract_domin": contract_domin,
                                 "faz": faz,
                                 "parent": parent,
-                                "is_group": False,
+                                "is_onvan_asli": False,
                                 "title": title,
                                 "vahed": vahed,
                                 "description": description,

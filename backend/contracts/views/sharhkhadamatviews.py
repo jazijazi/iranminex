@@ -47,7 +47,7 @@ class ShrhCatalogListApiViews(SearchMixin, FilterMixin, APIView):
         class Meta:
             model = ShrhCatalog
             fields = [
-                "pk", "code", "title", "is_group", "order",
+                "pk", "title", "is_onvan_asli", "order",
                 "contract_domin", "contract_domin_title",
                 "faz", "faz_title",
                 "parent",
@@ -57,7 +57,7 @@ class ShrhCatalogListApiViews(SearchMixin, FilterMixin, APIView):
     class ShrhCatalogListInputSerializer(serializers.ModelSerializer):
         class Meta:
             model = ShrhCatalog
-            fields = ["contract_domin", "code", "faz", "parent", "is_group", "title", "vahed", "description", "order"]
+            fields = ["contract_domin", "faz", "parent", "is_onvan_asli", "title", "vahed", "description", "order"]
 
         def validate(self, attrs):
             """
@@ -66,16 +66,16 @@ class ShrhCatalogListApiViews(SearchMixin, FilterMixin, APIView):
             """
             parent = attrs.get("parent")
             faz = attrs.get("faz")
-            is_group = attrs.get("is_group")
+            is_onvan_asli = attrs.get("is_onvan_asli")
             vahed = attrs.get("vahed")
 
             errors = {}
             if parent:
-                if not parent.is_group:
-                    errors["parent"] = "والد باید یک گروه باشد."
+                if not parent.is_onvan_asli:
+                    errors["parent"] = "عنوان اصلی باید یک گروه باشد."
                 elif faz is None or parent.faz_id != faz.pk:
-                    errors["faz"] = "فاز بند باید با فاز گروه والد یکی باشد."
-            if is_group and vahed:
+                    errors["faz"] = "فاز بند باید با فاز گروه عنوان اصلی یکی باشد."
+            if is_onvan_asli and vahed:
                 errors["vahed"] = "گروه واحد ندارد."
 
             if errors:
@@ -120,7 +120,7 @@ class ShrhCatalogDetailsApiViews(APIView):
         class Meta:
             model = ShrhCatalog
             fields = [
-                "pk", "code", "title", "is_group", "description", "order",
+                "pk","title", "is_onvan_asli", "description", "order",
                 "contract_domin", "contract_domin_title",
                 "faz", "faz_title",
                 "parent",
@@ -130,7 +130,7 @@ class ShrhCatalogDetailsApiViews(APIView):
     class ShrhCatalogDetailsInputSerializer(serializers.ModelSerializer):
         class Meta:
             model = ShrhCatalog
-            fields = ["contract_domin", "code", "faz", "parent", "is_group", "title", "vahed", "description", "order"]
+            fields = ["contract_domin", "faz", "parent", "is_onvan_asli", "title", "vahed", "description", "order"]
 
         def validate(self, attrs):
             """
@@ -145,18 +145,18 @@ class ShrhCatalogDetailsApiViews(APIView):
 
             parent = get("parent")
             faz = get("faz")
-            is_group = get("is_group")
+            is_onvan_asli = get("is_onvan_asli")
             vahed = get("vahed")
 
             errors = {}
             if parent:
                 if parent.pk == self.instance.pk:
-                    errors["parent"] = "یک بند نمی‌تواند والد خودش باشد."
-                elif not parent.is_group:
-                    errors["parent"] = "والد باید یک گروه باشد."
+                    errors["parent"] = "یک بند نمی‌تواند عنوان اصلی خودش باشد."
+                elif not parent.is_onvan_asli:
+                    errors["parent"] = "عنوان اصلی باید یک گروه باشد."
                 elif faz is None or parent.faz_id != faz.pk:
-                    errors["faz"] = "فاز بند باید با فاز گروه والد یکی باشد."
-            if is_group and vahed:
+                    errors["faz"] = "فاز بند باید با فاز گروه عنوان اصلی یکی باشد."
+            if is_onvan_asli and vahed:
                 errors["vahed"] = "گروه واحد ندارد."
 
             if errors:
@@ -227,7 +227,6 @@ class ShrhContractListApiViews(SearchMixin, APIView):
                 model = Vahed
                 fields = ["id", "title"]
 
-        code = serializers.IntegerField(source="shrh_catalog.code", read_only=True)
         title = serializers.CharField(source="shrh_catalog.title", read_only=True)
         faz = ShrhContractListOutputSerializerFaz(source="shrh_catalog.faz", read_only=True)
         vahed = ShrhContractListOutputSerializerVahed(source="shrh_catalog.vahed", read_only=True)
@@ -236,13 +235,13 @@ class ShrhContractListApiViews(SearchMixin, APIView):
         class Meta:
             model = ShrhContract
             fields = [
-                "pk", "shrh_catalog", "code", "title", "faz", "vahed",
+                "pk", "shrh_catalog", "title", "faz", "vahed",
                 "scale", "percentage", "worked_percentage", "ekhtesas",
             ]
             class Meta:
                 model = ShrhContract
                 fields = [
-                    "pk", "shrh_catalog", "code", "title", "faz", "vahed_title",
+                    "pk", "shrh_catalog", "title", "faz", "vahed_title",
                     "scale", "percentage", "worked_percentage", "ekhtesas",
                 ]
  

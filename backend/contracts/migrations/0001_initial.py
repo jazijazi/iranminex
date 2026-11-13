@@ -231,7 +231,7 @@ class Migration(migrations.Migration):
                 ('created_ip', models.GenericIPAddressField(blank=True, editable=False, null=True, verbose_name='IP ایجاد')),
                 ('updated_ip', models.GenericIPAddressField(blank=True, editable=False, null=True, verbose_name='IP بروزرسانی')),
                 ('code', models.PositiveIntegerField(unique=True, verbose_name='کد (ردیف اکسل)')),
-                ('is_group', models.BooleanField(default=False, help_text='گروه\u200cها فقط عنوان\u200cدهنده\u200cاند و به قرارداد اختصاص داده نمی\u200cشوند.', verbose_name='گروه است')),
+                ('is_onvan_asli', models.BooleanField(default=False, help_text='گروه\u200cها فقط عنوان\u200cدهنده\u200cاند و به قرارداد اختصاص داده نمی\u200cشوند.', verbose_name='گروه است')),
                 ('title', models.CharField(max_length=250, verbose_name='عنوان')),
                 ('description', models.TextField(blank=True, default='', verbose_name='توضیحات')),
                 ('order', models.PositiveIntegerField(default=0, verbose_name='ترتیب نمایش')),
@@ -258,7 +258,7 @@ class Migration(migrations.Migration):
                 ('worked_percentage', models.FloatField(default=0, validators=[django.core.validators.MinValueValidator(0), django.core.validators.MaxValueValidator(100)], verbose_name='درصد کار')),
                 ('contract', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='shrh_items', to='contracts.contract', verbose_name='قرارداد')),
                 ('ekhtesas', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='rbandha', to='contracts.ekhtesasshrh', verbose_name='بستهٔ اختصاص')),
-                ('shrh_catalog', models.ForeignKey(limit_choices_to={'is_group': False}, on_delete=django.db.models.deletion.PROTECT, related_name='rqarardadha', to='contracts.shrhcatalog', verbose_name='بند کاتالوگ')),
+                ('shrh_catalog', models.ForeignKey(limit_choices_to={'is_onvan_asli': False}, on_delete=django.db.models.deletion.PROTECT, related_name='rqarardadha', to='contracts.shrhcatalog', verbose_name='بند کاتالوگ')),
             ],
             options={
                 'verbose_name': 'بند شرح خدمات قرارداد',

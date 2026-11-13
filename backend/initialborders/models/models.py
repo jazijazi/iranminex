@@ -7,6 +7,10 @@ from common.models.models import CustomModel
 from common.models.districts import Ostan
 from contracts.models.models import Contract
 
+def initial_dynamic_upload_path(instance, filename):
+    return f'initialborder/erjaattachs/initialborder_{instance.rinitialborder.id}/{filename}'
+
+
 class InitialBorderDomin(CustomModel):
     title = models.CharField(max_length=100, unique=True)
     code = models.IntegerField(unique=True)
@@ -16,6 +20,15 @@ class InitialBorderDomin(CustomModel):
     class Meta:
         verbose_name = "نوع محدوده اولیه"
         verbose_name_plural = "انواع محدوده اولیه"
+
+class InitialBorderMadeDomin(CustomModel):
+    title = models.CharField(max_length=100, unique=True)
+    
+    def __str__(self):
+        return self.title
+    class Meta:
+        verbose_name = "نوع ماده های محدوده اولیه"
+        verbose_name_plural = "انواع ماده های محدوده اولیه"
 
 class InitialBorder(CustomModel):
     title = models.CharField(
@@ -37,13 +50,6 @@ class InitialBorder(CustomModel):
         blank=True,
         null=True,
     )
-    parentid = models.ForeignKey(
-        'self',
-        on_delete=models.CASCADE,
-        related_name="rparentinitialborder",
-        blank=True,
-        null=True,
-    )
     border = gis_models.MultiPolygonField(
         srid=3857,
         blank=False,
@@ -55,6 +61,14 @@ class InitialBorder(CustomModel):
         related_name="rostaninitialborder",
         blank=True,
     )
+
+    code_cadaster = models.CharField(
+        verbose_name="کد کاداستر",
+        max_length=255,
+        blank=True,
+        null=True,
+    )
+
     onvan_sazemani = models.CharField(
         verbose_name="عنوان سازمانی",
         max_length=255,
@@ -83,12 +97,26 @@ class InitialBorder(CustomModel):
         null=True,
     )
 
-    name_made = models.CharField(
+    made = models.ManyToManyField(
+        InitialBorderMadeDomin,
         verbose_name="نام ماده/گروه",
-        max_length=255,
         blank=True,
         null=True,
+        related_name='rinitmades',
     )
+
+    file = models.FileField(
+        verbose_name="فایل پیوست ارجاع محدوده",
+        blank=False,
+        upload_to=initial_dynamic_upload_path,
+    )
+    
+    def delete(self, *args, **kwargs):
+        # Delete the file from the filesystem
+        if self.file:
+            if os.path.isfile(self.file.path):
+                os.remove(self.file.path)
+        super().delete(*args, **kwargs)
  
     @property
     def center(self):

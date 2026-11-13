@@ -103,7 +103,7 @@ class ShrhCatalog(CustomModel):
 
     - این جدول مستقل از قرارداد است و فقط یک‌بار (seed) از اکسل پر می‌شود.
     - ساختار درختی دارد: «گروه» (مثلاً مطالعات ژئوشیمی) چند «بند» (مثلاً آنالیز
-      شیمیایی نمونه‌ها) دارد. گروه‌ها `is_group=True` و واحد ندارند.
+      شیمیایی نمونه‌ها) دارد. گروه‌ها `is_onvan_asli=True` و واحد ندارند.
     - عنوان‌ها تکراری‌اند (مثلاً «آنالیز شیمیایی نمونه‌ها» در چند فاز)، بنابراین
       عنوان unique نیست و شناسهٔ یکتا همان ستون «ردیف» اکسل (`code`) است.
     - فاز بالاترین سطح است و در جدول Faz نگهداری می‌شود، نه در درخت.
@@ -119,10 +119,6 @@ class ShrhCatalog(CustomModel):
         null=False,
     )
 
-    code = models.PositiveIntegerField(
-        verbose_name="کد (ردیف اکسل)",
-        unique=True,
-    )
     faz = models.ForeignKey(
         Faz,
         verbose_name="فاز",
@@ -131,14 +127,14 @@ class ShrhCatalog(CustomModel):
     )
     parent = models.ForeignKey(
         "self",
-        verbose_name="گروه والد",
+        verbose_name="عنوان اصلی",
         on_delete=models.CASCADE,
         related_name="children",
         blank=True,
         null=True,
     )
-    is_group = models.BooleanField(
-        verbose_name="گروه است",
+    is_onvan_asli = models.BooleanField(
+        verbose_name="عنوان اصلی است",
         default=False,
         help_text="گروه‌ها فقط عنوان‌دهنده‌اند و به قرارداد اختصاص داده نمی‌شوند.",
     )
@@ -148,7 +144,7 @@ class ShrhCatalog(CustomModel):
     )
     vahed = models.ForeignKey(
         Vahed,
-        verbose_name="واحد",
+        verbose_name="واحد اندازه‌گیری",
         on_delete=models.PROTECT,
         related_name="rbandha",
         blank=True,
@@ -167,11 +163,11 @@ class ShrhCatalog(CustomModel):
     def clean(self):
         errors = {}
         if self.parent_id:
-            if not self.parent.is_group:
-                errors['parent'] = "والد باید یک گروه باشد."
+            if not self.parent.is_onvan_asli:
+                errors['parent'] = "عنوان اصلی باید یک گروه باشد."
             elif self.parent.faz_id != self.faz_id:
-                errors['faz'] = "فاز بند باید با فاز گروه والد یکی باشد."
-        if self.is_group and self.vahed_id:
+                errors['faz'] = "فاز بند باید با فاز گروه عنوان اصلی یکی باشد."
+        if self.is_onvan_asli and self.vahed_id:
             errors['vahed'] = "گروه واحد ندارد."
         if errors:
             raise ValidationError(errors)
@@ -371,7 +367,7 @@ class ShrhContract(CustomModel):
         verbose_name="بند کاتالوگ",
         on_delete=models.PROTECT,
         related_name="rqarardadha",
-        limit_choices_to={'is_group': False},
+        limit_choices_to={'is_onvan_asli': False},
     )
     scale = models.IntegerField(
         verbose_name="مقیاس",
@@ -428,7 +424,7 @@ class ShrhContract(CustomModel):
     # ---------- اعتبارسنجی ----------
     def clean(self):
         errors = {}
-        if self.shrh_catalog_id and self.shrh_catalog.is_group:
+        if self.shrh_catalog_id and self.shrh_catalog.is_onvan_asli:
             errors['shrh_catalog'] = "گروه قابل انتخاب نیست؛ باید یک بند انتخاب شود."
         if self.ekhtesas_id:
             if self.ekhtesas.sherkat_contract.contract_id != self.contract_id:
@@ -629,7 +625,7 @@ class ShrhLayer(CustomModel):
     • جدول Vahed از ستون «واحد» اکسل پر می‌شود (مقادیر یکتا، بعد از strip).
     • ShrhCatalog از روی ردیف‌های اکسل پر می‌شود (management command یا data migration):
         - ستون «ردیف» ← code
-        - سطرهای Bold بدون واحد ← is_group=True ؛ سطرهای غیر Bold ← بند (is_group=False)
+        - سطرهای Bold بدون واحد ← is_onvan_asli=True ؛ سطرهای غیر Bold ← بند (is_onvan_asli=False)
         - parent: نزدیک‌ترین گروه بالاتر در همان فاز؛ اگر نبود parent=None
         - faz: فازی که سطر زیر آن قرار دارد
         - vahed و description از ستون‌های «واحد» و «توضیحات»
@@ -645,7 +641,7 @@ class ShrhLayer(CustomModel):
       انتخاب می‌کند. از این لحظه کاربران آن شرکت «مشاور ارشد این قرارداد» محسوب می‌شوند.
 
 مرحله ۲ — انتخاب شرح خدمات و تعیین وزن (سازمان)
-    • سازمان از کاتالوگ ShrhCatalog (فقط is_group=False) بندهای این قرارداد را انتخاب می‌کند.
+    • سازمان از کاتالوگ ShrhCatalog (فقط is_onvan_asli=False) بندهای این قرارداد را انتخاب می‌کند.
       برای هر انتخاب یک ShrhContract ساخته می‌شود با:
         - percentage = وزن بند (توسط سازمان)
         - scale = مقیاس (در صورت نیاز)
