@@ -272,7 +272,7 @@ class ShrhLayerCommentAdmin(admin.ModelAdmin):
 class ShrhContractAdmin(WriterFormsetMixin, admin.ModelAdmin):
     list_display = ("contract", "band", "scale", "percentage", "completion_bar", "sherkat", "ekhtesas_vaziat")
     list_filter = ("scale", "shrh_catalog__faz", "contract")
-    search_fields = ("contract__title", "shrh_catalog__title", "shrh_catalog__code")
+    search_fields = ("contract__title", "shrh_catalog__title",)
     autocomplete_fields = ("contract", "shrh_catalog", "ekhtesas")
     list_select_related = ("contract", "shrh_catalog", "ekhtesas__sherkat_contract__sherkat")
     list_per_page = 40

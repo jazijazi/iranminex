@@ -132,6 +132,7 @@ class ShrhCatalog(CustomModel):
         related_name="children",
         blank=True,
         null=True,
+        limit_choices_to={"is_onvan_asli": True},
     )
     is_onvan_asli = models.BooleanField(
         verbose_name="عنوان اصلی است",
@@ -164,11 +165,11 @@ class ShrhCatalog(CustomModel):
         errors = {}
         if self.parent_id:
             if not self.parent.is_onvan_asli:
-                errors['parent'] = "عنوان اصلی باید یک گروه باشد."
+                errors['parent'] = "عنوان اصلی باید یک عنوان اصلی باشد."
             elif self.parent.faz_id != self.faz_id:
-                errors['faz'] = "فاز بند باید با فاز گروه عنوان اصلی یکی باشد."
+                errors['faz'] = "فاز بند باید با فاز عنوان اصلی یکی باشد."
         if self.is_onvan_asli and self.vahed_id:
-            errors['vahed'] = "گروه واحد ندارد."
+            errors['vahed'] = "عنوان اصلی واحد اندازه گیری ندارد."
         if errors:
             raise ValidationError(errors)
 
@@ -177,7 +178,8 @@ class ShrhCatalog(CustomModel):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.code} - {self.title}"
+        prefix = "📁" if self.is_onvan_asli else "↳"
+        return f"{prefix} {self.faz} | {self.title}"
 
     class Meta:
         verbose_name = "بند کاتالوگ شرح خدمات"
