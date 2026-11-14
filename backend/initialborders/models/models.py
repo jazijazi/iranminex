@@ -8,7 +8,7 @@ from common.models.districts import Ostan
 from contracts.models.models import Contract
 
 def initial_dynamic_upload_path(instance, filename):
-    return f'initialborder/erjaattachs/initialborder_{instance.rinitialborder.id}/{filename}'
+    return f'initialborder/erjaattachs/initialborder_{instance.id}/{filename}'
 
 
 class InitialBorderDomin(CustomModel):

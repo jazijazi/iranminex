@@ -1,0 +1,30 @@
+meta {
+  name: create faz
+  type: http
+  seq: 22
+}
+
+post {
+  url: localhost:8000/api/contracts/vahed/
+  body: multipartForm
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJleHAiOjE3OTQ2NTY2MjYsImlhdCI6MTc5NDY0NzYyNiwidHlwZSI6ImFjY2VzcyJ9.ZYv3aW4tA0iwhk34vBxPpP8inJLezkfqEv5dsUQSbHA
+}
+
+body:json {
+  
+  }
+}
+
+body:multipart-form {
+  title: asdasd
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+  forwardAuthorizationHeader: false
+}

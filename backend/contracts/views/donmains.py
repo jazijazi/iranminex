@@ -45,7 +45,7 @@ class VahedListApiViews(SearchMixin , APIView):
             model = Vahed
             fields = ["title"]
 
-    def get(self, request: Request, contractid: str) -> Response:
+    def get(self, request: Request) -> Response:
         user: User = request.user
         all_vaheds = Vahed.objects.all()
         all_vaheds = self.apply_search(all_vaheds, request)
@@ -56,7 +56,7 @@ class VahedListApiViews(SearchMixin , APIView):
 
         return paginator.get_paginated_response(serializer.data)
 
-    def post(self, request: Request, contractid: str) -> Response:
+    def post(self, request: Request) -> Response:
         user: User = request.user
 
         serializer = self.VahedListInputSerializer(data=request.data)
@@ -81,7 +81,7 @@ class VahedDetailsApiViews(APIView):
     class VahedDetailsInputSerializer(serializers.ModelSerializer):
         class Meta:
             model = Vahed
-            fields = ["title", "mablagh", "tarikh", "description"]
+            fields = ["title",]
 
     def get(self, request: Request, id: int) -> Response:
         user: User = request.user

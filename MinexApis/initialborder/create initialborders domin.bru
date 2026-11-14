@@ -1,0 +1,26 @@
+meta {
+  name: create initialborders domin
+  type: http
+  seq: 7
+}
+
+post {
+  url: localhost:8000/api/initialborders/domins/
+  body: multipartForm
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJleHAiOjE3OTQ2NjAyNjUsImlhdCI6MTc5NDY1MTI2NSwidHlwZSI6ImFjY2VzcyJ9.1VX-EL-4ouDX3um68D6R__ur-jUI8be-BeHvJcHNiDg
+}
+
+body:multipart-form {
+  title: محدوده های مخالفت شده
+  code: 1
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+  forwardAuthorizationHeader: false
+}

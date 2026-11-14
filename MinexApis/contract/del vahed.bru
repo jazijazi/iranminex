@@ -1,0 +1,21 @@
+meta {
+  name: del vahed
+  type: http
+  seq: 20
+}
+
+delete {
+  url: localhost:8000/api/contracts/vahed/11/
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJleHAiOjE3OTQ2NTY2MjYsImlhdCI6MTc5NDY0NzYyNiwidHlwZSI6ImFjY2VzcyJ9.ZYv3aW4tA0iwhk34vBxPpP8inJLezkfqEv5dsUQSbHA
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+  forwardAuthorizationHeader: false
+}

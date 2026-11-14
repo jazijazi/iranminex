@@ -82,16 +82,16 @@ urlpatterns = [
 
     #Dominas
     path('vahed/' , VahedListApiViews.as_view(), name="vahed-list"),
-    path('vahed/<int:pk>/' , VahedDetailsApiViews.as_view(), name="vahed-details"),
+    path('vahed/<int:id>/' , VahedDetailsApiViews.as_view(), name="vahed-details"),
     path('faz/' , FazListApiViews.as_view(), name="faz-list"),
-    path('faz/<int:pk>/' , FazDetailsApiViews.as_view(), name="faz-details"),
+    path('faz/<int:id>/' , FazDetailsApiViews.as_view(), name="faz-details"),
     path('domain/' , ContractDominListApiViews.as_view(), name="domain-list"),
-    path('domain/<int:pk>/' , ContractDominDetailsApiViews.as_view(), name="domain-details"),
-    path('naghsh/' , NaghshSherkatListApiViews.as_view(), name="naghsh-list"),
-    path('naghsh/<int:pk>/' , NaghshSherkatDetailsApiViews.as_view(), name="naghsh-details"),
+    path('domain/<int:id>/' , ContractDominDetailsApiViews.as_view(), name="domain-details"),
+    path('naghsh-sherkat/' , NaghshSherkatListApiViews.as_view(), name="naghsh-list"),
+    path('naghsh-sherkat/<int:id>/' , NaghshSherkatDetailsApiViews.as_view(), name="naghsh-details"),
     path('contractattachmentdomain/' , ContractAttachmentDomainListApiViews.as_view(), name="contract-atach-domin-list"),
-    path('contractattachmentdomain/<int:pk>/' , ContractAttachmentDomainDetailsApiViews.as_view(), name="contract-atach-domin-details"),
+    path('contractattachmentdomain/<int:id>/' , ContractAttachmentDomainDetailsApiViews.as_view(), name="contract-atach-domin-details"),
     path('sharhattachmentdomain/' , ShrhAttachmentDomainListApiViews.as_view(), name="sharh-atach-domin-list"),
-    path('sharhattachmentdomain/<int:pk>/' , ShrhAttachmentDomainDetailsApiViews.as_view(), name="sharh-atach-domin-details"),
+    path('sharhattachmentdomain/<int:id>/' , ShrhAttachmentDomainDetailsApiViews.as_view(), name="sharh-atach-domin-details"),
 
 ]

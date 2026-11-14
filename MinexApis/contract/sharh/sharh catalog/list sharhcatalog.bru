@@ -5,13 +5,17 @@ meta {
 }
 
 get {
-  url: http://localhost:8000/api/contracts/sharhcatalog/
+  url: http://localhost:8000/api/contracts/sharhcatalog/?contract_domin=2
   body: none
   auth: bearer
 }
 
+params:query {
+  contract_domin: 2
+}
+
 auth:bearer {
-  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJleHAiOjE3OTQ2NDIwMDQsImlhdCI6MTc5NDYzMzAwNCwidHlwZSI6ImFjY2VzcyJ9.pPxTjxYSiHknXzX46ZiWs0frH0UxVvMJFT7s_jAmBPU
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJleHAiOjE3OTQ2NTU5MDEsImlhdCI6MTc5NDY0NjkwMSwidHlwZSI6ImFjY2VzcyJ9._EydzQjwshEB7hKYZBZctNtJzacrovZ_WnynBxM1aAA
 }
 
 settings {

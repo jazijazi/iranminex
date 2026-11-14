@@ -92,7 +92,7 @@ class ShrhCatalogListApiViews(SearchMixin, FilterMixin, APIView):
     def get(self, request: Request) -> Response:
         user: User = request.user
         all_catalogs = ShrhCatalog.objects.select_related("contract_domin", "faz", "vahed")
-        all_karbargfive = self.apply_filterset(all_catalogs, request)
+        all_catalogs = self.apply_filterset(all_catalogs, request)
         all_catalogs = self.apply_search(all_catalogs, request)
         paginator = CustomPagination()
         page = paginator.paginate_queryset(all_catalogs, request)
