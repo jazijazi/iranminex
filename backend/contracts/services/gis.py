@@ -107,3 +107,73 @@ def proccess_package_contract_kader__zipfile(
         return False, None, "زیپ فایل نامعتبر می‌باشد"
     except Exception as e:
         return False, None, f"Unexpected error processing ZIP file: {str(e)}"
+    
+
+
+    
+def proccess_package_fazkader_contract_kader__zipfile(
+    zipfile_obj: UploadedFile,
+) -> Tuple[bool, Optional[MultiPolygon], str]:
+    """
+    Read the zipped shapefile of (FazKaderContract.kader) and convert it
+    to one Django MultiPolygon (EPSG:3857).
+
+    Returns:
+        (True, MultiPolygon, "")         on success
+        (False, None, error_message)     on failure
+    """
+    try:
+        zipfile_obj.seek(0)
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            with zipfile.ZipFile(zipfile_obj, "r") as zip_ref:
+                zip_ref.extractall(temp_dir)
+
+            # lowercase name -> real name, so extensions are matched case-insensitively
+            files = {name.lower(): name for name in os.listdir(temp_dir)}
+
+            shp_key = next((name for name in sorted(files) if name.endswith(".shp")), None)
+            if shp_key is None:
+                return False, None, "فایلی با فرمت .shp در زیپ فایل یافت نشد"
+
+            base_name = os.path.splitext(shp_key)[0]
+            missing_files = [
+                ext for ext in (".shp", ".shx", ".dbf") if base_name + ext not in files
+            ]
+            if missing_files:
+                return False, None, f"این فایل ها در زیپ فایل یافت نشد: {missing_files}"
+
+            try:
+                gdf = gpd.read_file(os.path.join(temp_dir, files[shp_key]))
+            except Exception as e:
+                return False, None, f"خطا در خواندن شیپ فایل: {str(e)}"
+
+            try:
+                gdf.geometry = gdf.geometry.apply(drop_zm)
+            except Exception:
+                return False, None, "خطا در حذف zm از فایل"
+
+            is_valid, validation_error = validate_geodataframe(gdf, validation_check=True)
+            if not is_valid:
+                return False, None, f"خطا در شیپ فایل ورودی: {validation_error}"
+
+            if gdf.crs is None:
+                return False, None, "مختصات شیپ ورودی صحیح نمی‌باشد"
+
+            if gdf.crs.to_epsg() != 3857:
+                try:
+                    gdf = gdf.to_crs(epsg=3857)
+                except Exception as e:
+                    return False, None, f"خطا در مختصات شیپ فایل: {str(e)}"
+
+            try:
+                multipolygon = convert_gdf_to_multipolygon(gdf)
+            except Exception as e:
+                return False, None, f"خطا در ساخت multipolygon: {str(e)}"
+
+            return True, multipolygon, ""
+
+    except zipfile.BadZipFile:
+        return False, None, "زیپ فایل نامعتبر می‌باشد"
+    except Exception as e:
+        return False, None, f"Unexpected error processing ZIP file: {str(e)}"

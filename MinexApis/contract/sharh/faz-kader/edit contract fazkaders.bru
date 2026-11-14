@@ -1,0 +1,25 @@
+meta {
+  name: edit contract fazkaders
+  type: http
+  seq: 6
+}
+
+put {
+  url: http://localhost:8000/api/contracts/0f31d4e2-4c8e-4d97-860a-6bdd7abdd187/faz-kaders/2/
+  body: multipartForm
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJleHAiOjE3OTQ2NjM4MDEsImlhdCI6MTc5NDY1NDgwMSwidHlwZSI6ImFjY2VzcyJ9.PoG7jM2oMP2-tioCIUnEsriqW5-e9hLuxoM_E-0Tt1o
+}
+
+body:multipart-form {
+  kader_name: کادر زیر جنوبی
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+  forwardAuthorizationHeader: false
+}

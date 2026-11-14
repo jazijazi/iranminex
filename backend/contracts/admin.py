@@ -20,7 +20,7 @@ from contracts.models.models import (
     Contract, ContractDomin, ContractElhaghye,
     Faz, Vahed, ShrhCatalog,
     NaghshSherkat, SherkatContract,
-    PackageShrh, ShrhContract, ShrhLayer,
+    PackageShrh, ShrhContract, ShrhLayer,FazKaderContract,
     ShrhAttachmentDomain, ShrhAttachment, ShrhLayerComment,
 )
 
@@ -106,6 +106,20 @@ class ShrhCatalogAdmin(admin.ModelAdmin):
     @admin.display(description="نوع")
     def noe(self, obj):
         return badge("گروه", "#7c3aed") if obj.is_onvan_asli else badge("بند", "#0891b2")
+    
+
+    
+# ───────────────────────── محدوده کادر فازهای قرارداد ─────────────────────────
+@admin.register(FazKaderContract)
+class FazKaderContractAdmin(admin.ModelAdmin):
+    list_display = ("kader_name", "contract", "faz", "created_at")
+    list_filter = ("faz",)
+    search_fields = ("kader_name", "contract__title", "contract__number", "faz__title")
+    list_select_related = ("contract", "faz")
+    raw_id_fields = ("contract",)
+    ordering = ("contract__title", "faz__order")
+    readonly_fields = ("created_at",)
+    fields = ("contract", "faz", "kader_name", "kader", "created_at")
 
 
 # ───────────────────────── شرکت‌های قرارداد ─────────────────────────

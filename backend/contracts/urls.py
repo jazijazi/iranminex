@@ -34,6 +34,9 @@ from contracts.views.sharhkhadamatviews import(
     ShrhCatalogListApiViews,
     ShrhCatalogDetailsApiViews,
 
+    FazKaderContractListView,
+    FazKaderContractDetailsView,
+
     ShrhContractListApiViews,
     ShrhContractDetailsApiViews,
 
@@ -63,6 +66,9 @@ urlpatterns = [
     # Sharhkhadamat
     path('sharhcatalog/' , ShrhCatalogListApiViews.as_view() , name="shathcatalog-list"),
     path('sharhcatalog/<int:id>/' , ShrhCatalogDetailsApiViews.as_view() , name="shathcatalog-details"),
+
+    path('<uuid:contractid>/faz-kaders/' , FazKaderContractListView.as_view() , name="faz-kader-list"),
+    path('<uuid:contractid>/faz-kaders/<int:fazkaderid>/' , FazKaderContractDetailsView.as_view() , name="faz-kader-details"),
 
     path('<uuid:contractid>/sharh-items/' , ShrhContractListApiViews.as_view() , name="sharcontract-list"),
     path('<uuid:contractid>/sharh-items/<int:sharhcontractid>/' , ShrhContractDetailsApiViews.as_view() , name="sharcontract-details"),

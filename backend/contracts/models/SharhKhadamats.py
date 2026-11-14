@@ -478,6 +478,51 @@ class ShrhContract(CustomModel):
         ]
 
 
+
+class FazKaderContract(CustomModel):
+    """
+    کادر مربوط به هر فاز از یک قرارداد.
+
+    - هر قرارداد برای هر فاز یک کادر (MultiPolygon) دارد.
+    - کادر و عنوان آن مخصوص همان قرارداد و همان فاز است و ربطی به InitialBorder
+      یا کادر بسته‌ها (PackageShrh.kader) ندارد.
+    """
+    contract = models.ForeignKey(
+        Contract,
+        verbose_name="قرارداد",
+        on_delete=models.CASCADE,
+        related_name="rfazkaderha",
+    )
+    faz = models.ForeignKey(
+        Faz,
+        verbose_name="فاز",
+        on_delete=models.PROTECT,
+        related_name="rfazkaderha",
+    )
+    kader = gis_models.MultiPolygonField(
+        verbose_name="کادر",
+        srid=3857,
+    )
+    kader_name = models.CharField(
+        verbose_name="عنوان کادر",
+        max_length=250,
+    )
+
+    def __str__(self):
+        return f"{self.contract.title} - {self.faz.title} - {self.kader_name}"
+
+    class Meta:
+        verbose_name = "کادر فاز قرارداد"
+        verbose_name_plural = "کادرهای فاز قرارداد"
+        ordering = ['faz__order']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['contract', 'faz'],
+                name='uniq_faz_kader_per_contract',
+            ),
+        ]
+
+
 # ════════════════════════════════════════════════════════════════════
 # ۶) لایه‌های هر بند
 # ════════════════════════════════════════════════════════════════════

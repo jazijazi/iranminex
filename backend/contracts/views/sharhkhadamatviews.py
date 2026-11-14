@@ -29,12 +29,15 @@ from contracts.models.SharhKhadamats import (
     SherkatContract,
     NaghshSherkat,
     PackageShrh,
+    FazKaderContract,
 )
 from common.models.other import Sherkat
 from common.mixins import SearchMixin , FilterMixin
 
-from contracts.services.gis import proccess_package_contract_kader__zipfile
-
+from contracts.services.gis import (
+    proccess_package_contract_kader__zipfile,
+    proccess_package_fazkader_contract_kader__zipfile
+)
 delete_logger = logging.getLogger('delete_activity_logger')
 api_activity_logger = logging.getLogger("api_activity_logger")
 
@@ -212,20 +215,6 @@ class ShrhCatalogDetailsApiViews(APIView):
             f"حذف بند کاتالوگ شرح خدمات  {catalog.title}", extra=get_details_from_request(request)
         )
         return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-
-# ---------------------------------------------------------------------------
-# import های لازم (به import قبلی contracts.models.models اضافه شود):
-#
-# from contracts.models.models import (
-#     ...,
-#     Contract,
-#     ShrhCatalog,
-#     ShrhContract,
-#     PackageShrh,
-# )
-# ---------------------------------------------------------------------------
 
 
 class ShrhContractListApiViews(SearchMixin, APIView):
@@ -926,6 +915,238 @@ class PackageShrhDetailsApiViews(APIView):
     
 
 
+
+class FazKaderContractListView(SearchMixin, APIView):
+    """
+    GET: کادر فازهای یک قرارداد
+        ?faz=<id>  -> فقط کادر یک فاز
+    POST (multipart/form-data): ساخت کادر یک فاز برای قرارداد
+        - faz         : آیدی فاز (هر فاز در هر قرارداد فقط یک کادر دارد)
+        - kader_name : عنوان کادر
+        - kader_file  : فایل zip شیپ‌فایل کادر
+
+    Object-level check: superuser، یا کاربری که به این قرارداد دسترسی دارد.
+    """
+    search_fields = ["kader_name", "faz__title"]
+
+    class FazKaderContractListOutputSerializer(serializers.ModelSerializer):
+        class FazKaderContractListOutputSerializerFaz(serializers.ModelSerializer):
+            class Meta:
+                model = Faz
+                fields = ["id", "title", "order"]
+
+        faz = FazKaderContractListOutputSerializerFaz()
+
+        class Meta:
+            model = FazKaderContract
+            fields = ["pk", "faz", "kader_name"]
+
+    class FazKaderContractListInputSerializer(serializers.ModelSerializer):
+        faz = serializers.PrimaryKeyRelatedField(
+            queryset=Faz.objects.all(),
+            error_messages={
+                "does_not_exist": "فاز با شناسه «{pk_value}» یافت نشد.",
+                "incorrect_type": "نوع آیدی فاز معتبر نمیباشد",
+            },
+        )
+        kader_file = serializers.FileField(
+            validators=[
+                FileExtensionValidator(
+                    allowed_extensions=["zip"],
+                    message="فایل کادر حتما باید با فرمت zip باشد",
+                )
+            ],
+        )
+
+        class Meta:
+            model = FazKaderContract
+            fields = ["faz", "kader_name", "kader_file"]
+
+        def validate_kader_file(self, f):
+            if f.size > 100 * 1024 * 1024:
+                raise serializers.ValidationError(f"File size cannot exceed 100 MB: {f.name}")
+            return f
+
+        def validate(self, attrs):
+            contract = self.context["contract"]
+            if FazKaderContract.objects.filter(contract=contract, faz=attrs["faz"]).exists():
+                raise serializers.ValidationError(
+                    {"faz": "برای این فاز در این قرارداد قبلا کادر ثبت شده است"}
+                )
+            return attrs
+
+    def get(self, request: Request, contractid: str) -> Response:
+        user: User = request.user
+        try:
+            contract = Contract.objects.get(pk=contractid)
+        except Contract.DoesNotExist:
+            return Response({"detail": "قراردادی با این آیدی وجود ندارد"}, status=status.HTTP_404_NOT_FOUND)
+
+        if not user.is_superuser and not user.has_contract_access(contract):
+            return Response({"detail": "کاربر به این قرارداد دسترسی ندارد"}, status=status.HTTP_403_FORBIDDEN)
+
+        queryset = FazKaderContract.objects.filter(contract=contract).select_related("faz")
+
+        faz = request.query_params.get("faz")
+        if faz:
+            queryset = queryset.filter(faz_id=faz)
+
+        queryset = self.apply_search(queryset, request)
+        paginator = CustomPagination()
+        page = paginator.paginate_queryset(queryset, request)
+        serializer = self.FazKaderContractListOutputSerializer(page, many=True, context={"request": request})
+        api_activity_logger.info(f"خواندن لیست کادر فازهای قرارداد {contract.title}", extra=get_details_from_request(request))
+
+        return paginator.get_paginated_response(serializer.data)
+
+    def post(self, request: Request, contractid: str) -> Response:
+        user: User = request.user
+        try:
+            contract = Contract.objects.get(pk=contractid)
+        except Contract.DoesNotExist:
+            return Response({"detail": "قراردادی با این آیدی وجود ندارد"}, status=status.HTTP_404_NOT_FOUND)
+
+        if not user.is_superuser and not user.has_contract_access(contract):
+            return Response({"detail": "کاربر به این قرارداد دسترسی ندارد"}, status=status.HTTP_403_FORBIDDEN)
+
+        serializer = self.FazKaderContractListInputSerializer(
+            data=request.data, context={"request": request, "contract": contract}
+        )
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        ok, geometry, message = proccess_package_fazkader_contract_kader__zipfile(data["kader_file"])
+        if not ok:
+            raise ValidationError({"kader_file": f"{data['kader_file'].name}: {message}"})
+
+        new_kader = FazKaderContract.objects.create(
+            contract=contract,
+            faz=data["faz"],
+            kader_name=data["kader_name"],
+            kader=geometry,
+        )
+
+        api_activity_logger.info(
+            f"ساخت کادر فاز {new_kader.faz.title} برای قرارداد {contract.title}",
+            extra=get_details_from_request(request),
+        )
+        return Response(
+            self.FazKaderContractListOutputSerializer(new_kader, context={"request": request}).data,
+            status=status.HTTP_201_CREATED,
+        )
+
+
+class FazKaderContractDetailsView(APIView):
+    """
+    GET: جزئیات کادر یک فاز قرارداد
+    PUT (multipart/form-data, partial): ویرایش عنوان و/یا جایگزینی کادر
+        - kader_name
+        - kader_file : (اختیاری) جایگزینی کادر
+        فاز از اینجا تغییر نمی‌کند؛ برای فاز دیگر، کادر را حذف و دوباره بسازید.
+    DELETE: حذف کادر
+
+    Object-level check: superuser، یا کاربری که به این قرارداد دسترسی دارد.
+    """
+
+    class FazKaderContractDetailsOutputSerializer(serializers.ModelSerializer):
+        class FazKaderContractDetailsOutputSerializerFaz(serializers.ModelSerializer):
+            class Meta:
+                model = Faz
+                fields = ["id", "title", "order"]
+
+        faz = FazKaderContractDetailsOutputSerializerFaz()
+
+        class Meta:
+            model = FazKaderContract
+            fields = ["pk", "faz", "kader_name"]
+
+    class FazKaderContractDetailsInputSerializer(serializers.ModelSerializer):
+        kader_file = serializers.FileField(
+            required=False,
+            validators=[
+                FileExtensionValidator(
+                    allowed_extensions=["zip"],
+                    message="فایل کادر حتما باید با فرمت zip باشد",
+                )
+            ],
+        )
+
+        class Meta:
+            model = FazKaderContract
+            fields = ["kader_name", "kader_file"]
+
+        def validate_kader_file(self, f):
+            if f.size > 100 * 1024 * 1024:
+                raise serializers.ValidationError(f"File size cannot exceed 100 MB: {f.name}")
+            return f
+
+    def _get_kader(self, contractid, fazkaderid):
+        try:
+            return FazKaderContract.objects.select_related("contract", "faz").get(
+                pk=fazkaderid, contract_id=contractid
+            ), None
+        except FazKaderContract.DoesNotExist:
+            return None, Response(
+                {"detail": "کادری با این آیدی برای این قرارداد وجود ندارد"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+    def get(self, request: Request, contractid: str, fazkaderid: int) -> Response:
+        user: User = request.user
+        kader, error = self._get_kader(contractid, fazkaderid)
+        if error:
+            return error
+        if not user.is_superuser and not user.has_contract_access(kader.contract):
+            return Response({"detail": "کاربر به این قرارداد دسترسی ندارد"}, status=status.HTTP_403_FORBIDDEN)
+
+        api_activity_logger.info(
+            f"خواندن اطلاعات کادر فاز {kader.faz.title} قرارداد {kader.contract.title}",
+            extra=get_details_from_request(request),
+        )
+        return Response(
+            self.FazKaderContractDetailsOutputSerializer(kader, context={"request": request}).data
+        )
+
+    def put(self, request: Request, contractid: str, fazkaderid: int) -> Response:
+        user: User = request.user
+        kader, error = self._get_kader(contractid, fazkaderid)
+        if error:
+            return error
+        if not user.is_superuser and not user.has_contract_access(kader.contract):
+            return Response({"detail": "کاربر به این قرارداد دسترسی ندارد"}, status=status.HTTP_403_FORBIDDEN)
+
+        serializer = self.FazKaderContractDetailsInputSerializer(kader, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        if "kader_file" in data:
+            ok, geometry, message = proccess_package_fazkader_contract_kader__zipfile(data["kader_file"])
+            if not ok:
+                raise ValidationError({"kader_file": f"{data['kader_file'].name}: {message}"})
+            kader.kader = geometry
+        if "kader_name" in data:
+            kader.kader_name = data["kader_name"]
+        kader.save()
+
+        api_activity_logger.info(
+            f"ویرایش کادر فاز {kader.faz.title} قرارداد {kader.contract.title}",
+            extra=get_details_from_request(request),
+        )
+        return Response(
+            self.FazKaderContractDetailsOutputSerializer(kader, context={"request": request}).data
+        )
+
+    def delete(self, request: Request, contractid: str, fazkaderid: int) -> Response:
+        user: User = request.user
+        kader, error = self._get_kader(contractid, fazkaderid)
+        if error:
+            return error
+        if not user.is_superuser and not user.has_contract_access(kader.contract):
+            return Response({"detail": "کاربر به این قرارداد دسترسی ندارد"}, status=status.HTTP_403_FORBIDDEN)
+
+        label = f"{kader.faz.title} قرارداد {kader.contract.title}"
+        kader.delete()
+        delete_logger.warning(f"حذف کادر فاز {label}", extra=get_details_from_request(request))
+        return Response(status=status.HTTP_204_NO_CONTENT)
 # class SharhKhadamatLayerListApiView(SearchMixin, APIView):
 #     """
 #         Get A Contract uuid from url 
