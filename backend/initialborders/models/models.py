@@ -101,7 +101,6 @@ class InitialBorder(CustomModel):
         InitialBorderMadeDomin,
         verbose_name="نام ماده/گروه",
         blank=True,
-        null=True,
         related_name='rinitmades',
     )
 
