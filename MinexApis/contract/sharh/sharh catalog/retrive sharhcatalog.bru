@@ -1,0 +1,21 @@
+meta {
+  name: retrive sharhcatalog
+  type: http
+  seq: 2
+}
+
+get {
+  url: http://localhost:8000/api/contracts/sharhcatalog/146/
+  body: multipartForm
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJleHAiOjE3OTQ2NDIwMDQsImlhdCI6MTc5NDYzMzAwNCwidHlwZSI6ImFjY2VzcyJ9.pPxTjxYSiHknXzX46ZiWs0frH0UxVvMJFT7s_jAmBPU
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+  forwardAuthorizationHeader: false
+}

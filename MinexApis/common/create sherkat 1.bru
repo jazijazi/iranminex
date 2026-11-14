@@ -1,0 +1,25 @@
+meta {
+  name: create sherkat
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:8000/api/common/sherkat/
+  body: formUrlEncoded
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJleHAiOjE3OTQ2NDIwMDQsImlhdCI6MTc5NDYzMzAwNCwidHlwZSI6ImFjY2VzcyJ9.pPxTjxYSiHknXzX46ZiWs0frH0UxVvMJFT7s_jAmBPU
+}
+
+body:form-urlencoded {
+  name: bruno
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+  forwardAuthorizationHeader: false
+}

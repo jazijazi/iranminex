@@ -185,12 +185,12 @@ class Command(BaseCommand):
                     # Group row.
                     if not dry_run:
                         obj, created = ShrhCatalog.objects.update_or_create(
+                            contract_domin=contract_domin,
+                            faz=faz,
+                            title=title,
+                            parent=None,
+                            is_onvan_asli=True,
                             defaults={
-                                "contract_domin": contract_domin,
-                                "faz": faz,
-                                "parent": None,
-                                "is_onvan_asli": True,
-                                "title": title,
                                 "vahed": None,
                                 "description": description,
                                 "order": code,
@@ -216,12 +216,12 @@ class Command(BaseCommand):
 
                     if not dry_run:
                         ShrhCatalog.objects.update_or_create(
+                            contract_domin=contract_domin,
+                            faz=faz,
+                            title=title,
+                            parent=parent,
+                            is_onvan_asli=False,
                             defaults={
-                                "contract_domin": contract_domin,
-                                "faz": faz,
-                                "parent": parent,
-                                "is_onvan_asli": False,
-                                "title": title,
                                 "vahed": vahed,
                                 "description": description,
                                 "order": code,

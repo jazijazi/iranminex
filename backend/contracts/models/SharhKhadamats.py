@@ -13,9 +13,9 @@ contracts/models/SharhKhadamats.py
            │        │
     Contract ──► ShrhContract ──► ShrhLayer (لایه‌ها)
        │              │
-       │              │ اختصاص توسط مشاور ارشد
+       │              │ اختصاص پکیج توسط مشاور ارشد
        │              ▼
-       ├──► SherkatContract ◄── EkhtesasShrh (بستهٔ کار + کادر MultiPolygon)
+       ├──► SherkatContract ◄── PackageShrh (بستهٔ کار + کادر MultiPolygon)
        │          │
        │          └─► NaghshSherkat (ناظر، پیمانکار، ...)
        │
@@ -105,7 +105,7 @@ class ShrhCatalog(CustomModel):
     - ساختار درختی دارد: «گروه» (مثلاً مطالعات ژئوشیمی) چند «بند» (مثلاً آنالیز
       شیمیایی نمونه‌ها) دارد. گروه‌ها `is_onvan_asli=True` و واحد ندارند.
     - عنوان‌ها تکراری‌اند (مثلاً «آنالیز شیمیایی نمونه‌ها» در چند فاز)، بنابراین
-      عنوان unique نیست و شناسهٔ یکتا همان ستون «ردیف» اکسل (`code`) است.
+      عنوان unique نیست .
     - فاز بالاترین سطح است و در جدول Faz نگهداری می‌شود، نه در درخت.
       بعضی بندها مستقیماً زیر فاز هستند، پس `parent` اختیاری است.
     - وزن (درصد) و مقدار اینجا نیست؛ آن‌ها مخصوص هر قرارداد است (ShrhContract).
@@ -137,7 +137,7 @@ class ShrhCatalog(CustomModel):
     is_onvan_asli = models.BooleanField(
         verbose_name="عنوان اصلی است",
         default=False,
-        help_text="گروه‌ها فقط عنوان‌دهنده‌اند و به قرارداد اختصاص داده نمی‌شوند.",
+        help_text="گروه‌ها فقط عنوان‌دهنده‌اند و به قرارداد اختصاص پکیج داده نمی‌شوند.",
     )
     title = models.CharField(
         verbose_name="عنوان",
@@ -161,15 +161,29 @@ class ShrhCatalog(CustomModel):
         default=0,
     )
 
+    def clean_fields(self, exclude=None):
+        exclude = set(exclude or ())
+        exclude.add("parent")
+        super().clean_fields(exclude=exclude)
+
     def clean(self):
         errors = {}
+
         if self.parent_id:
-            if not self.parent.is_onvan_asli:
-                errors['parent'] = "عنوان اصلی باید یک عنوان اصلی باشد."
-            elif self.parent.faz_id != self.faz_id:
-                errors['faz'] = "فاز بند باید با فاز عنوان اصلی یکی باشد."
+            try:
+                parent = self.parent
+            except ShrhCatalog.DoesNotExist:
+                parent = None
+
+            if parent:
+                if not parent.is_onvan_asli:
+                    errors["parent"] = "عنوان اصلی باید یک عنوان اصلی باشد."
+                elif parent.faz_id != self.faz_id:
+                    errors["faz"] = "فاز بند باید با فاز عنوان اصلی یکی باشد."
+
         if self.is_onvan_asli and self.vahed_id:
-            errors['vahed'] = "عنوان اصلی واحد اندازه گیری ندارد."
+            errors["vahed"] = "عنوان اصلی واحد اندازه گیری ندارد."
+
         if errors:
             raise ValidationError(errors)
 
@@ -200,7 +214,7 @@ class NaghshSherkat(CustomModel):
     - جدول جداست تا نقش جدید بدون migration اضافه شود.
     """
     title = models.CharField(
-        verbose_name="عنوان نقش",
+        verbose_name="عنوان نقش شرکت در قرارداد",
         max_length=100,
         unique=True,
         error_messages={'unique': "نقشی با این عنوان هم‌اکنون وجود دارد"},
@@ -210,8 +224,8 @@ class NaghshSherkat(CustomModel):
         return self.title
 
     class Meta:
-        verbose_name = "نقش شرکت"
-        verbose_name_plural = "نقش‌های شرکت"
+        verbose_name = "نقش شرکت در قرارداد"
+        verbose_name_plural = "نقش‌های شرکت ها در قراردادها"
 
 
 class SherkatContract(CustomModel):
@@ -238,7 +252,7 @@ class SherkatContract(CustomModel):
     )
     naghsh = models.ForeignKey(
         NaghshSherkat,
-        verbose_name="نقش",
+        verbose_name="نقش شرکت در قرارداد",
         on_delete=models.PROTECT,
         related_name="rsherkatha",
     )
@@ -269,17 +283,17 @@ class SherkatContract(CustomModel):
 
 
 # ════════════════════════════════════════════════════════════════════
-# ۴) بستهٔ کار: اختصاص بندها به یک شرکت همراه با کادر
+# ۴) بستهٔ کار: اختصاص پکیج بندها به یک شرکت همراه با کادر
 # ════════════════════════════════════════════════════════════════════
 
-class EkhtesasShrh(CustomModel):
+class PackageShrh(CustomModel):
     """
     یک «بستهٔ کار» که مشاور ارشد به یک شرکت قرارداد می‌دهد:
     «در این قرارداد، این شرکت با این نقش، این چند بند را در این کادر انجام دهد.»
 
     - کادر یک MultiPolygon است و هنگام ساخت بسته بارگذاری می‌شود. ربطی به
       InitialBorder یا اکسل ندارد.
-    - مقیاس کادر در `scale` ثبت می‌شود. همهٔ بندهای بسته (ShrhContract.ekhtesas)
+    - مقیاس کادر در `scale` ثبت می‌شود. همهٔ بندهای بسته (ShrhContract.package)
       باید همین مقیاس را داشته باشند.
     - بندها از سمت ShrhContract به این بسته وصل می‌شوند
       (related_name = rbandha). هر بند فقط یک بسته دارد.
@@ -289,7 +303,7 @@ class EkhtesasShrh(CustomModel):
         SherkatContract,
         verbose_name="شرکت قرارداد",
         on_delete=models.CASCADE,
-        related_name="rekhtesasha",
+        related_name="rpackageha",
     )
     kader = gis_models.MultiPolygonField(
         verbose_name="کادر",
@@ -309,9 +323,9 @@ class EkhtesasShrh(CustomModel):
     )
     assigned_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        verbose_name="اختصاص‌دهنده",
+        verbose_name="اختصاص پکیج‌دهنده",
         on_delete=models.SET_NULL,
-        related_name="rekhtesasha",
+        related_name="rpackageha",
         blank=True,
         null=True,
     )
@@ -337,8 +351,8 @@ class EkhtesasShrh(CustomModel):
         return f"{self.sherkat_contract} - {self.kader_name or 'کادر'}"
 
     class Meta:
-        verbose_name = "اختصاص شرح خدمات"
-        verbose_name_plural = "اختصاص‌های شرح خدمات"
+        verbose_name = "اختصاص پکیج شرح خدمات"
+        verbose_name_plural = "اختصاص پکیج‌های شرح خدمات"
 
 
 # ════════════════════════════════════════════════════════════════════
@@ -354,8 +368,8 @@ class ShrhContract(CustomModel):
     - یک بند کاتالوگ در یک قرارداد می‌تواند چند بار بیاید، به‌شرط آن‌که مقیاسش
       فرق کند (مثلاً بند A با مقیاس ۱۰۰۰ و بند A با مقیاس ۵۰۰). برای بندهای
       بدون مقیاس فقط یک رکورد مجاز است. (دو UniqueConstraint پایین)
-    - `ekhtesas` (اختیاری) نشان می‌دهد بند در کدام بستهٔ کار و به کدام شرکت
-      داده شده است؛ خالی یعنی هنوز به کسی اختصاص داده نشده.
+    - `package` (اختیاری) نشان می‌دهد بند در کدام بستهٔ کار و به کدام شرکت
+      داده شده است؛ خالی یعنی هنوز به کسی اختصاص پکیج داده نشده.
     - `worked_percentage` درصد کار انجام‌شده‌ از وزن این بند است.
     """
     contract = models.ForeignKey(
@@ -387,9 +401,9 @@ class ShrhContract(CustomModel):
         default=0,
         validators=[MinValueValidator(0), MaxValueValidator(100)],
     )
-    ekhtesas = models.ForeignKey(
-        EkhtesasShrh,
-        verbose_name="بستهٔ اختصاص",
+    package = models.ForeignKey(
+        PackageShrh,
+        verbose_name="بستهٔ اختصاص پکیج",
         on_delete=models.SET_NULL,
         related_name="rbandha",
         blank=True,
@@ -428,11 +442,11 @@ class ShrhContract(CustomModel):
         errors = {}
         if self.shrh_catalog_id and self.shrh_catalog.is_onvan_asli:
             errors['shrh_catalog'] = "گروه قابل انتخاب نیست؛ باید یک بند انتخاب شود."
-        if self.ekhtesas_id:
-            if self.ekhtesas.sherkat_contract.contract_id != self.contract_id:
-                errors['ekhtesas'] = "این بسته متعلق به قرارداد دیگری است."
-            elif (self.ekhtesas.scale is not None and self.scale is not None
-                  and self.ekhtesas.scale != self.scale):
+        if self.package_id:
+            if self.package.sherkat_contract.contract_id != self.contract_id:
+                errors['package'] = "این بسته متعلق به قرارداد دیگری است."
+            elif (self.package.scale is not None and self.scale is not None
+                  and self.package.scale != self.scale):
                 errors['scale'] = "مقیاس بند با مقیاس کادر بسته یکی نیست."
         if errors:
             raise ValidationError(errors)
@@ -651,19 +665,19 @@ class ShrhLayer(CustomModel):
       (مثلاً A با مقیاس ۱۰۰۰ و A با مقیاس ۵۰۰) و هرکدام وزن خودش را دارد.
     • در لایهٔ سرویس/serializer بررسی شود که مجموع percentage بندهای هر قرارداد از ۱۰۰ بیشتر نشود
       (اینکه حتماً برابر ۱۰۰ باشد یا نه، هنوز تصمیم نگرفته‌ایم).
-    • در این مرحله ekhtesas هنوز خالی است (بند به هیچ‌کس داده نشده).
+    • در این مرحله package هنوز خالی است (بند به هیچ‌کس داده نشده).
 
 مرحله ۳ — تعیین شرکت‌های قرارداد (کاربر مشاور ارشد)
     • مشاور ارشد برای هر شرکت یک SherkatContract می‌سازد: (قرارداد + شرکت + نقش).
     • اعتبارسنجی: خود مشاور ارشد نمی‌تواند اینجا ثبت شود؛ تکرار شرکت+نقش ممنوع؛
       یک شرکت می‌تواند با چند نقش مختلف ثبت شود.
 
-مرحله ۴ — اختصاص بندها و بارگذاری کادر (کاربر مشاور ارشد)
+مرحله ۴ — اختصاص پکیج بندها و بارگذاری کادر (کاربر مشاور ارشد)
     برای هر شرکت و هر کادر:
-      ۱. یک EkhtesasShrh ساخته می‌شود: sherkat_contract، kader (MultiPolygon بارگذاری‌شده)،
+      ۱. یک PackageShrh ساخته می‌شود: sherkat_contract، kader (MultiPolygon بارگذاری‌شده)،
          kader_name، scale، assigned_by.
-      ۲. بندهایی از ShrhContract همین قرارداد که هنوز ekhtesas ندارند انتخاب می‌شوند
-         و ekhtesas آن‌ها روی همین بسته ست می‌شود.
+      ۲. بندهایی از ShrhContract همین قرارداد که هنوز package ندارند انتخاب می‌شوند
+         و package آن‌ها روی همین بسته ست می‌شود.
     قواعد (در ShrhContract.clean بررسی می‌شود):
       • بند باید متعلق به همان قرارداد بسته باشد.
       • مقیاس بند و مقیاس کادر در صورت وجود باید برابر باشد.
@@ -693,7 +707,7 @@ class ShrhLayer(CustomModel):
 
 مرحله ۷ — گزارش پیشرفت
     • پیشرفت هر بند:    ShrhContract.completion_percentage و remaining_percentage
-    • پیشرفت هر بسته:   EkhtesasShrh.pishraft (میانگین وزنی بندهای بسته)
+    • پیشرفت هر بسته:   PackageShrh.pishraft (میانگین وزنی بندهای بسته)
     • مبالغ:            ShrhContract.total_price و completed_price
                         (برپایهٔ Contract.mablagh × درصد)
     • پیشرفت کل قرارداد: مجموع worked_percentage بندها
@@ -701,7 +715,7 @@ class ShrhLayer(CustomModel):
 
 نکات مهم
     • حذف: حذف قرارداد، بندها و شرکت‌های آن را هم پاک می‌کند (CASCADE).
-      حذف یک بسته فقط ekhtesas بندها را خالی می‌کند (SET_NULL)، خود بندها می‌مانند.
+      حذف یک بسته فقط package بندها را خالی می‌کند (SET_NULL)، خود بندها می‌مانند.
     • حذف Faz/Vahed/ShrhCatalog/NaghshSherkat/Sherkat در صورت استفاده شدن مجاز نیست (PROTECT).
     • تغییر مشاور ارشد یک قرارداد: اگر مشاور جدید قبلاً در SherkatContract همان قرارداد
       بوده باشد، باید قبل از تغییر آن رکورد حذف شود (در Contract.clean چک می‌شود).

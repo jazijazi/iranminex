@@ -35,6 +35,10 @@ from contracts.views.sharhkhadamatviews import(
     ShrhCatalogDetailsApiViews,
 
     ShrhContractListApiViews,
+    ShrhContractDetailsApiViews,
+
+    PackageShrhListApiViews,
+    PackageShrhDetailsApiViews,
     
 )
 
@@ -58,8 +62,13 @@ urlpatterns = [
 
     # Sharhkhadamat
     path('sharhcatalog/' , ShrhCatalogListApiViews.as_view() , name="shathcatalog-list"),
-    path('sharhcatalog/<int:pk>/' , ShrhCatalogDetailsApiViews.as_view() , name="shathcatalog-details"),
+    path('sharhcatalog/<int:id>/' , ShrhCatalogDetailsApiViews.as_view() , name="shathcatalog-details"),
+
     path('<uuid:contractid>/sharh-items/' , ShrhContractListApiViews.as_view() , name="sharcontract-list"),
+    path('<uuid:contractid>/sharh-items/<int:sharhcontractid>/' , ShrhContractDetailsApiViews.as_view() , name="sharcontract-details"),
+
+    path('<uuid:contractid>/packagesharh/' , PackageShrhListApiViews.as_view(), name="packageshrh-list"),
+    path('<uuid:contractid>/packagesharh/<int:id>/' , PackageShrhDetailsApiViews.as_view(), name="packageshrh-details"),
 
     # Sharhkhadamat layers
     # path('<uuid:contractid>/sharhkhadamat-layers/', SharhKhadamatLayerListApiView.as_view(), name='contract-shrlyr-list'),

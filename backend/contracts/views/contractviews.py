@@ -230,7 +230,7 @@ class ContractListApiViews(SearchMixin, APIView):
                         raise ValidationError({"initborder_ids": e.messages})
 
                 # contract_domin of every catalog item was already checked against
-                # contract.dtyp in the serializer; ekhtesas is filled later
+                # contract.dtyp in the serializer; package is filled later
                 for item in shrh_items:
                     ShrhContract.objects.create(contract=contract, **item)
 

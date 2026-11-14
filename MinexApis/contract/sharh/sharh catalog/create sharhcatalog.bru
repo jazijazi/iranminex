@@ -1,0 +1,31 @@
+meta {
+  name: create sharhcatalog
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:8000/api/contracts/sharhcatalog/
+  body: multipartForm
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJleHAiOjE3OTQ2NDIwMDQsImlhdCI6MTc5NDYzMzAwNCwidHlwZSI6ImFjY2VzcyJ9.pPxTjxYSiHknXzX46ZiWs0frH0UxVvMJFT7s_jAmBPU
+}
+
+body:multipart-form {
+  contract_domin: 1
+  faz: 2
+  title: تست
+  is_onvan_asli: False
+  description: test
+  order: 999
+  vahed: 2
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+  forwardAuthorizationHeader: false
+}

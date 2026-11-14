@@ -1,0 +1,21 @@
+meta {
+  name: retrive contract sharh
+  type: http
+  seq: 2
+}
+
+get {
+  url: http://localhost:8000/api/contracts/0f31d4e2-4c8e-4d97-860a-6bdd7abdd187/sharh-items/4/
+  body: multipartForm
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJleHAiOjE3OTQ2NDIwMDQsImlhdCI6MTc5NDYzMzAwNCwidHlwZSI6ImFjY2VzcyJ9.pPxTjxYSiHknXzX46ZiWs0frH0UxVvMJFT7s_jAmBPU
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+  forwardAuthorizationHeader: false
+}

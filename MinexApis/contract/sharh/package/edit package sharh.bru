@@ -1,0 +1,30 @@
+meta {
+  name: edit package sharh
+  type: http
+  seq: 4
+}
+
+put {
+  url: http://localhost:8000/api/contracts/0f31d4e2-4c8e-4d97-860a-6bdd7abdd187/packagesharh/2/
+  body: multipartForm
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJleHAiOjE3OTQ2NDc0MjMsImlhdCI6MTc5NDYzODQyMywidHlwZSI6ImFjY2VzcyJ9.F7A2iMRoECWb2kPjJJyD52wfX6O-tP8KhCGP8ZdLmkA
+}
+
+body:multipart-form {
+  sherkat: 3
+  naghsh: 3
+  kader_file: @file(/home/jazi/Desktop/ALayers/FOR_ZARRIN/1pl_correct_new.zip) @contentType(application/zip)
+  kader_name: کادر جنوبی
+  shrh_contract_ids: 2
+  scale: 250000
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+  forwardAuthorizationHeader: false
+}

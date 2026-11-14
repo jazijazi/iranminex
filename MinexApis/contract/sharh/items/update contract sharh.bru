@@ -1,0 +1,27 @@
+meta {
+  name: update contract sharh
+  type: http
+  seq: 3
+}
+
+put {
+  url: http://localhost:8000/api/contracts/0f31d4e2-4c8e-4d97-860a-6bdd7abdd187/sharh-items/2/
+  body: multipartForm
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJleHAiOjE3OTQ2NDIwMDQsImlhdCI6MTc5NDYzMzAwNCwidHlwZSI6ImFjY2VzcyJ9.pPxTjxYSiHknXzX46ZiWs0frH0UxVvMJFT7s_jAmBPU
+}
+
+body:multipart-form {
+  scale: 5000
+  percentage: 10
+  worked_percentage: 1
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+  forwardAuthorizationHeader: false
+}

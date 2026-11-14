@@ -1,7 +1,8 @@
 import logging
 from logs.utils import get_details_from_request
 from django.core.validators import FileExtensionValidator
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError as DjangoValidationError
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework import serializers
@@ -25,8 +26,14 @@ from contracts.models.SharhKhadamats import (
     Vahed,
     ShrhCatalog,
     ShrhContract,
+    SherkatContract,
+    NaghshSherkat,
+    PackageShrh,
 )
+from common.models.other import Sherkat
 from common.mixins import SearchMixin , FilterMixin
+
+from contracts.services.gis import proccess_package_contract_kader__zipfile
 
 delete_logger = logging.getLogger('delete_activity_logger')
 api_activity_logger = logging.getLogger("api_activity_logger")
@@ -105,7 +112,6 @@ class ShrhCatalogListApiViews(SearchMixin, FilterMixin, APIView):
             self.ShrhCatalogListOutputSerializer(new_catalog, context={"request": request}).data,
             status=status.HTTP_201_CREATED,
         )
-
 
 class ShrhCatalogDetailsApiViews(APIView):
     """
@@ -208,14 +214,36 @@ class ShrhCatalogDetailsApiViews(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+
+# ---------------------------------------------------------------------------
+# import های لازم (به import قبلی contracts.models.models اضافه شود):
+#
+# from contracts.models.models import (
+#     ...,
+#     Contract,
+#     ShrhCatalog,
+#     ShrhContract,
+#     PackageShrh,
+# )
+# ---------------------------------------------------------------------------
+
+
 class ShrhContractListApiViews(SearchMixin, APIView):
     """
     GET: بندهای شرح خدمات یک قرارداد
-        ?assigned=true|false  -> فقط بندهای اختصاص‌داده‌شده / آزاد
+        ?assigned=true|false  -> فقط بندهای اختصاص پکیج‌داده‌شده / آزاد
         ?faz=<id>             -> فقط بندهای یک فاز
+    POST: افزودن یک بند از کاتالوگ به قرارداد
+        - shrh_catalog      : آیدی بند کاتالوگ (باید «بند» باشد نه گروه، و contract_domin آن
+                              با نوع قرارداد (dtyp) یکی باشد)
+        - scale             : (اختیاری) مقیاس
+        - percentage        : (اختیاری) وزن بند، ۰ تا ۱۰۰
+        - worked_percentage : (اختیاری) درصد کار، ۰ تا ۱۰۰
+        یک بند با مقیاس‌های مختلف می‌تواند چند بار بیاید؛ بدون مقیاس فقط یک‌بار.
+        اختصاص بند به بسته از طریق API بسته‌ها انجام می‌شود، نه اینجا.
     """
     search_fields = ["shrh_catalog__title",]
- 
+
     class ShrhContractListOutputSerializer(serializers.ModelSerializer):
         class ShrhContractListOutputSerializerFaz(serializers.ModelSerializer):
             class Meta:
@@ -231,53 +259,671 @@ class ShrhContractListApiViews(SearchMixin, APIView):
         faz = ShrhContractListOutputSerializerFaz(source="shrh_catalog.faz", read_only=True)
         vahed = ShrhContractListOutputSerializerVahed(source="shrh_catalog.vahed", read_only=True)
 
-
         class Meta:
             model = ShrhContract
             fields = [
                 "pk", "shrh_catalog", "title", "faz", "vahed",
-                "scale", "percentage", "worked_percentage", "ekhtesas",
+                "scale", "percentage", "worked_percentage", "package",
             ]
-            class Meta:
-                model = ShrhContract
-                fields = [
-                    "pk", "shrh_catalog", "title", "faz", "vahed_title",
-                    "scale", "percentage", "worked_percentage", "ekhtesas",
-                ]
- 
+
+    class ShrhContractListInputSerializer(serializers.ModelSerializer):
+        shrh_catalog = serializers.PrimaryKeyRelatedField(
+            queryset=ShrhCatalog.objects.all(),
+            error_messages={
+                "does_not_exist": "بند کاتالوگ با شناسه «{pk_value}» یافت نشد.",
+                "incorrect_type": "نوع آیدی بند کاتالوگ معتبر نمیباشد",
+            },
+        )
+
+        class Meta:
+            model = ShrhContract
+            fields = ["shrh_catalog", "scale", "percentage", "worked_percentage"]
+            # uniqueness (contract + catalog + scale) is checked in validate()
+            validators = []
+
+        def validate(self, attrs):
+            contract = self.context["contract"]
+            catalog = attrs["shrh_catalog"]
+            scale = attrs.get("scale")
+
+            if catalog.is_onvan_asli:
+                raise serializers.ValidationError(
+                    {"shrh_catalog": "گروه قابل انتخاب نیست؛ باید یک بند انتخاب شود."}
+                )
+            if contract.dtyp_id is None or catalog.contract_domin_id != contract.dtyp_id:
+                raise serializers.ValidationError(
+                    {"shrh_catalog": "نوع قرارداد این بند با نوع قرارداد یکی نیست."}
+                )
+            if ShrhContract.objects.filter(contract=contract, shrh_catalog=catalog, scale=scale).exists():
+                raise serializers.ValidationError(
+                    {"shrh_catalog": "این بند با همین مقیاس قبلا به قرارداد اضافه شده است."}
+                )
+            return attrs
+
     def get(self, request: Request, contractid: str) -> Response:
         user: User = request.user
         try:
             contract = Contract.objects.get(pk=contractid)
         except Contract.DoesNotExist:
             return Response({"detail": "قراردادی با این آیدی وجود ندارد"}, status=status.HTTP_404_NOT_FOUND)
- 
+
         if not user.is_superuser and not user.has_contract_access(contract):
             return Response({"detail": "کاربر به این قرارداد دسترسی ندارد"}, status=status.HTTP_403_FORBIDDEN)
- 
+
         queryset = ShrhContract.objects.filter(contract=contract).select_related(
-            "shrh_catalog", "shrh_catalog__vahed"
+            "shrh_catalog", "shrh_catalog__faz", "shrh_catalog__vahed"
         ).order_by("shrh_catalog__order", "pk")
- 
+
         assigned = request.query_params.get("assigned")
         if assigned == "true":
-            queryset = queryset.filter(ekhtesas__isnull=False)
+            queryset = queryset.filter(package__isnull=False)
         elif assigned == "false":
-            queryset = queryset.filter(ekhtesas__isnull=True)
+            queryset = queryset.filter(package__isnull=True)
         faz = request.query_params.get("faz")
         if faz:
             queryset = queryset.filter(shrh_catalog__faz_id=faz)
- 
+
         queryset = self.apply_search(queryset, request)
         paginator = CustomPagination()
         page = paginator.paginate_queryset(queryset, request)
         serializer = self.ShrhContractListOutputSerializer(page, many=True, context={"request": request})
         api_activity_logger.info(f"خواندن لیست بندهای قرارداد {contract.title}", extra=get_details_from_request(request))
- 
+
         return paginator.get_paginated_response(serializer.data)
- 
+
+    def post(self, request: Request, contractid: str) -> Response:
+        user: User = request.user
+        try:
+            contract = Contract.objects.get(pk=contractid)
+        except Contract.DoesNotExist:
+            return Response({"detail": "قراردادی با این آیدی وجود ندارد"}, status=status.HTTP_404_NOT_FOUND)
+
+        if not user.is_superuser and not user.has_contract_access(contract):
+            return Response({"detail": "کاربر به این قرارداد دسترسی ندارد"}, status=status.HTTP_403_FORBIDDEN)
+
+        serializer = self.ShrhContractListInputSerializer(
+            data=request.data, context={"request": request, "contract": contract}
+        )
+        serializer.is_valid(raise_exception=True)
+        new_item = serializer.save(contract=contract)
+
+        api_activity_logger.info(
+            f"افزودن بند {new_item.shrh_catalog.title} به قرارداد {contract.title}",
+            extra=get_details_from_request(request),
+        )
+        return Response(
+            self.ShrhContractListOutputSerializer(new_item, context={"request": request}).data,
+            status=status.HTTP_201_CREATED,
+        )
 
 
+class ShrhContractDetailsApiViews(APIView):
+    """
+    GET: جزئیات یک بند قرارداد (همراه محاسبات وزن، درصد تکمیل و مبلغ)
+    PUT (partial): ویرایش مقیاس، وزن و درصد کار — بند کاتالوگ و بسته از اینجا تغییر نمی‌کنند
+                   (بسته از طریق API بسته‌ها مدیریت می‌شود)
+    DELETE: حذف بند از قرارداد — اگر به بسته‌ای اختصاص داده شده باشد، ابتدا باید از بسته خارج شود
+
+    Object-level check: superuser، یا کاربری که به این قرارداد دسترسی دارد.
+    """
+
+    class ShrhContractDetailsOutputSerializer(serializers.ModelSerializer):
+        class ShrhContractDetailsOutputSerializerCatalog(serializers.ModelSerializer):
+            class Meta:
+                model = ShrhCatalog
+                fields = ["id", "is_onvan_asli", "order", "title"]
+
+        class ShrhContractDetailsOutputSerializerFaz(serializers.ModelSerializer):
+            class Meta:
+                model = Faz
+                fields = ["id", "title", "order"]
+
+        class ShrhContractDetailsOutputSerializerVahed(serializers.ModelSerializer):
+            class Meta:
+                model = Vahed
+                fields = ["id", "title"]
+
+        class ShrhContractDetailsOutputSerializerPackage(serializers.ModelSerializer):
+            class Meta:
+                model = PackageShrh
+                fields = ["id", "kader_name", "scale"]
+
+        shrh_catalog = ShrhContractDetailsOutputSerializerCatalog()
+        faz = ShrhContractDetailsOutputSerializerFaz(source="shrh_catalog.faz")
+        vahed = ShrhContractDetailsOutputSerializerVahed(source="shrh_catalog.vahed")
+        package = ShrhContractDetailsOutputSerializerPackage()
+
+        class Meta:
+            model = ShrhContract
+            fields = [
+                "pk", "shrh_catalog", "faz", "vahed", "scale",
+                "percentage", "worked_percentage", "package",
+                "completion_percentage", "remaining_percentage", "total_price", "completed_price",
+            ]
+
+    class ShrhContractDetailsInputSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = ShrhContract
+            fields = ["scale", "percentage", "worked_percentage"]
+            # uniqueness (contract + catalog + scale) is checked in validate()
+            validators = []
+
+        def validate(self, attrs):
+            item = self.instance
+            if "scale" in attrs:
+                scale = attrs["scale"]
+                if ShrhContract.objects.filter(
+                    contract_id=item.contract_id, shrh_catalog_id=item.shrh_catalog_id, scale=scale
+                ).exclude(pk=item.pk).exists():
+                    raise serializers.ValidationError(
+                        {"scale": "این بند با همین مقیاس قبلا در قرارداد وجود دارد."}
+                    )
+                package = item.package
+                if package and package.scale is not None and scale is not None and package.scale != scale:
+                    raise serializers.ValidationError(
+                        {"scale": "مقیاس بند با مقیاس کادر بسته یکی نیست."}
+                    )
+            return attrs
+
+    def _get_item(self, contractid, sharhcontractid):
+        try:
+            return ShrhContract.objects.select_related(
+                "contract", "package", "shrh_catalog", "shrh_catalog__faz", "shrh_catalog__vahed"
+            ).get(pk=sharhcontractid, contract_id=contractid), None
+        except ShrhContract.DoesNotExist:
+            return None, Response(
+                {"detail": "بندی با این آیدی برای این قرارداد وجود ندارد"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+    def get(self, request: Request, contractid: str, sharhcontractid: int) -> Response:
+        user: User = request.user
+        item, error = self._get_item(contractid, sharhcontractid)
+        if error:
+            return error
+        if not user.is_superuser and not user.has_contract_access(item.contract):
+            return Response({"detail": "کاربر به این قرارداد دسترسی ندارد"}, status=status.HTTP_403_FORBIDDEN)
+
+        api_activity_logger.info(
+            f"خواندن اطلاعات بند {item.shrh_catalog.title} قرارداد {item.contract.title}",
+            extra=get_details_from_request(request),
+        )
+        return Response(
+            self.ShrhContractDetailsOutputSerializer(item, context={"request": request}).data
+        )
+
+    def put(self, request: Request, contractid: str, sharhcontractid: int) -> Response:
+        user: User = request.user
+        item, error = self._get_item(contractid, sharhcontractid)
+        if error:
+            return error
+        if not user.is_superuser and not user.has_contract_access(item.contract):
+            return Response({"detail": "کاربر به این قرارداد دسترسی ندارد"}, status=status.HTTP_403_FORBIDDEN)
+
+        serializer = self.ShrhContractDetailsInputSerializer(item, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        updated_item = serializer.save()
+
+        api_activity_logger.info(
+            f"ویرایش بند {updated_item.shrh_catalog.title} قرارداد {updated_item.contract.title}",
+            extra=get_details_from_request(request),
+        )
+        return Response(
+            self.ShrhContractDetailsOutputSerializer(updated_item, context={"request": request}).data
+        )
+
+    def delete(self, request: Request, contractid: str, sharhcontractid: int) -> Response:
+        user: User = request.user
+        item, error = self._get_item(contractid, sharhcontractid)
+        if error:
+            return error
+        if not user.is_superuser and not user.has_contract_access(item.contract):
+            return Response({"detail": "کاربر به این قرارداد دسترسی ندارد"}, status=status.HTTP_403_FORBIDDEN)
+
+        if item.package_id is not None:
+            return Response(
+                {"detail": "این بند به یک بسته اختصاص داده شده است؛ ابتدا آن را از بسته خارج کنید"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        label = f"{item.shrh_catalog.title} قرارداد {item.contract.title}"
+        item.delete()
+        delete_logger.warning(f"حذف بند {label}", extra=get_details_from_request(request))
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+# ================================ PackageShrh ================================
+
+# ---------------------------------------------------------------------------
+# import های لازم:
+#
+# from django.core.exceptions import ValidationError as DjangoValidationError
+# from django.core.validators import FileExtensionValidator
+# from initialborders.services.gis import proccess_initialborder_zipfile
+# from contracts.models.models import (
+#     Contract, SherkatContract, NaghshSherkat, PackageShrh, ShrhContract,
+# )
+#
+# (import json دیگر لازم نیست)
+# ---------------------------------------------------------------------------
+
+
+class PackageShrhListApiViews(SearchMixin, APIView):
+    """
+    GET: بسته‌های کار یک قرارداد (?sherkat_contract=<id> برای فیلتر یک شرکت)
+    POST (multipart/form-data): در «یک مرحله» شرکت را با نقشش به قرارداد اضافه می‌کند،
+    بسته کار را می‌سازد و بندها را به آن اختصاص می‌دهد — فقط مشاور ارشد همان قرارداد.
+        - sherkat          : آیدی شرکت
+        - naghsh           : آیدی نقش شرکت در این قرارداد
+                             (اگر این شرکت+نقش قبلا در قرارداد ثبت نشده باشد، خودکار ثبت می‌شود)
+        - shrh_contract_ids: آیدی بندهای (ShrhContract) این قرارداد که به این بسته می‌روند.
+                             هر بند باید آزاد باشد و مقیاسش با مقیاس بسته یکی باشد.
+        - kader_file       : فایل zip کادر
+        - kader_name       : (اختیاری) نام کادر
+        - scale            : (اختیاری) مقیاس کادر
+    همه‌چیز در یک transaction انجام می‌شود: اگر هر بخشی خطا بدهد، هیچ‌چیز ذخیره نمی‌شود.
+    """
+    search_fields = ["kader_name", "sherkat_contract__sherkat__name"]
+
+    class PackageShrhListOutputSerializer(serializers.ModelSerializer):
+        class PackageShrhListOutputSerializerSherkatContract(serializers.ModelSerializer):
+            class PackageShrhListOutputSerializerSherkat(serializers.ModelSerializer):
+                class Meta:
+                    model = Sherkat
+                    fields = ["id", "name", "code"]
+
+            class PackageShrhListOutputSerializerNaghsh(serializers.ModelSerializer):
+                class Meta:
+                    model = NaghshSherkat
+                    fields = ["id", "title"]
+
+            sherkat = PackageShrhListOutputSerializerSherkat()
+            naghsh = PackageShrhListOutputSerializerNaghsh()
+
+            class Meta:
+                model = SherkatContract
+                fields = ["pk", "sherkat", "naghsh"]
+
+        sherkat_contract = PackageShrhListOutputSerializerSherkatContract()
+        items_count = serializers.IntegerField(source="rbandha.count", read_only=True)
+        vazn_kol = serializers.FloatField(read_only=True)
+        pishraft = serializers.FloatField(read_only=True)
+
+        class Meta:
+            model = PackageShrh
+            fields = [
+                "pk", "sherkat_contract", "kader_name", "scale",
+                "items_count", "vazn_kol", "pishraft",
+            ]
+
+    class PackageShrhListInputSerializer(serializers.ModelSerializer):
+        sherkat = serializers.PrimaryKeyRelatedField(
+            queryset=Sherkat.objects.all(),
+            error_messages={
+                "does_not_exist": 'شرکت با شناسه "{pk_value}" یافت نشد.',
+                "incorrect_type": "مقدار نامعتبر برای شناسه شرکت: باید عدد باشد.",
+            },
+        )
+        naghsh = serializers.PrimaryKeyRelatedField(
+            queryset=NaghshSherkat.objects.all(),
+            error_messages={
+                "does_not_exist": 'نقش با شناسه "{pk_value}" یافت نشد.',
+                "incorrect_type": "مقدار نامعتبر برای شناسه نقش: باید عدد باشد.",
+            },
+        )
+        kader_file = serializers.FileField(
+            validators=[
+                FileExtensionValidator(
+                    allowed_extensions=["zip"],
+                    message="فایل کادر حتما باید با فرمت zip باشد",
+                )
+            ],
+        )
+        shrh_contract_ids = serializers.PrimaryKeyRelatedField(
+            many=True,
+            queryset=ShrhContract.objects.all(),
+            error_messages={
+                "does_not_exist": "بند قرارداد با شناسه «{pk_value}» یافت نشد.",
+                "incorrect_type": "نوع آیدی بند قرارداد معتبر نمیباشد",
+            },
+        )
+
+        class Meta:
+            model = PackageShrh
+            fields = ["sherkat", "naghsh", "kader_file", "kader_name", "scale", "shrh_contract_ids"]
+
+        def validate_kader_file(self, f):
+            if f.size > 100 * 1024 * 1024:
+                raise serializers.ValidationError(f"File size cannot exceed 100 MB: {f.name}")
+            return f
+
+        def validate(self, attrs):
+            contract = self.context["contract"]
+            sherkat = attrs["sherkat"]
+            items = attrs["shrh_contract_ids"]
+            scale = attrs.get("scale")
+
+            if contract.moshaver_arshad_id == sherkat.pk:
+                raise serializers.ValidationError(
+                    {"sherkat": "مشاور ارشد قرارداد نمی‌تواند به‌عنوان شرکت اجرایی ثبت شود."}
+                )
+            if not items:
+                raise serializers.ValidationError({"shrh_contract_ids": "حداقل یک بند الزامی است"})
+            if len(set(i.pk for i in items)) != len(items):
+                raise serializers.ValidationError({"shrh_contract_ids": "آیدی بند تکراری است"})
+
+            errors = {}
+            for item in items:
+                if item.contract_id != contract.pk:
+                    errors[str(item.pk)] = "این بند متعلق به این قرارداد نیست"
+                elif item.package_id is not None:
+                    errors[str(item.pk)] = "این بند قبلا به یک بسته اختصاص داده شده است"
+                elif scale is not None and item.scale is not None and item.scale != scale:
+                    errors[str(item.pk)] = "مقیاس بند با مقیاس کادر بسته یکی نیست"
+            if errors:
+                raise serializers.ValidationError({"shrh_contract_ids": errors})
+            return attrs
+
+    def get(self, request: Request, contractid: str) -> Response:
+        user: User = request.user
+        try:
+            contract = Contract.objects.get(pk=contractid)
+        except Contract.DoesNotExist:
+            return Response({"detail": "قراردادی با این آیدی وجود ندارد"}, status=status.HTTP_404_NOT_FOUND)
+
+        if not user.is_superuser and not user.has_contract_access(contract):
+            return Response({"detail": "کاربر به این قرارداد دسترسی ندارد"}, status=status.HTTP_403_FORBIDDEN)
+
+        queryset = PackageShrh.objects.filter(sherkat_contract__contract=contract).select_related(
+            "sherkat_contract__sherkat", "sherkat_contract__naghsh"
+        ).prefetch_related("rbandha").order_by("-created_at")
+
+        sherkat_contract = request.query_params.get("sherkat_contract")
+        if sherkat_contract:
+            queryset = queryset.filter(sherkat_contract_id=sherkat_contract)
+
+        queryset = self.apply_search(queryset, request)
+        paginator = CustomPagination()
+        page = paginator.paginate_queryset(queryset, request)
+        serializer = self.PackageShrhListOutputSerializer(page, many=True, context={"request": request})
+        api_activity_logger.info(f"خواندن لیست بسته‌های قرارداد {contract.title}", extra=get_details_from_request(request))
+
+        return paginator.get_paginated_response(serializer.data)
+
+    def post(self, request: Request, contractid: str) -> Response:
+        user: User = request.user
+        try:
+            contract = Contract.objects.get(pk=contractid)
+        except Contract.DoesNotExist:
+            return Response({"detail": "قراردادی با این آیدی وجود ندارد"}, status=status.HTTP_404_NOT_FOUND)
+
+        if not user.is_superuser and not (user.sherkat_id and user.sherkat_id == contract.moshaver_arshad_id):
+            return Response(
+                {"detail": "فقط مشاور ارشد این قرارداد می‌تواند بسته بسازد"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        serializer = self.PackageShrhListInputSerializer(
+            data=request.data, context={"request": request, "contract": contract}
+        )
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        # 1) خواندن فایل کادر قبل از باز شدن transaction (کند است)
+        #    فعلا فقط خوانده می‌شود و geometry در فیلد kader ذخیره می‌شود (kader در مدل الزامی است)
+        ok, geometry, message = proccess_package_contract_kader__zipfile(data["kader_file"])
+        if not ok:
+            raise ValidationError({"kader_file": f"{data['kader_file'].name}: {message}"})
+
+        item_ids = [i.pk for i in data["shrh_contract_ids"]]
+
+        # 2) یک transaction: ثبت شرکت-نقش + ساخت بسته + اتصال بندها
+        try:
+            with transaction.atomic():
+                # قفل بندها تا دو درخواست همزمان یک بند را نگیرند
+                locked = list(ShrhContract.objects.select_for_update().filter(pk__in=item_ids))
+                for item in locked:
+                    if item.package_id is not None:
+                        raise ValidationError(
+                            {"shrh_contract_ids": f"بند {item.pk} قبلا به یک بسته اختصاص داده شده است"}
+                        )
+
+                # شرکت+نقش اگر در این قرارداد نبود ثبت می‌شود، وگرنه همان قبلی استفاده می‌شود
+                sherkat_contract, _ = SherkatContract.objects.get_or_create(
+                    contract=contract, sherkat=data["sherkat"], naghsh=data["naghsh"]
+                )
+
+                package = PackageShrh.objects.create(
+                    sherkat_contract=sherkat_contract,
+                    kader=geometry,
+                    kader_name=data.get("kader_name", ""),
+                    scale=data.get("scale"),
+                    assigned_by=user,
+                )
+                # save() تک‌تک تا full_clean مدل (قرارداد و مقیاس) اجرا شود
+                for item in locked:
+                    item.package = package
+                    item.save()
+        except DjangoValidationError as e:
+            # خطای full_clean مدل‌ها -> 400 به‌جای 500 (transaction همین‌جا rollback شده است)
+            raise ValidationError(e.message_dict if hasattr(e, "error_dict") else e.messages)
+
+        api_activity_logger.info(
+            f"ساخت بسته کار برای {package.sherkat_contract} با {len(item_ids)} بند",
+            extra=get_details_from_request(request),
+        )
+        return Response(
+            self.PackageShrhListOutputSerializer(package, context={"request": request}).data,
+            status=status.HTTP_201_CREATED,
+        )
+
+
+class PackageShrhDetailsApiViews(APIView):
+    """
+    GET: جزئیات بسته (همراه بندها)
+    PUT (multipart/form-data, partial): ویرایش بسته — فقط مشاور ارشد
+        - kader_name, scale
+        - kader_file        : (اختیاری) جایگزینی کادر
+        - shrh_contract_ids : (اختیاری) لیست کامل بندهای بسته؛ بندهای جدید اضافه
+                              و بندهایی که در لیست نیستند آزاد می‌شوند
+    DELETE: حذف بسته (بندها آزاد می‌شوند، حذف نمی‌شوند) — فقط مشاور ارشد
+    """
+
+    class PackageShrhDetailsOutputSerializer(serializers.ModelSerializer):
+        class PackageShrhDetailsOutputSerializerSherkatContract(serializers.ModelSerializer):
+            class PackageShrhDetailsOutputSerializerSherkat(serializers.ModelSerializer):
+                class Meta:
+                    model = Sherkat
+                    fields = ["id", "name", "code"]
+
+            class PackageShrhDetailsOutputSerializerNaghsh(serializers.ModelSerializer):
+                class Meta:
+                    model = NaghshSherkat
+                    fields = ["id", "title"]
+
+            sherkat = PackageShrhDetailsOutputSerializerSherkat()
+            naghsh = PackageShrhDetailsOutputSerializerNaghsh()
+
+            class Meta:
+                model = SherkatContract
+                fields = ["pk", "sherkat", "naghsh"]
+
+        class PackageShrhDetailsOutputSerializerItem(serializers.ModelSerializer):
+            code = serializers.IntegerField(source="shrh_catalog.code", read_only=True)
+            title = serializers.CharField(source="shrh_catalog.title", read_only=True)
+
+            class Meta:
+                model = ShrhContract
+                fields = ["pk", "shrh_catalog", "code", "title", "scale", "percentage", "worked_percentage"]
+
+        sherkat_contract = PackageShrhDetailsOutputSerializerSherkatContract()
+        items = PackageShrhDetailsOutputSerializerItem(source="rbandha", many=True)
+        vazn_kol = serializers.FloatField(read_only=True)
+        pishraft = serializers.FloatField(read_only=True)
+
+        class Meta:
+            model = PackageShrh
+            fields = [
+                "pk", "sherkat_contract", "kader_name", "scale",
+                "assigned_by", "vazn_kol", "pishraft", "items",
+            ]
+
+    class PackageShrhDetailsInputSerializer(serializers.ModelSerializer):
+        kader_file = serializers.FileField(
+            required=False,
+            validators=[
+                FileExtensionValidator(
+                    allowed_extensions=["zip"],
+                    message="فایل کادر حتما باید با فرمت zip باشد",
+                )
+            ],
+        )
+        shrh_contract_ids = serializers.PrimaryKeyRelatedField(
+            many=True,
+            required=False,
+            queryset=ShrhContract.objects.all(),
+            error_messages={
+                "does_not_exist": "بند قرارداد با شناسه «{pk_value}» یافت نشد.",
+                "incorrect_type": "نوع آیدی بند قرارداد معتبر نمیباشد",
+            },
+        )
+
+        class Meta:
+            model = PackageShrh
+            fields = ["kader_file", "kader_name", "scale", "shrh_contract_ids"]
+
+        def validate_kader_file(self, f):
+            if f.size > 100 * 1024 * 1024:
+                raise serializers.ValidationError(f"File size cannot exceed 100 MB: {f.name}")
+            return f
+
+        def validate(self, attrs):
+            package = self.instance
+            contract_id = package.sherkat_contract.contract_id
+            scale = attrs["scale"] if "scale" in attrs else package.scale
+            if "shrh_contract_ids" in attrs:
+                items = attrs["shrh_contract_ids"]
+                if not items:
+                    raise serializers.ValidationError(
+                        {"shrh_contract_ids": "بسته باید حداقل یک بند داشته باشد؛ برای حذف کامل، خود بسته را حذف کنید"}
+                    )
+                if len(set(i.pk for i in items)) != len(items):
+                    raise serializers.ValidationError({"shrh_contract_ids": "آیدی بند تکراری است"})
+            else:
+                items = list(package.rbandha.all())
+
+            errors = {}
+            for item in items:
+                if item.contract_id != contract_id:
+                    errors[str(item.pk)] = "این بند متعلق به این قرارداد نیست"
+                elif item.package_id not in (None, package.pk):
+                    errors[str(item.pk)] = "این بند به بسته دیگری اختصاص داده شده است"
+                elif scale is not None and item.scale is not None and item.scale != scale:
+                    errors[str(item.pk)] = "مقیاس بند با مقیاس کادر بسته یکی نیست"
+            if errors:
+                raise serializers.ValidationError({"shrh_contract_ids": errors})
+            return attrs
+
+    def _get_package(self, contractid, id):
+        try:
+            return PackageShrh.objects.select_related(
+                "sherkat_contract__contract", "sherkat_contract__sherkat", "sherkat_contract__naghsh"
+            ).prefetch_related("rbandha__shrh_catalog").get(
+                pk=id, sherkat_contract__contract_id=contractid
+            ), None
+        except PackageShrh.DoesNotExist:
+            return None, Response(
+                {"detail": "بسته‌ای با این آیدی برای این قرارداد وجود ندارد"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+    def _can_manage(self, user, contract):
+        return user.is_superuser or bool(user.sherkat_id and user.sherkat_id == contract.moshaver_arshad_id)
+
+    def get(self, request: Request, contractid: str, id: int) -> Response:
+        user: User = request.user
+        package, error = self._get_package(contractid, id)
+        if error:
+            return error
+        contract = package.sherkat_contract.contract
+        if not user.is_superuser and not user.has_contract_access(contract):
+            return Response({"detail": "کاربر به این قرارداد دسترسی ندارد"}, status=status.HTTP_403_FORBIDDEN)
+
+        api_activity_logger.info(f"خواندن اطلاعات بسته {package}", extra=get_details_from_request(request))
+        return Response(
+            self.PackageShrhDetailsOutputSerializer(package, context={"request": request}).data
+        )
+
+    def put(self, request: Request, contractid: str, id: int) -> Response:
+        user: User = request.user
+        package, error = self._get_package(contractid, id)
+        if error:
+            return error
+        if not self._can_manage(user, package.sherkat_contract.contract):
+            return Response(
+                {"detail": "فقط مشاور ارشد این قرارداد می‌تواند بسته را ویرایش کند"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        serializer = self.PackageShrhDetailsInputSerializer(package, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        geometry = None
+        if "kader_file" in data:
+            ok, geometry, message = proccess_package_contract_kader__zipfile(data["kader_file"])
+            if not ok:
+                raise ValidationError({"kader_file": f"{data['kader_file'].name}: {message}"})
+
+        try:
+            with transaction.atomic():
+                if "kader_name" in data:
+                    package.kader_name = data["kader_name"]
+                if "scale" in data:
+                    package.scale = data["scale"]
+                if geometry is not None:
+                    package.kader = geometry
+                package.save()
+
+                if "shrh_contract_ids" in data:
+                    new_ids = set(i.pk for i in data["shrh_contract_ids"])
+                    current_ids = set(i.pk for i in package.rbandha.all())
+
+                    # آزاد کردن بندهای حذف‌شده از بسته
+                    for item in ShrhContract.objects.select_for_update().filter(pk__in=current_ids - new_ids):
+                        item.package = None
+                        item.save()
+                    # افزودن بندهای جدید (قفل + چک دوباره آزاد بودن)
+                    for item in ShrhContract.objects.select_for_update().filter(pk__in=new_ids - current_ids):
+                        if item.package_id is not None:
+                            raise ValidationError(
+                                {"shrh_contract_ids": f"بند {item.pk} قبلا به یک بسته اختصاص داده شده است"}
+                            )
+                        item.package = package
+                        item.save()
+        except DjangoValidationError as e:
+            raise ValidationError(e.message_dict if hasattr(e, "error_dict") else e.messages)
+
+        api_activity_logger.info(f"ویرایش بسته {package}", extra=get_details_from_request(request))
+        package, _ = self._get_package(contractid, id)  # تازه‌سازی prefetch بندها
+        return Response(
+            self.PackageShrhDetailsOutputSerializer(package, context={"request": request}).data
+        )
+
+    def delete(self, request: Request, contractid: str, id: int) -> Response:
+        user: User = request.user
+        package, error = self._get_package(contractid, id)
+        if error:
+            return error
+        if not self._can_manage(user, package.sherkat_contract.contract):
+            return Response(
+                {"detail": "فقط مشاور ارشد این قرارداد می‌تواند بسته را حذف کند"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        label = str(package)
+        package.delete()  # on_delete=SET_NULL: بندها آزاد می‌شوند
+        delete_logger.warning(f"حذف بسته {label}", extra=get_details_from_request(request))
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    
 
 
 # class SharhKhadamatLayerListApiView(SearchMixin, APIView):

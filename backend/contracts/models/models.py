@@ -1,5 +1,5 @@
 import uuid
-from datetime import timezone
+from django.utils import timezone
 
 from django.db import models
 from django.db.models import Q

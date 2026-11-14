@@ -20,7 +20,7 @@ from contracts.models.models import (
     Contract, ContractDomin, ContractElhaghye,
     Faz, Vahed, ShrhCatalog,
     NaghshSherkat, SherkatContract,
-    EkhtesasShrh, ShrhContract, ShrhLayer,
+    PackageShrh, ShrhContract, ShrhLayer,
     ShrhAttachmentDomain, ShrhAttachment, ShrhLayerComment,
 )
 
@@ -112,23 +112,23 @@ class ShrhCatalogAdmin(admin.ModelAdmin):
 
 @admin.register(SherkatContract)
 class SherkatContractAdmin(admin.ModelAdmin):
-    list_display = ("sherkat", "naghsh", "contract", "tedad_ekhtesas")
+    list_display = ("sherkat", "naghsh", "contract", "tedad_package")
     list_filter = ("naghsh",)
     search_fields = ("sherkat__name", "contract__title", "contract__number")
     autocomplete_fields = ("contract", "sherkat")
     list_select_related = ("sherkat", "naghsh", "contract")
 
     @admin.display(description="تعداد بسته‌ها")
-    def tedad_ekhtesas(self, obj):
-        return obj.rekhtesasha.count()
+    def tedad_package(self, obj):
+        return obj.rpackageha.count()
 
 
-# ───────────────────────── اختصاص (بستهٔ کار + کادر) ─────────────────────────
+# ───────────────────────── اختصاص پکیج (بستهٔ کار + کادر) ─────────────────────────
 
 class BandBasteInline(admin.TabularInline):
-    """بندهای یک بسته (فقط‌خواندنی؛ اختصاص از صفحهٔ «بندهای قرارداد» انجام می‌شود)."""
+    """بندهای یک بسته (فقط‌خواندنی؛ اختصاص پکیج از صفحهٔ «بندهای قرارداد» انجام می‌شود)."""
     model = ShrhContract
-    fk_name = "ekhtesas"
+    fk_name = "package"
     extra = 0
     can_delete = False
     fields = ("shrh_catalog", "scale", "percentage", "worked_percentage")
@@ -140,8 +140,8 @@ class BandBasteInline(admin.TabularInline):
         return False
 
 
-@admin.register(EkhtesasShrh)
-class EkhtesasShrhAdmin(gis_admin.GISModelAdmin):
+@admin.register(PackageShrh)
+class PackageShrhAdmin(gis_admin.GISModelAdmin):
     list_display = ("__str__", "contract_title", "scale", "tedad_band", "vazn", "pishraft_bar", "assigned_by")
     list_filter = ("scale", "sherkat_contract__naghsh")
     search_fields = ("kader_name", "sherkat_contract__sherkat__name", "sherkat_contract__contract__title")
@@ -270,18 +270,18 @@ class ShrhLayerCommentAdmin(admin.ModelAdmin):
 
 @admin.register(ShrhContract)
 class ShrhContractAdmin(WriterFormsetMixin, admin.ModelAdmin):
-    list_display = ("contract", "band", "scale", "percentage", "completion_bar", "sherkat", "ekhtesas_vaziat")
+    list_display = ("contract", "band", "scale", "percentage", "completion_bar", "sherkat", "package_vaziat")
     list_filter = ("scale", "shrh_catalog__faz", "contract")
     search_fields = ("contract__title", "shrh_catalog__title",)
-    autocomplete_fields = ("contract", "shrh_catalog", "ekhtesas")
-    list_select_related = ("contract", "shrh_catalog", "ekhtesas__sherkat_contract__sherkat")
+    autocomplete_fields = ("contract", "shrh_catalog", "package")
+    list_select_related = ("contract", "shrh_catalog", "package__sherkat_contract__sherkat")
     list_per_page = 40
-    actions = ["khali_kardan_ekhtesas"]
+    actions = ["khali_kardan_package"]
     inlines = [ShrhAttachmentInline]
     fieldsets = (
         ("قرارداد و بند", {"fields": ("contract", "shrh_catalog", "scale")}),
         ("وزن و پیشرفت", {"fields": ("percentage", "worked_percentage")}),
-        ("اختصاص", {"fields": ("ekhtesas",)}),
+        ("اختصاص پکیج", {"fields": ("package",)}),
     )
 
     @admin.display(description="بند", ordering="shrh_catalog__title")
@@ -294,16 +294,16 @@ class ShrhContractAdmin(WriterFormsetMixin, admin.ModelAdmin):
 
     @admin.display(description="شرکت")
     def sherkat(self, obj):
-        return obj.ekhtesas.sherkat_contract.sherkat if obj.ekhtesas_id else "—"
+        return obj.package.sherkat_contract.sherkat if obj.package_id else "—"
 
-    @admin.display(description="وضعیت اختصاص")
-    def ekhtesas_vaziat(self, obj):
-        return badge("اختصاص‌یافته", "#16a34a") if obj.ekhtesas_id else badge("بدون اختصاص", "#6b7280")
+    @admin.display(description="وضعیت اختصاص پکیج")
+    def package_vaziat(self, obj):
+        return badge("اختصاص پکیج‌یافته", "#16a34a") if obj.package_id else badge("بدون اختصاص پکیج", "#6b7280")
 
-    @admin.action(description="خالی کردن اختصاص بندهای انتخاب‌شده")
-    def khali_kardan_ekhtesas(self, request, queryset):
-        n = queryset.update(ekhtesas=None)
-        self.message_user(request, f"اختصاص {n} بند برداشته شد.", messages.SUCCESS)
+    @admin.action(description="خالی کردن اختصاص پکیج بندهای انتخاب‌شده")
+    def khali_kardan_package(self, request, queryset):
+        n = queryset.update(package=None)
+        self.message_user(request, f"اختصاص پکیج {n} بند برداشته شد.", messages.SUCCESS)
 
 
 # ───────────────────────── لایه‌ها ─────────────────────────
